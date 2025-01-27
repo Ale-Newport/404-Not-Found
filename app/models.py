@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -61,16 +61,17 @@ class Admin(AbstractUser):
         verbose_name_plural = 'Admins'
 
 class Employee(AbstractUser):
-    # add custom fields here
+    """Job seeker user type."""
+    country = models.CharField(max_length=100, blank=True)
 
-    class Meta:
-        verbose_name = 'Employee'
-        verbose_name_plural = 'Employees'
+    def __str__(self):
+        return f"{self.email} (Employee)"
+
 
 class Employer(AbstractUser):
-    company_name = models.CharField(max_length=255)
-    # add more custom fields here
+    """Employer user type."""
+    country = models.CharField(max_length=100, blank=True)
+    company_name = models.CharField(max_length=255, blank=True)
 
-    class Meta:
-        verbose_name = 'Employer'
-        verbose_name_plural = 'Employers'
+    def __str__(self):
+        return f"{self.email} (Employer) - {self.company_name}"
