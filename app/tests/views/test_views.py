@@ -65,3 +65,25 @@ class SignUpViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Employer.objects.filter(email='invalid-email').exists())
         self.assertTrue('form' in response.context)
+
+class WelcomePageTest(TestCase):
+    def test_welcome_page_status_code(self):
+        response = self.client.get(reverse('home'))  
+        self.assertEqual(response.status_code, 200)
+
+    def test_welcome_page_template_used(self):
+        response = self.client.get(reverse('home'))
+        self.assertTemplateUsed(response, 'home.html')  
+
+    def test_welcome_page_content(self):
+        response = self.client.get(reverse('home'))
+        self.assertContains(response, "Welcome to the Job Hiring Website") 
+        self.assertContains(response, "Sign Up as Job Seeker") 
+        self.assertContains(response, "Sign Up as Employer") 
+        self.assertContains(response, "Log in here")  
+
+    def test_welcome_page_links(self):
+        response = self.client.get(reverse('home'))
+        self.assertContains(response, reverse('employee_signup')) 
+        self.assertContains(response, reverse('employer_signup'))  
+        self.assertContains(response, reverse('login')) 

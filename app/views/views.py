@@ -20,3 +20,6 @@ def employer_signup(request):
     else:
         form = EmployerSignUpForm()
     return render(request, 'employer_signup.html', {'form': form})
+
+def home(request):
+    return render(request, 'home.html')

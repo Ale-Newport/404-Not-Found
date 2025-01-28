@@ -1,0 +1,15 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h1 class="display-4">Welcome to the Job Hiring Website</h1>
+    <p class="lead">Find your dream job or your next great hire!</p>
+    <div class="mt-4">
+        <a href="{% url 'employee_signup' %}" class="btn btn-primary btn-lg me-2">Sign Up as Job Seeker</a>
+        <a href="{% url 'employer_signup' %}" class="btn btn-secondary btn-lg">Sign Up as Employer</a>
+    </div>
+    <div class="mt-3">
+        <p>Already have an account? <a href="{% url 'login' %}">Log in here</a>.</p>
+    </div>
+</div>
+{% endblock %}
