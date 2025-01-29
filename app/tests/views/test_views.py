@@ -2,6 +2,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from app.models import Employee, Employer
+from django.contrib.auth import authenticate
 
 class SignUpViewsTest(TestCase):
     def setUp(self):
@@ -87,3 +88,48 @@ class WelcomePageTest(TestCase):
         self.assertContains(response, reverse('employee_signup')) 
         self.assertContains(response, reverse('employer_signup'))  
         self.assertContains(response, reverse('login')) 
+
+class ViewsTestCase(TestCase):
+    def setUp(self):
+        self.employee = Employee.objects.create_user(
+            email="employee@test.com",
+            password="testpass",
+            first_name="John",
+            last_name="Doe",
+            country="USA"
+        )
+
+        self.employer = Employer.objects.create_user(
+            email="employer@test.com",
+            password="testpass",
+            first_name="Jane",
+            last_name="Smith",
+            country="UK",
+            company_name="Tech Corp"
+        )
+
+    def test_home_view(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_employee_login(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'employee@test.com',
+            'password': 'testpass',
+        })
+        self.assertRedirects(response, reverse('employee_dashboard'))
+
+    def test_employer_login(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'employer@test.com',
+            'password': 'testpass',
+        })
+        self.assertRedirects(response, reverse('employer_dashboard'))
+
+    def test_invalid_login(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'nonexistent@test.com',
+            'password': 'wrongpass',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Invalid username or password")
