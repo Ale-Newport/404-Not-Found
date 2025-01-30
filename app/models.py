@@ -56,6 +56,15 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 class Admin(AbstractUser):
     # add custom fields here
 
+    def save(self, *args, **kwargs):
+        """Ensure admin users have staff/superuser status"""
+        self.is_staff = True
+        self.is_superuser = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email} (Admin)"
+
     class Meta:
         verbose_name = 'Admin'
         verbose_name_plural = 'Admins'
