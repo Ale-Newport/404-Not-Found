@@ -3,6 +3,7 @@ from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from app.models import Employee, Employer
 
 def employee_signup(request):
     if request.method == 'POST':
