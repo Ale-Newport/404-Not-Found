@@ -37,6 +37,11 @@
                         {% if form.errors %}
                             <div class="alert alert-danger">
                                 Please correct the errors below.
+                                {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endif %}
                         <button type="submit" class="btn btn-primary w-100 py-2">Create Account</button>
