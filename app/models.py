@@ -1,3 +1,4 @@
+# models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
 
@@ -69,6 +70,7 @@ class Admin(AbstractUser):
 class Employee(AbstractUser):
     """Job seeker user type."""
     country = models.CharField(max_length=100, blank=True)
+    password = models.CharField(max_length=128, blank=False)
 
     def __str__(self):
         return f"{self.email} (Employee)"
@@ -78,6 +80,17 @@ class Employer(AbstractUser):
     """Employer user type."""
     country = models.CharField(max_length=100, blank=True)
     company_name = models.CharField(max_length=255, blank=True)
+class Employer(AbstractUser):
+    """Employer user type."""
+    country = models.CharField(max_length=100, blank=False)
+    company_name = models.CharField(max_length=255, blank=False)
+    
+    password = models.CharField(max_length=128, blank=False)
+
+    industry = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    number_of_employees = models.PositiveIntegerField(blank=True, null=True)
+    company_cv = models.FileField(upload_to='company_cvs/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.email} (Employer) - {self.company_name}"

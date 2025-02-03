@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm
+from app.forms.forms import EmployeeSignUpForm, EmployerCompanyInfoForm, EmployerSignUpForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -48,6 +48,21 @@ def user_login(request):
     else:
         return render(request, 'login.html')
 
+@login_required
+def employer_company_info(request):
+    
+    if not isinstance(request.user, Employer):
+        return HttpResponse("Unauthorized", status=401)
+    
+    if request.method == 'POST':
+        
+        form = EmployerCompanyInfoForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('employer_dashboard')
+    else:
+        form = EmployerCompanyInfoForm(instance=request.user)
+    return render(request, 'employer_company_info.html', {'form': form})
 
 @login_required
 def employer_dashboard(request):

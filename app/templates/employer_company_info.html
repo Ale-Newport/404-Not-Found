@@ -1,0 +1,45 @@
+{# app/templates/employer_company_info.html #}
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Company Information</h2>
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Company Name</label>
+                            {{ form.company_name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Industry</label>
+                            {{ form.industry }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            {{ form.location }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Number of Employees</label>
+                            {{ form.number_of_employees }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Upload Company CV</label>
+                            {{ form.company_cv }}
+                        </div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                Please correct the errors below.
+                            </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary w-100 py-2">Save Company Info</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -55,7 +55,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [],  # You can add template directories here if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -127,4 +127,9 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend', 
 ]
 
-# AUTH_USER_MODEL = 'app.AbstractUser' ## Decide main user model after
+# AUTH_USER_MODEL = 'app.AbstractUser'  # Uncomment and set this if you decide to use a custom user model
+
+# --- MEDIA FILES SETTINGS ---
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
