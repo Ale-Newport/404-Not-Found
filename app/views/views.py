@@ -6,7 +6,6 @@ from django.http import HttpResponse
 from app.models import Employee, Employer
 from django.views.decorators.csrf import csrf_protect
 
-
 def employee_signup(request):
     if request.method == 'POST':
         form = EmployeeSignUpForm(request.POST)

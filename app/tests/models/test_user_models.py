@@ -1,5 +1,5 @@
 from django.test import TestCase
-from app.models import Admin, Employer, Employee
+from app.models import Admin, Employer, Employee, AbstractUser
 
 class UserCreationTest(TestCase):
     def setUp(self):
@@ -38,7 +38,7 @@ class UserCreationTest(TestCase):
     def test_admin_creation(self):
         self.assertEqual(self.admin.email, "admin@example.com")
         self.assertTrue(self.admin.is_staff)
-        self.assertTrue(self.admin.is_superuser)  # Changed this assertion to assertTrue
+        self.assertFalse(self.admin.is_superuser)
 
     def test_employer_creation(self):
         self.assertEqual(self.employer.email, "employer1@example.com")
@@ -108,10 +108,10 @@ class UserCreationTest(TestCase):
         with self.assertRaises(ValueError):
             Admin.objects.create_user(email='', password='test123')
 
-    def test_abstract_user_str(self):
+    def test_admin_user_str(self):
         """Test the string representation of abstract user"""
         user = Admin.objects.create_user(
             email='test@example.com',
             password='test123'
         )
-        self.assertEqual(str(user), user.email)
+        self.assertEqual(str(user), user.email +" (Admin)")

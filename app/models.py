@@ -50,9 +50,6 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         abstract = True
 
-    def __str__(self):
-        return self.email
-
 class Admin(AbstractUser):
     # add custom fields here
 
