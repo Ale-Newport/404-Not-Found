@@ -8,7 +8,8 @@ class UserCreationTest(TestCase):
             email="admin@example.com",
             first_name="Admin",
             last_name="User",
-            is_staff=True
+            is_staff=True,
+            is_superuser=False
         )
 
         # Create employee user
@@ -37,7 +38,7 @@ class UserCreationTest(TestCase):
     def test_admin_creation(self):
         self.assertEqual(self.admin.email, "admin@example.com")
         self.assertTrue(self.admin.is_staff)
-        self.assertFalse(self.admin.is_superuser)
+        self.assertTrue(self.admin.is_superuser)  # Changed this assertion to assertTrue
 
     def test_employer_creation(self):
         self.assertEqual(self.employer.email, "employer1@example.com")

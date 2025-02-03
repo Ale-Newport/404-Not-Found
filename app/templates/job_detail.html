@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ job.name }} - Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'custom.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">Job Hiring App</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'account_page' %}">Account</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h2>{{ job.name }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><strong>Department:</strong> {{ job.department }}</p>
+                        <p><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
+                        <p><strong>Salary:</strong> ${{ job.salary }}</p>
+                        {% if job.bonus %}
+                            <p><strong>Bonus:</strong> ${{ job.bonus }}</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Description</h4>
+                        <p>{{ job.description }}</p>
+                        <hr>
+                        <h4>Required Skills</h4>
+                        <p>{{ job.skills_needed }}</p>
+                        {% if job.skills_wanted %}
+                            <h4>Preferred Skills</h4>
+                            <p>{{ job.skills_wanted }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Details</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">Posted on: {{ job.created_at|date:"M d, Y" }}</small>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">Total Applicants: {{ applicants|length }}</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header">
+                <h3>Applicants</h3>
+            </div>
+            <div class="card-body">
+                {% if applicants %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Applied Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for applicant in applicants %}
+                                    <tr>
+                                        <td>{{ applicant.first_name }} {{ applicant.last_name }}</td>
+                                        <td>{{ applicant.email }}</td>
+                                        <td>{{ applicant.applied_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">View Profile</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center">No applicants yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

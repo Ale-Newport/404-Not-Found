@@ -1,8 +1,11 @@
 # app/tests/views/test_views.py
 from django.test import TestCase, Client
 from django.urls import reverse
-from app.models import Employee, Employer
+from app.models import Admin, Employee, Employer
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class SignUpViewsTest(TestCase):
     def setUp(self):
@@ -133,3 +136,60 @@ class ViewsTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Invalid username or password")
+
+    # Add these test methods to your ViewsTestCase class
+
+    def test_employee_signup_get(self):
+        """Test GET request to employee signup page"""
+        response = self.client.get(reverse('employee_signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'employee_signup.html')
+
+    def test_employee_signup_post_invalid(self):
+        """Test POST request to employee signup with invalid data"""
+        response = self.client.post(reverse('employee_signup'), {})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertIn('form', response.context)
+
+    def test_employer_signup_invalid_form(self):
+        """Test employer signup with invalid form data"""
+        response = self.client.post(reverse('employer_signup'), {
+            'email': 'invalid-email',  # Invalid email format
+            'password1': 'pass1',
+            'password2': 'pass2',  # Passwords don't match
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'employer_signup.html')
+
+    def test_login_get_request(self):
+        """Test GET request to login page"""
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'login.html')
+
+    def test_login_with_invalid_credentials(self):
+        """Test login attempt with invalid credentials"""
+        response = self.client.post(reverse('login'), {
+            'username': 'nonexistent@test.com',
+            'password': 'wrongpassword'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Invalid username or password')
+
+    def test_login_invalid_user_type(self):
+        """Test login with a user that doesn't match known types"""
+        # We'll use Admin model since it's neither Employee nor Employer
+        user = Admin.objects.create_user(
+            email='generic@test.com',
+            password='testpass123',
+            first_name='Test',
+            last_name='User'
+        )
+        
+        response = self.client.post(reverse('login'), {
+            'username': 'generic@test.com',
+            'password': 'testpass123'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Invalid user type')

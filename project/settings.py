@@ -44,12 +44,11 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # Make sure this is present
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'project.urls'
 
 TEMPLATES = [
@@ -127,4 +126,9 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend', 
 ]
 
+AUTH_USER_MODEL = 'app.Employer' 
+
 # AUTH_USER_MODEL = 'app.AbstractUser' ## Decide main user model after
+
+LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = 'login'
