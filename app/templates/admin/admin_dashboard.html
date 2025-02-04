@@ -1,0 +1,28 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mt-3">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100" onclick="location.href='{% url 'list_users' %}'" style="cursor: pointer;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-users"></i> Users</h3>
+                    <p class="card-text">Total Users: {{ total_users }}</p>
+                    <p class="card-text">Employees: {{ employee_users }}</p>
+                    <p class="card-text">Employers: {{ employer_users }}</p>
+                    <p class="card-text">Admins: {{ admin_users }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100" onclick="location.href='{% url 'list_jobs' %}'" style="cursor: pointer;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-book"></i> Jobs</h3>
+                    <p class="card-text">Total Jobs: {{ total_jobs }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

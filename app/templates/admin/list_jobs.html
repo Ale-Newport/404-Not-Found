@@ -1,0 +1,124 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-4">Jobs</h1>
+
+    <!-- Filter, Search, and Order Form -->
+    <form method="get" class="mb-3">
+        <div class="row">
+            <div class="col-md-2">
+                <select name="employer" class="form-control">
+                    <option value="">All Employers</option>
+                    {% for employer in employers_with_jobs %}
+                    <option value="{{ employer.id }}" {% if request.GET.employer == employer.id|stringformat:"s" %}selected{% endif %}>{{ employer }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="job_type" class="form-control">
+                    <option value="">All Job Types</option>
+                    {% for job_type in job_types %}
+                    <option value="{{ job_type }}" {% if request.GET.job_type == job_type|stringformat:"s" %}selected{% endif %}>{{ job_type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="department" class="form-control">
+                    <option value="">All Departments</option>
+                    {% for departments in department %}
+                    <option value="{{ department }}" {% if request.GET.department == department|stringformat:"s" %}selected{% endif %}>{{ department }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-10">
+                <input type="text" name="search" class="form-control" placeholder="Search" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'name' %}order_by=-name{% else %}order_by=name{% endif %}">
+                        Name
+                        {% if request.GET.order_by == 'name' %}
+                            <i class="fa fa-angle-down"></i>
+                        {% elif request.GET.order_by == '-name' %}
+                            <i class="fa fa-angle-up"></i>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'created_by' %}order_by=-created_by{% else %}order_by=created_by{% endif %}">
+                        Employer
+                        {% if request.GET.order_by == 'created_by' %}
+                            <i class="fa fa-angle-down"></i>
+                        {% elif request.GET.order_by == '-created_by' %}
+                            <i class="fa fa-angle-up"></i>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'department' %}order_by=-department{% else %}order_by=department{% endif %}">
+                        Department
+                        {% if request.GET.order_by == 'department' %}
+                            <i class="fa fa-angle-down"></i>
+                        {% elif request.GET.order_by == '-department' %}
+                            <i class="fa fa-angle-up"></i>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'salary' %}order_by=-salary{% else %}order_by=salary{% endif %}">
+                        Salary
+                        {% if request.GET.order_by == 'salary' %}
+                            <i class="fa fa-angle-down"></i>
+                        {% elif request.GET.order_by == '-salary' %}
+                            <i class="fa fa-angle-up"></i>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'job_type' %}order_by=-job_type{% else %}order_by=job_type{% endif %}">
+                        Job Type
+                        {% if request.GET.order_by == 'job_type' %}
+                            <i class="fa fa-angle-down"></i>
+                        {% elif request.GET.order_by == '-job_type' %}
+                            <i class="fa fa-angle-up"></i>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'created_at' %}order_by=-created_at{% else %}order_by=created_at{% endif %}">
+                        Creation Date
+                        {% if request.GET.order_by == 'created_at' %}
+                            <i class="fa fa-angle-down"></i>
+                        {% elif request.GET.order_by == '-created_at' %}
+                            <i class="fa fa-angle-up"></i>
+                        {% endif %}
+                    </a>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.name }}</td>
+                <td>{{ job.created_by }}</td>
+                <td>{{ job.department }}</td>
+                <td>{{ job.salary }}</td>
+                <td>{{ job.job_type }}</td>
+                <td>{{ job.created_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
