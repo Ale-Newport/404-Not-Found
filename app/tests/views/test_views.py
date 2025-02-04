@@ -16,6 +16,7 @@ class SignUpViewsTest(TestCase):
         self.valid_employee_data = {
             'first_name': 'John',
             'last_name': 'Doe',
+            'username': 'john',
             'email': 'john@example.com',
             'country': 'US',
             'password1': 'TestPass123!',
@@ -25,6 +26,7 @@ class SignUpViewsTest(TestCase):
         self.valid_employer_data = {
             'first_name': 'Jane',
             'last_name': 'Smith',
+            'username': 'jane',
             'email': 'jane@company.com',
             'country': 'UK',
             'company_name': 'Test Company',
@@ -95,6 +97,7 @@ class WelcomePageTest(TestCase):
 class ViewsTestCase(TestCase):
     def setUp(self):
         self.employee = Employee.objects.create_user(
+            username="employee",
             email="employee@test.com",
             password="testpass",
             first_name="John",
@@ -103,6 +106,7 @@ class ViewsTestCase(TestCase):
         )
 
         self.employer = Employer.objects.create_user(
+            username="employer",
             email="employer@test.com",
             password="testpass",
             first_name="Jane",
@@ -157,9 +161,10 @@ class ViewsTestCase(TestCase):
     def test_employer_signup_invalid_form(self):
         """Test employer signup with invalid form data"""
         response = self.client.post(reverse('employer_signup'), {
-            'email': 'invalid-email',  # Invalid email format
+            'username': 'employer',
+            'email': 'invalid-email',
             'password1': 'pass1',
-            'password2': 'pass2',  # Passwords don't match
+            'password2': 'pass2',
         })
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'employer_signup.html')
@@ -183,6 +188,7 @@ class ViewsTestCase(TestCase):
         """Test login with a user that doesn't match known types"""
         # We'll use Admin model since it's neither Employee nor Employer
         user = Admin.objects.create_user(
+            username='generic',
             email='generic@test.com',
             password='testpass123',
             first_name='Test',

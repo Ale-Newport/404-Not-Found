@@ -5,6 +5,7 @@ from decimal import Decimal
 class JobModelTest(TestCase):
     def setUp(self):
         self.employer = Employer.objects.create_user(
+            username="employer",
             email="employer@test.com",
             password="testpass123",
             first_name="Test",

@@ -5,6 +5,7 @@ class UserCreationTest(TestCase):
     def setUp(self):
         # Create admin user
         self.admin = Admin.objects.create(
+            username="admin",
             email="admin@example.com",
             first_name="Admin",
             last_name="User",
@@ -14,6 +15,7 @@ class UserCreationTest(TestCase):
 
         # Create employee user
         self.employee = Employee.objects.create(
+            username="employee",
             email="employee1@example.com",
             first_name="Test",  # Match this with what you're testing
             last_name="Employee",
@@ -22,6 +24,7 @@ class UserCreationTest(TestCase):
         
         # Create employer user
         self.employer = Employer.objects.create(
+            username="employer",
             email="employer1@example.com",
             first_name="Test",
             last_name="Employer",
@@ -47,16 +50,17 @@ class UserCreationTest(TestCase):
 
     def test_employee_creation(self):
         self.assertEqual(self.employee.email, "employee1@example.com")
-        self.assertEqual(self.employee.first_name, "Test")  # Changed from "John" to "Test"
+        self.assertEqual(self.employee.first_name, "Test")
         self.assertEqual(self.employee.last_name, "Employee")
         self.assertTrue(self.employee.is_active)
 
     def test_invalid_user_creation(self):
         with self.assertRaises(ValueError):
-            Admin.objects.create_user(email=None, password="password123")
+            Admin.objects.create_user(username='test', email=None, password="password123")
 
     def test_superuser_creation(self):
         superuser = Admin.objects.create_superuser(
+            username="superadmin",
             email="superadmin@example.com", 
             password="adminpassword"
         )
@@ -66,6 +70,7 @@ class UserCreationTest(TestCase):
     def test_superuser_invalid_is_staff(self):
         with self.assertRaises(ValueError) as context:
             Admin.objects.create_superuser(
+                username="superadmin2",
                 email="superadmin2@example.com", 
                 password="adminpassword", 
                 is_staff=False
@@ -75,6 +80,7 @@ class UserCreationTest(TestCase):
     def test_superuser_invalid_is_superuser(self):
         with self.assertRaises(ValueError) as context:
             Admin.objects.create_superuser(
+                username="superadmin3",
                 email="superadmin3@example.com", 
                 password="adminpassword", 
                 is_superuser=False
@@ -89,6 +95,7 @@ class UserCreationTest(TestCase):
             'is_staff': True
         }
         user = Admin.objects.create_user(
+            username='testuser',
             email='extrafields@test.com',
             password='testpass123',
             **extra_fields
@@ -100,17 +107,18 @@ class UserCreationTest(TestCase):
     def test_create_user_normalizes_email(self):
         """Test email is normalized when creating user"""
         email = 'test@EXAMPLE.com'
-        user = Admin.objects.create_user(email=email, password='test123')
+        user = Admin.objects.create_user(username='test', email=email, password='test123')
         self.assertEqual(user.email, email.lower())
 
     def test_create_user_invalid_email(self):
         """Test creating user with no email raises error"""
         with self.assertRaises(ValueError):
-            Admin.objects.create_user(email='', password='test123')
+            Admin.objects.create_user(username='test', email='', password='test123')
 
     def test_admin_user_str(self):
         """Test the string representation of abstract user"""
         user = Admin.objects.create_user(
+            username='test',
             email='test@example.com',
             password='test123'
         )

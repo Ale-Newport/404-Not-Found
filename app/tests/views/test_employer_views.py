@@ -7,6 +7,7 @@ class EmployerViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.employer = Employer.objects.create_user(
+            username="employer",
             email="employer@test.com",
             password="testpass123",
             first_name="Test",
@@ -42,7 +43,7 @@ class EmployerViewsTest(TestCase):
 
     def test_employer_dashboard_with_login(self):
         """Test employer dashboard when logged in"""
-        self.client.login(email="employer@test.com", password="testpass123")
+        self.client.login(username='employer', password="testpass123")
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'employer_dashboard.html')
@@ -50,14 +51,14 @@ class EmployerViewsTest(TestCase):
 
     def test_add_job_get(self):
         """Test getting the add job form"""
-        self.client.login(email="employer@test.com", password="testpass123")
+        self.client.login(username='employer',  password="testpass123")
         response = self.client.get(self.add_job_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'add_job.html')
 
     def test_add_job_post(self):
         """Test creating a new job"""
-        self.client.login(email="employer@test.com", password="testpass123")
+        self.client.login(username='employer', password="testpass123")
         job_data = {
             'name': 'Frontend Developer',
             'department': 'Engineering',
@@ -72,7 +73,7 @@ class EmployerViewsTest(TestCase):
 
     def test_job_detail_view(self):
         """Test viewing job details"""
-        self.client.login(email="employer@test.com", password="testpass123")
+        self.client.login(username='employer', password="testpass123")
         response = self.client.get(self.job_detail_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'job_detail.html')
@@ -81,7 +82,7 @@ class EmployerViewsTest(TestCase):
 
     def test_account_page(self):
         """Test viewing account details"""
-        self.client.login(email="employer@test.com", password="testpass123")
+        self.client.login(username='employer', password="testpass123")
         response = self.client.get(self.account_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'account_page.html')
@@ -90,6 +91,7 @@ class EmployerViewsTest(TestCase):
     def test_unauthorized_job_detail_access(self):
         """Test that employers can't view other employers' job details"""
         other_employer = Employer.objects.create_user(
+            username="other",
             email="other@test.com",
             password="testpass123",
             company_name="Other Company"
@@ -104,7 +106,7 @@ class EmployerViewsTest(TestCase):
             created_by=other_employer
         )
         
-        self.client.login(email="employer@test.com", password="testpass123")
+        self.client.login(username='employer', password="testpass123")
         response = self.client.get(
             reverse('job_detail', args=[other_job.id])
         )
