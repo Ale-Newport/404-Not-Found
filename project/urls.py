@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from app.views.views import employee_signup, employer_signup, home, employee_dashboard, employer_dashboard, user_login
+from app.views.views import employee_signup, employee_signup_2, employee_signup_3, employer_signup, home, employee_dashboard, employer_dashboard, user_login
 from app.views.employer_views import add_job, job_detail, employer_dashboard, account_page
 
 
@@ -14,6 +14,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
     # Sign-up routes
     path('employee-signup/', employee_signup, name='employee_signup'),
+    path("employee-signup/step2/", employee_signup_2, name="employee_signup_2"),
+    path("employee-signup/step3/", employee_signup_3, name="employee_signup_3"),
     path('employer-signup/', employer_signup, name='employer_signup'),
     # Dashboard paths
     path('employee-dashboard/', employee_dashboard, name='employee_dashboard'),

@@ -1,46 +1,39 @@
 {% extends 'base_content.html' %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-body p-4">
-                    <h2 class="text-center mb-4">Create Job Seeker Account</h2>
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">First Name</label>
-                                {{ form.first_name }}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Last Name</label>
-                                {{ form.last_name }}
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            {{ form.email }}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Country</label>
-                            {{ form.country }}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            {{ form.password1 }}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Confirm Password</label>
-                            {{ form.password2 }}
-                        </div>
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                Please correct the errors below.
-                            </div>
+                    <h2 class="text-center mb-4">
+                        {% if step == 1 %} Create Job Seeker Account
+                        {% elif step == 2 %} Upload Your CV
+                        {% elif step == 3 %} Choose Your Interests
                         {% endif %}
-                        <button type="submit" class="btn btn-primary w-100 py-2">Create Account</button>
-                    </form>
+                    </h2>
+
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|capfirst }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Dynamically Load the Correct Step Form -->
+                    {% if step == 1 %}
+                        {% include "partials/_step1_form.html" %}
+                    {% elif step == 2 %}
+                        {% include "partials/_step2_cv_upload.html" %}
+                    {% elif step == 3 %}
+                        {% include "partials/_step3_interests.html" %}
+                    {% endif %}
                 </div>
             </div>
         </div>
