@@ -1,4 +1,5 @@
 {% extends 'base_content.html' %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -47,9 +48,34 @@
                                     </div>
                                 {% endif %}
                             </div>
+                    <h2 class="text-center mb-4">
+                        {% if step == 1 %} Create Job Seeker Account
+                        {% elif step == 2 %} Upload Your CV
+                        {% elif step == 3 %} Choose Your Interests
                         {% endif %}
-                        <button type="submit" class="btn btn-primary w-100 py-2">Create Account</button>
-                    </form>
+                    </h2>
+
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|capfirst }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Dynamically Load the Correct Step Form -->
+                    {% if step == 1 %}
+                        {% include "partials/_step1_form.html" %}
+                    {% elif step == 2 %}
+                        {% include "partials/_step2_cv_upload.html" %}
+                    {% elif step == 3 %}
+                        {% include "partials/_step3_interests.html" %}
+                    {% endif %}
                 </div>
             </div>
         </div>

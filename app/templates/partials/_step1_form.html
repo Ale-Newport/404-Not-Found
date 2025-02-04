@@ -1,0 +1,33 @@
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">First Name</label>
+            {{ form.first_name }}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Last Name</label>
+            {{ form.last_name }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        {{ form.email }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Country</label>
+        {{ form.country }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        {{ form.password1 }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        {{ form.password2 }}
+    </div>
+    {% if form.errors %}
+        <div class="alert alert-danger">Please correct the errors below.</div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary w-100 py-2">Next</button>
+</form>

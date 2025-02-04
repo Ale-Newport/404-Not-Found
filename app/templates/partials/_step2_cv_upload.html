@@ -1,0 +1,8 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Upload Your CV (PDF)</label>
+        <input type="file" name="cv" class="form-control" accept=".pdf" required>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 py-2">Next</button>
+</form>

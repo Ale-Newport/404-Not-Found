@@ -6,19 +6,66 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from app.models import Employee, Employer, Admin
+from django.views.decorators.csrf import csrf_protect
+from django.core.files.storage import FileSystemStorage
 
 def home(request):
     return render(request, 'home.html')
 
 def employee_signup(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = EmployeeSignUpForm(request.POST)
         if form.is_valid():
-            form.save()  # Saves the new Employee user
-            return redirect('login')  # or wherever you want
+            request.session["signup_data"] = request.POST  # Store in session
+            return redirect("employee_signup_2")  # Move to Step 2
     else:
         form = EmployeeSignUpForm()
-    return render(request, 'employee_signup.html', {'form': form})
+    
+    return render(request, "employee_signup.html", {"form": form, "step": 1})
+
+
+def employee_signup_2(request):
+    if request.method == "POST" and request.FILES.get("cv"):
+        cv_file = request.FILES["cv"]
+        fs = FileSystemStorage()
+        filename = fs.save(cv_file.name, cv_file)  # Save file to storage
+        request.session["cv_filename"] = filename  # Store file reference
+        return redirect("employee_signup_3")  # Move to step 3
+
+    return render(request, "employee_signup.html", {"step": 2})
+
+
+def employee_signup_3(request):
+    """Step 3: Select Interests & Finalize Signup."""
+    if request.method == "POST":
+        interests = request.POST.getlist("interests")  # Capture selected interests
+        request.session["interests"] = interests  # Store in session
+
+        # Retrieve stored session data to create the Employee
+        signup_data = request.session.get("signup_data", {})
+        email = signup_data.get("email")
+        password = signup_data.get("password")
+
+        # Create Employee object (use create_user for hashed passwords)
+        employee = Employee.objects.create_user(
+            email=email,
+            password=password,
+            first_name=signup_data.get("first_name"),
+            last_name=signup_data.get("last_name"),
+            country=signup_data.get("country"),
+        )
+
+        # Store CV filename and interests
+        employee.cv_filename = request.session.get("cv_filename")  # Associate CV
+        employee.interests = ", ".join(interests)  # Store interests as string
+        employee.save()
+
+        # Log the user in and redirect
+        login(request, employee)
+        return redirect("employee_dashboard")
+
+    return render(request, "employee_signup.html", {"step": 3})
+
 
 def employer_signup(request):
     if request.method == 'POST':
