@@ -1,21 +1,28 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from app.models import Employee, Employer, Job
+from app.models import User, Admin, Employee, Employer, Job
+from django.contrib.auth import authenticate
 
 
-from app.models import Employee, Employer
+class LogInForm(forms.Form):
+    """Form enabling registered users to log in."""
+    username = forms.CharField(label="Username")
+    password = forms.CharField(label="Password", widget=forms.PasswordInput())
+
+    def get_user(self):
+        """Returns authenticated user if possible."""
+        user = None
+        if self.is_valid():
+            username = self.cleaned_data.get('username')
+            password = self.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+        return user
+
 
 class EmployeeSignUpForm(UserCreationForm):
     class Meta:
         model = Employee
-        fields = [
-            'first_name',
-            'last_name',
-            'email',
-            'country',
-            'password1',
-            'password2',
-        ]
+        fields = ['first_name', 'last_name', 'username', 'email', 'country', 'password1','password2']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,7 +32,7 @@ class EmployeeSignUpForm(UserCreationForm):
 class EmployerSignUpForm(UserCreationForm):
     class Meta:
         model = Employer
-        fields = ['first_name', 'last_name', 'email', 'country', 'company_name', 'password1', 'password2']
+        fields = ['first_name', 'last_name', 'username', 'email', 'country', 'company_name', 'password1', 'password2']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

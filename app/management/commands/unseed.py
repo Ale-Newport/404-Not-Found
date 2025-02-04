@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app.models import Admin, Employee, Employer
+from app.models import Admin, Employee, Employer, Job
 
 class Command(BaseCommand):
     """Build automation command to unseed the database."""
@@ -12,3 +12,4 @@ class Command(BaseCommand):
         Admin.objects.all().delete()
         Employee.objects.all().delete()
         Employer.objects.all().delete()
+        Job.objects.all().delete()

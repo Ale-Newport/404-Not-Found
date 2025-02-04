@@ -1,10 +1,14 @@
 from django.shortcuts import render, redirect
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm
-from django.contrib.auth import authenticate, login
+from django.urls import reverse
+from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, LogInForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from app.models import Employee, Employer
-from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth import login, logout
+from django.contrib import messages
+from app.models import Employee, Employer, Admin
+
+def home(request):
+    return render(request, 'home.html')
 
 def employee_signup(request):
     if request.method == 'POST':
@@ -29,33 +33,37 @@ def employer_signup(request):
         form = EmployerSignUpForm()
     return render(request, 'employer_signup.html', {'form': form})
 
-def home(request):
-    return render(request, 'home.html')
-
-@csrf_protect
 def user_login(request):
-    if request.method == 'POST':
-        email = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        user = authenticate(request, email=email, password=password)
-        
-        if user is not None:
-            login(request, user)
-            # Check if the user is an instance of our custom user models
-            if isinstance(user, (Employee, Employer)):
-                if isinstance(user, Employer):
-                    return redirect('employer_dashboard')
-                else:
-                    return redirect('employee_dashboard')
-            return render(request, 'login.html', {'error': 'Invalid user type'})
-        return render(request, 'login.html', {'error': 'Invalid username or password'})
-    return render(request, 'login.html')
+    form = LogInForm(request.POST)
 
-@login_required
-def employer_dashboard(request):
-    return render(request, 'employer_dashboard.html')
+    if request.method == 'POST':
+        if form.is_valid():
+            user = form.get_user()
+            if user is not None:
+                login(request, user)
+                return redirect(get_redirect(user))
+            else:
+                messages.error(request, "The credentials provided were invalid!")
+        else:
+            messages.error(request, 'There was an error with your submission. Please check the form for details.')
+
+    return render(request, 'login.html', {'form': form})
+
+def get_redirect(user):
+    if isinstance(user, Employer):
+        return reverse('employer_dashboard')
+    elif isinstance(user, Employee):
+        return reverse('employee_dashboard')
+    elif isinstance(user, Admin):
+        return reverse('admin_dashboard')
+    else:
+        return reverse('login')
+
 
 @login_required
 def employee_dashboard(request):
     return render(request, 'employee_dashboard.html')
+
+@login_required
+def admin_dashboard(request):
+    return render(request, 'admin_dashboard.html')

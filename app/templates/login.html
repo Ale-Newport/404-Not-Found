@@ -1,18 +1,10 @@
-{% extends 'base.html' %}
-
-{% block body %}
+{% extends 'base_content.html' %}
+{% block content %}
 <div class="container mt-5">
     <h2 class="text-center">Login</h2>
-    <form method="post" class="mt-4">
-        {% csrf_token %}  <!-- Make sure this line is present -->
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" name="username" id="email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
+    <form action="{% url 'login' %}" class="mt-4">
+        {% csrf_token %}
+        {% include 'partials/bootstrap_form.html' with form=form %}
         <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
 

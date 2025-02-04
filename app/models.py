@@ -1,89 +1,61 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 
-class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("The email field must be set")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-
-        return self.create_user(email, password, **extra_fields)
-
-class AbstractUser(AbstractBaseUser, PermissionsMixin):
+class User(AbstractUser):
+    username = models.CharField(max_length=50, unique=True,
+            validators=[RegexValidator(
+            regex=r'^@\w{3,}$',
+            message='Username must consist of @ followed by at least three alphanumericals'
+        )]
+    )
     email = models.EmailField(unique=True, max_length=255)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
 
     groups = models.ManyToManyField(
         'auth.Group',
-        related_name='%(class)s_groups',
-        blank=True,
-        help_text='The groups this user belongs to.'
+        related_name="%(class)s_groups",
+        blank=True
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        related_name='%(class)s_permissions',
-        blank=True,
-        help_text='Specific permissions for this user.'
+        related_name="%(class)s_permissions",
+        blank=True
     )
 
-    objects = CustomUserManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    USERNAME_FIELD = 'username'
 
     class Meta:
         abstract = True
 
-class Admin(AbstractUser):
-    # add custom fields here
+class Admin(User):
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         """Ensure admin users have staff/superuser status"""
+        super().clean()
         self.is_staff = True
         self.is_superuser = True
-        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.email
+        return f"{self.username} (Admin)"
 
-    class Meta:
-        verbose_name = 'Admin'
-        verbose_name_plural = 'Admins'
-
-class Employee(AbstractUser):
+class Employee(User):
     """Job seeker user type."""
     country = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f"{self.email} (Employee)"
+        return f"{self.username} (Employee)"
 
 
-class Employer(AbstractUser):
+class Employer(User):
     country = models.CharField(max_length=100, blank=True)
     company_name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return f"{self.email} (Employer) - {self.company_name}"
+        return f"{self.username} (Employer) - {self.company_name}"
 
-    class Meta:
-        verbose_name = 'Employer'
-        verbose_name_plural = 'Employers'
 
 class Job(models.Model):
     def __str__(self):
