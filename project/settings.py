@@ -127,7 +127,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend', 
 ]
 
-AUTH_USER_MODEL = 'app.Employer' 
+AUTH_USER_MODEL = 'app.User' 
 
 # AUTH_USER_MODEL = 'app.AbstractUser' ## Decide main user model after
 
