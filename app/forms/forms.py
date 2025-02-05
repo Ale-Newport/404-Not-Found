@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from app.models import User, Admin, Employee, Employer, Job
+from app.models import User, AdminProfile, Employee, Employer, Job
 from django.contrib.auth import authenticate
 
 
