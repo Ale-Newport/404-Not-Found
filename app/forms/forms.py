@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from app.models import User, AdminProfile, Employee, Employer, Job
+from app.models import User, Admin, Employee, Employer, Job
 from django.contrib.auth import authenticate
 
 
@@ -40,18 +40,29 @@ class EmployeeSignUpForm(UserCreationForm):
     country = forms.ChoiceField(choices=COUNTRIES)
     
     class Meta:
-        model = Employee
-        fields = ['first_name', 'last_name', 'username', 'email', 'country', 'password1', 'password2']
+        model = User  # Changed from Employee to User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs.update({'class': 'form-control'})
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.user_type = 'employee'
+        if commit:
+            user.save()
+        return user
+
 
 class EmployerSignUpForm(UserCreationForm):
+    country = forms.CharField(max_length=100)
+    company_name = forms.CharField(max_length=255)
+
     class Meta:
-        model = Employer
-        fields = ['first_name', 'last_name', 'username', 'email', 'country', 'company_name', 'password1', 'password2']
+        model = User  # Changed from Employer to User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,6 +72,19 @@ class EmployerSignUpForm(UserCreationForm):
                 'class': 'form-control',
                 'placeholder': f'Enter {field.replace("_", " ").title()}'
             })
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.user_type = 'employer'
+        if commit:
+            user.save()
+            # Create the employer profile
+            Employer.objects.create(
+                user=user,
+                country=self.cleaned_data['country'],
+                company_name=self.cleaned_data['company_name']
+            )
+        return user
 
 class JobForm(forms.ModelForm):
     class Meta:
