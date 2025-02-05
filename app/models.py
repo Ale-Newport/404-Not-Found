@@ -34,11 +34,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'username'
 
-    class Meta:
-        #abstract = True
-        db_table = 'auth_user'
-
-class AdminProfile(models.Model):
+class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     def clean(self):

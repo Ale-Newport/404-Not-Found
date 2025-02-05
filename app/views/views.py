@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import User, Employee, Employer, AdminProfile
+from app.models import User, Employee, Employer, Admin
 from django.views.decorators.csrf import csrf_protect
 from django.core.files.storage import FileSystemStorage
 
