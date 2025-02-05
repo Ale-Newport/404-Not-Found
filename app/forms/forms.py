@@ -20,9 +20,28 @@ class LogInForm(forms.Form):
 
 
 class EmployeeSignUpForm(UserCreationForm):
+    COUNTRIES = [
+        ('', 'Select a country'),
+        ('US', 'United States'),
+        ('UK', 'United Kingdom'),
+        ('CA', 'Canada'),
+        ('AU', 'Australia'),
+        ('FR', 'France'),
+        ('DE', 'Germany'),
+        ('IT', 'Italy'),
+        ('ES', 'Spain'),
+        ('PT', 'Portugal'),
+        ('BR', 'Brazil'),
+        ('JP', 'Japan'),
+        ('CN', 'China'),
+        ('IN', 'India'),
+    ]
+    
+    country = forms.ChoiceField(choices=COUNTRIES)
+    
     class Meta:
         model = Employee
-        fields = ['first_name', 'last_name', 'username', 'email', 'country', 'password1','password2']
+        fields = ['first_name', 'last_name', 'username', 'email', 'country', 'password1', 'password2']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
