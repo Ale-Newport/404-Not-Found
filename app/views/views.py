@@ -16,8 +16,17 @@ def employee_signup(request):
     if request.method == "POST":
         form = EmployeeSignUpForm(request.POST)
         if form.is_valid():
-            request.session["signup_data"] = request.POST  # Store in session
-            return redirect("employee_signup_2")  # Move to Step 2
+            # Store all form data in session
+            session_data = {
+                'username': form.cleaned_data['username'],
+                'email': form.cleaned_data['email'],
+                'password1': form.cleaned_data['password1'],
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'country': form.cleaned_data['country'],
+            }
+            request.session["signup_data"] = session_data
+            return redirect("employee_signup_2")
     else:
         form = EmployeeSignUpForm()
     
