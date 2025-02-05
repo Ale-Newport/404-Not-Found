@@ -99,9 +99,8 @@ def employer_signup(request):
     return render(request, 'employer_signup.html', {'form': form})
 
 def user_login(request):
-    form = LogInForm(request.POST)
-
     if request.method == 'POST':
+        form = LogInForm(request.POST)
         if form.is_valid():
             user = form.get_user()
             if user is not None:
@@ -111,7 +110,8 @@ def user_login(request):
                 messages.error(request, "The credentials provided were invalid!")
         else:
             messages.error(request, 'There was an error with your submission. Please check the form for details.')
-
+    else:
+        form = LogInForm()
     return render(request, 'login.html', {'form': form})
 
 def get_redirect(user):
