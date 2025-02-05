@@ -72,6 +72,59 @@ class SignUpViewsTest(TestCase):
         self.assertFalse(Employer.objects.filter(email='invalid-email').exists())
         self.assertTrue('form' in response.context)
 
+class EmployeeSignupStep3Tests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('employee_signup_3')
+        session = self.client.session
+        session['signup_data'] = {
+            'username': '@testuser',
+            'email': 'test@example.com',
+            'password1': 'TestPass123!',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'country': 'US'
+        }
+        session['cv_filename'] = 'test_cv.pdf'
+        session.save()
+
+    def test_step3_get(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertEqual(response.context['step'], 3)
+
+    def test_step3_successful_signup(self):
+        data = {
+            'skills': 'Python, Django, JavaScript',
+            'interests': 'Web Development, AI',
+            'preferred_contract': 'FT'
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('employee_dashboard'))
+
+    def test_step3_missing_session(self):
+        self.client.session.flush()
+        data = {
+            'skills': 'Python, Django',
+            'interests': 'Web Development',
+            'preferred_contract': 'FT'
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('employee_signup'))
+
+    def test_step3_invalid_contract(self):
+        data = {
+            'skills': 'Python, Django',
+            'interests': 'Web Development',
+            'preferred_contract': 'INVALID'
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('error', response.context)
+
 class WelcomePageTest(TestCase):
     def test_welcome_page_status_code(self):
         response = self.client.get(reverse('home'))  
