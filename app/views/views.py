@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import Employee, Employer, Admin
+from app.models import User, Employee, Employer, AdminProfile
 from django.views.decorators.csrf import csrf_protect
 from django.core.files.storage import FileSystemStorage
 
@@ -58,25 +58,30 @@ def employee_signup_3(request):
             })
             
         try:
-            employee = Employee.objects.create_user(
+            #create user first
+            user = User.objects.create_user(
                 username=signup_data["username"],
                 email=signup_data["email"],
                 password=signup_data["password1"],
                 first_name=signup_data["first_name"],
                 last_name=signup_data["last_name"],
-                country=signup_data["country"],
+                user_type='employee',
             )
             
-            employee.cv_filename = request.session.get("cv_filename")
-            employee.skills = request.POST.get("skills", "")
-            employee.interests = request.POST.get("interests", "")
-            employee.preferred_contract = request.POST.get("preferred_contract")
-            employee.save()
+            #then link to employee
+            employee = Employee.objects.create(
+                user=user,
+                country=signup_data["country"],
+                cv_filename=request.session.get("cv_filename"),
+                skills=request.POST.get("skills", ""),
+                interests=request.POST.get("interests", ""),
+                preferred_contract=request.POST.get("preferred_contract")
+            )
             
             request.session.pop("signup_data", None)
             request.session.pop("cv_filename", None)
             
-            login(request, employee)
+            login(request, user)
             return redirect("employee_dashboard")
             
         except KeyError:
@@ -89,11 +94,19 @@ def employer_signup(request):
     if request.method == 'POST':
         form = EmployerSignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            print(f"User created: {user.email}")  # Debug print
+            #create user
+            user = form.save(commit=False)
+            user.user_type = 'employer'
+            user.save()
+
+            #link to employer
+            Employer.objects.create(
+                user=user,
+                country=form.cleaned_data.get('country', ''),
+                company_name=form.cleaned_data.get('company_name', '')
+            )
+
             return redirect('login')
-        else:
-            print(f"Form errors: {form.errors}")  # Debug print
     else:
         form = EmployerSignUpForm()
     return render(request, 'employer_signup.html', {'form': form})
@@ -115,14 +128,13 @@ def user_login(request):
     return render(request, 'login.html', {'form': form})
 
 def get_redirect(user):
-    if isinstance(user, Employer):
+    if user.user_type == 'employer':
         return reverse('employer_dashboard')
-    elif isinstance(user, Employee):
+    elif user.user_type == 'employee':
         return reverse('employee_dashboard')
-    elif isinstance(user, Admin):
+    elif user.user_type == 'admin':
         return reverse('admin_dashboard')
-    else:
-        return reverse('login')
+    return reverse('login')
 
 
 @login_required
