@@ -36,31 +36,32 @@ def employee_signup_2(request):
 
 
 def employee_signup_3(request):
-    """Step 3: Select Interests & Finalize Signup."""
     if request.method == "POST":
-        interests = request.POST.getlist("interests")  # Capture selected interests
-        request.session["interests"] = interests  # Store in session
-
-        # Retrieve stored session data to create the Employee
         signup_data = request.session.get("signup_data", {})
-        email = signup_data.get("email")
-        password = signup_data.get("password")
-
-        # Create Employee object (use create_user for hashed passwords)
+        
         employee = Employee.objects.create_user(
-            email=email,
-            password=password,
+            username=signup_data.get("username"),
+            email=signup_data.get("email"),
+            password=signup_data.get("password1"),
             first_name=signup_data.get("first_name"),
             last_name=signup_data.get("last_name"),
             country=signup_data.get("country"),
         )
-
-        # Store CV filename and interests
-        employee.cv_filename = request.session.get("cv_filename")  # Associate CV
-        employee.interests = ", ".join(interests)  # Store interests as string
+        
+        # Store CV filename
+        employee.cv_filename = request.session.get("cv_filename")
+        
+        # Store new fields
+        employee.skills = request.POST.get("skills", "")
+        employee.interests = request.POST.get("interests", "")
+        employee.preferred_contract = request.POST.get("preferred_contract", "")
         employee.save()
-
-        # Log the user in and redirect
+        
+        # Clean up session
+        request.session.pop("signup_data", None)
+        request.session.pop("cv_filename", None)
+        
+        # Log in and redirect
         login(request, employee)
         return redirect("employee_dashboard")
 

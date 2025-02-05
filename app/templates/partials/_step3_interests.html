@@ -1,13 +1,23 @@
 <form method="post">
     {% csrf_token %}
     <div class="mb-3">
-        <label class="form-label">Select Your Interests:</label>
-        <p>(This section is a placeholder. Feature coming soon!)</p>
-
-        <!-- Your teammate will replace this part later -->
-        <input type="checkbox" name="interests" value="Placeholder Interest 1" disabled> Placeholder Interest 1<br>
-        <input type="checkbox" name="interests" value="Placeholder Interest 2" disabled> Placeholder Interest 2<br>
-
+        <label class="form-label">Skills (comma separated)</label>
+        <input type="text" name="skills" class="form-control" placeholder="Python, JavaScript, Project Management" required>
     </div>
+    
+    <div class="mb-3">
+        <label class="form-label">Interests (comma separated)</label>
+        <input type="text" name="interests" class="form-control" placeholder="AI, Web Development, Mobile Apps" required>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">Preferred Contract Type</label>
+        <select name="preferred_contract" class="form-control" required>
+            <option value="">Select contract type</option>
+            <option value="FT">Full Time</option>
+            <option value="PT">Part Time</option>
+        </select>
+    </div>
+    
     <button type="submit" class="btn btn-success w-100 py-2">Complete Signup</button>
 </form>

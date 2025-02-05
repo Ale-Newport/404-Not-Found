@@ -44,6 +44,14 @@ class Admin(User):
 class Employee(User):
     """Job seeker user type."""
     country = models.CharField(max_length=100, blank=True)
+    skills = models.TextField(blank=True)
+    interests = models.TextField(blank=True)
+    preferred_contract = models.CharField(
+        max_length=2,
+        choices=[('FT', 'Full Time'), ('PT', 'Part Time')],
+        blank=True
+    )
+    cv_filename = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"{self.username} (Employee)"
