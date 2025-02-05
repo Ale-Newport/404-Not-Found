@@ -3,6 +3,13 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 
 class User(AbstractUser):
+    USER_TYPES = {
+        ('admin', 'Admin'),
+        ('employee', 'Employee'),
+        ('employer', 'Employer')
+    }
+    user_type = models.CharField(max_length=10, choices=USER_TYPES)
+
     username = models.CharField(max_length=50, unique=True,
             validators=[RegexValidator(
             regex=r'^@\w{3,}$',
@@ -28,21 +35,26 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
 
     class Meta:
-        abstract = True
+        #abstract = True
+        db_table = 'auth_user'
 
-class Admin(User):
+class AdminProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     def clean(self):
         """Ensure admin users have staff/superuser status"""
         super().clean()
-        self.is_staff = True
-        self.is_superuser = True
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
 
     def __str__(self):
         return f"{self.username} (Admin)"
 
-class Employee(User):
+class Employee(models.Model):
     """Job seeker user type."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
     country = models.CharField(max_length=100, blank=True)
     skills = models.TextField(blank=True)
     interests = models.TextField(blank=True)
@@ -54,15 +66,17 @@ class Employee(User):
     cv_filename = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return f"{self.username} (Employee)"
+        return f"{self.user.username} (Employee)"
 
 
-class Employer(User):
+class Employer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
     country = models.CharField(max_length=100, blank=True)
     company_name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return f"{self.username} (Employer) - {self.company_name}"
+        return f"{self.user.username} (Employer) - {self.company_name}"
 
 
 class Job(models.Model):
@@ -83,4 +97,4 @@ class Job(models.Model):
     skills_needed = models.TextField(help_text='Comma separated skills required.')
     skills_wanted = models.TextField(help_text='Comma separated preferred skills.', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey('Employer', on_delete=models.CASCADE, related_name='jobs')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
