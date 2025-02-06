@@ -224,3 +224,8 @@ def admin_dashboard(request):
         messages.error(request, "Access denied. Admin access only.")
         return redirect('login')
     return render(request, 'admin_dashboard.html')
+
+def log_out(request):
+    """Log out the current user"""
+    logout(request)
+    return redirect('home')

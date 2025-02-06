@@ -9,7 +9,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     # Authentication routes
     path('login/', views.user_login, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+    path('logout/', views.log_out, name='logout'),
     # Sign-up routes
     path('employee/signup/', views.employee_signup, name='employee_signup'),
     path("employee-signup/step2/", views.employee_signup_2, name="employee_signup_2"),
