@@ -12,6 +12,9 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
+                    
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                 </li>
             </ul>
@@ -42,8 +45,6 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            
-                            
                         </div>
                     </div>
                 </div>
@@ -52,6 +53,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form method="get">
+                            <input type="hidden" name="tab" value="{{ active_tab }}">
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Search jobs..." name="search" value="{{ filters.search }}">
                             </div>
@@ -72,6 +74,7 @@
                     </div>
                     <div class="card-body">
                         <form method="get">
+                            <input type="hidden" name="tab" value="{{ active_tab }}">
                             {% if filters.search %}
                                 <input type="hidden" name="search" value="{{ filters.search }}">
                             {% endif %}
@@ -98,7 +101,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
                             {% if filters.search or filters.job_type or filters.department or filters.country or filters.min_salary %}
-                                <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary btn-block mt-2">Clear Filters</a>
+                                <a href="?tab={{ active_tab }}" class="btn btn-outline-secondary btn-block mt-2">Clear Filters</a>
                             {% endif %}
                         </form>
                     </div>
@@ -106,69 +109,100 @@
             </div>
 
             <div class="col-md-9">
-                {% for job in jobs %}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="card-title">{{ job.name }}</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ job.department }}</h6>
-                                    <p class="card-text">{{ job.description|truncatechars:200 }}</p>
-                                    
-                                    <h6 class="mt-3">Required Skills:</h6>
-                                    <p class="mb-2">{{ job.skills_needed }}</p>
-                                    
-                                    {% if job.skills_wanted %}
-                                        <h6>Preferred Skills:</h6>
-                                        <p>{{ job.skills_wanted }}</p>
-                                    {% endif %}
-                                    
-                                    <div class="mb-2">
-                                        <span class="badge badge-primary">{{ job.get_job_type_display }}</span>
-                                        <span class="badge badge-secondary ml-2">${{ job.salary }}</span>
-                                        {% if job.bonus %}
-                                            <span class="badge badge-success ml-2">Bonus: ${{ job.bonus }}</span>
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'all' %}active{% endif %}" 
+                           href="?tab=all{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            All Jobs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'suitable' %}active{% endif %}" 
+                           href="?tab=suitable{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            Most Suitable Jobs
+                            <span class="badge badge-primary ml-1">Coming Soon</span>
+                        </a>
+                    </li>
+                </ul>
+
+                {% if active_tab == 'suitable' %}
+                    <div class="alert alert-info">
+                        <h4 class="alert-heading">Coming Soon!</h4>
+                        <p>We're working on an intelligent job matching system that will analyze your skills, experience, and preferences to suggest the most suitable jobs for you.</p>
+                        <hr>
+                        <p class="mb-0">To get the best matches when this feature launches:</p>
+                        <ul class="mt-2">
+                            <li>Keep your skills list up to date</li>
+                            <li>Add your interests and preferred job types</li>
+                            <li>Upload your latest CV</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    {% for job in jobs %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 class="card-title">{{ job.name }}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{ job.department }}</h6>
+                                        <p class="card-text">{{ job.description|truncatechars:200 }}</p>
+                                        
+                                        <h6 class="mt-3">Required Skills:</h6>
+                                        <p class="mb-2">{{ job.skills_needed }}</p>
+                                        
+                                        {% if job.skills_wanted %}
+                                            <h6>Preferred Skills:</h6>
+                                            <p>{{ job.skills_wanted }}</p>
                                         {% endif %}
+                                        
+                                        <div class="mb-2">
+                                            <span class="badge badge-primary">{{ job.get_job_type_display }}</span>
+                                            <span class="badge badge-secondary ml-2">${{ job.salary }}</span>
+                                            {% if job.bonus %}
+                                                <span class="badge badge-success ml-2">Bonus: ${{ job.bonus }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-primary mb-2">View Details</a>
                                     </div>
                                 </div>
-                                <div class="col-md-4 text-right">
-                                    <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-primary mb-2">View Details</a>
-                                </div>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <small class="text-muted">Posted {{ job.created_at|date:"M d, Y" }} by {{ job.created_by.employer.company_name }}</small>
                             </div>
                         </div>
-                        <div class="card-footer bg-white">
-                            <small class="text-muted">Posted {{ job.created_at|date:"M d, Y" }} by {{ job.created_by.employer.company_name }}</small>
+                    {% empty %}
+                        <div class="alert alert-info">
+                            <p class="mb-0">No jobs found matching your criteria. Try adjusting your filters.</p>
                         </div>
-                    </div>
-                {% empty %}
-                    <div class="alert alert-info">
-                        <p class="mb-0">No jobs found matching your criteria. Try adjusting your filters.</p>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
 
-                <!-- Pagination -->
-                {% if jobs.has_other_pages %}
-                    <nav aria-label="Job listings pagination">
-                        <ul class="pagination justify-content-center">
-                            {% if jobs.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ jobs.previous_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Previous</a>
-                                </li>
-                            {% endif %}
+                    <!-- Pagination -->
+                    {% if jobs.has_other_pages %}
+                        <nav aria-label="Job listings pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if jobs.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ jobs.previous_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Previous</a>
+                                    </li>
+                                {% endif %}
 
-                            {% for i in jobs.paginator.page_range %}
-                                <li class="page-item {% if jobs.number == i %}active{% endif %}">
-                                    <a class="page-link" href="?page={{ i }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">{{ i }}</a>
-                                </li>
-                            {% endfor %}
+                                {% for i in jobs.paginator.page_range %}
+                                    <li class="page-item {% if jobs.number == i %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ i }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">{{ i }}</a>
+                                    </li>
+                                {% endfor %}
 
-                            {% if jobs.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ jobs.next_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Next</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                                {% if jobs.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ jobs.next_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
