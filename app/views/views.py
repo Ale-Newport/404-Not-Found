@@ -5,9 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import User, Employee, Employer, Admin
+from app.models import User, Employee, Employer, Admin, Job
+from django.db.models import Q
 from django.views.decorators.csrf import csrf_protect
 from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
 
 def home(request):
     return render(request, 'home.html')
@@ -137,10 +139,88 @@ def get_redirect(user):
     return reverse('login')
 
 
-@login_required
-def employee_dashboard(request):
-    return render(request, 'employee_dashboard.html')
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from django.core.paginator import Paginator
+from app.models import Job, Employee
 
 @login_required
+def employee_dashboard(request):
+    if request.user.user_type != 'employee':
+        messages.error(request, "Access denied. Employee access only.")
+        return redirect('login')
+        
+    # Get the employee profile
+    employee = Employee.objects.get(user=request.user)
+    
+    # Determine active tab
+    active_tab = request.GET.get('tab', 'all')
+    
+    # Only query jobs if we're on the 'all' tab
+    jobs = []
+    if active_tab == 'all':
+        # Build the job query
+        jobs = Job.objects.all().order_by('-created_at')
+        
+        # Apply filters
+        if 'search' in request.GET:
+            search_query = request.GET.get('search')
+            if search_query:
+                jobs = jobs.filter(
+                    Q(name__icontains=search_query) |
+                    Q(description__icontains=search_query) |
+                    Q(department__icontains=search_query) |
+                    Q(skills_needed__icontains=search_query)
+                )
+                
+        if 'job_type' in request.GET:
+            job_type = request.GET.get('job_type')
+            if job_type in ['FT', 'PT']:
+                jobs = jobs.filter(job_type=job_type)
+                
+        if 'department' in request.GET:
+            department = request.GET.get('department')
+            if department:
+                jobs = jobs.filter(department__icontains=department)
+                
+        if 'min_salary' in request.GET:
+            min_salary = request.GET.get('min_salary')
+            if min_salary:
+                try:
+                    jobs = jobs.filter(salary__gte=float(min_salary))
+                except ValueError:
+                    pass
+                    
+        if 'country' in request.GET:
+            country = request.GET.get('country')
+            if country:
+                jobs = jobs.filter(created_by__employer__country__icontains=country)
+        
+        # Pagination
+        paginator = Paginator(jobs, 10)  # 10 jobs per page
+        page_number = request.GET.get('page')
+        jobs = paginator.get_page(page_number)
+    
+    context = {
+        'employee': employee,
+        'jobs': jobs,
+        'active_tab': active_tab,
+        # Preserve filter values for form
+        'filters': {
+            'search': request.GET.get('search', ''),
+            'job_type': request.GET.get('job_type', ''),
+            'department': request.GET.get('department', ''),
+            'country': request.GET.get('country', ''),
+            'min_salary': request.GET.get('min_salary', ''),
+            'tab': active_tab,  # Include tab in filters to preserve it during pagination
+        }
+    }
+    
+    return render(request, 'employee_dashboard.html', context)
+@login_required
 def admin_dashboard(request):
+    if request.user.user_type != 'admin':
+        messages.error(request, "Access denied. Admin access only.")
+        return redirect('login')
     return render(request, 'admin_dashboard.html')
