@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from app.models import Admin, Employee, Employer, Job
-from random import randint, choices, random
+from app.models import Admin, Employee, Employer, User
+from random import choices
 from faker import Faker
 
 class Command(BaseCommand):
@@ -16,7 +16,7 @@ class Command(BaseCommand):
         self.create_users()
         self.admins = Admin.objects.all()
         self.employees = Employee.objects.all()
-        self.emplyers = Employer.objects.all()
+        self.employers = Employer.objects.all()
         self.printAll()
 
     # User seeding
@@ -26,9 +26,9 @@ class Command(BaseCommand):
 
     def generate_fixtures_users(self):
         user_fixtures = [
-            {'username': '@admin', 'email': 'admin@user.com', 'first_name': 'Admin', 'last_name': 'User', 'user_type': Admin},
-            {'username': '@employee', 'email': 'employee@user.com', 'first_name': 'Employee', 'last_name': 'User', 'user_type': Employee},
-            {'username': '@employer', 'email': 'employer@user.com', 'first_name': 'Employer', 'last_name': 'User', 'user_type': Employer},
+            {'username': '@admin', 'email': 'admin@user.com', 'first_name': 'Admin', 'last_name': 'User', 'user_type': 'admin'},
+            {'username': '@employee', 'email': 'employee@user.com', 'first_name': 'Employee', 'last_name': 'User', 'user_type': 'employee'},
+            {'username': '@employer', 'email': 'employer@user.com', 'first_name': 'Employer', 'last_name': 'User', 'user_type': 'employer'},
         ]
         for data in user_fixtures:
             self.create_user(data)
@@ -46,25 +46,30 @@ class Command(BaseCommand):
         last_name = self.faker.last_name()
         email = create_email(first_name, last_name)
         username = create_username(first_name, last_name)
-        user_type = choices([Admin, Employer, Employee], weights=[3, 12, 85], k=1)[0]
+        user_type = choices(['admin', 'employer', 'employee'], weights=[3, 12, 85], k=1)[0]
         self.create_user({'username': username, 'email': email, 'first_name': first_name, 'last_name': last_name, 'user_type': user_type})
 
     def create_user(self, data):
         try:
-            user = data['user_type'].objects.create_user(
+            user = User.objects.create_user(
                 username=data['username'],
                 email=data['email'],
                 password=Command.DEFAULT_PASSWORD,
                 first_name=data['first_name'],
                 last_name=data['last_name'],
+                user_type=data['user_type']
             )
-            if data['user_type'] == Admin:
+            if data['user_type'] == 'admin':
+                Admin.objects.create(user=user)
                 user.is_staff = True
                 user.is_superuser = True
+            elif data['user_type'] == 'employee':
+                Employee.objects.create(user=user)
+            elif data['user_type'] == 'employer':
+                Employer.objects.create(user=user)
             user.save()
-        except:
-            print(f"Error creating user: {data}")
-
+        except Exception as e:
+            print(f"Error creating user: {data} - {e}")
 
     def printAll(self):
         print("Admins:")
@@ -74,9 +79,8 @@ class Command(BaseCommand):
         for employee in self.employees:
             print(f"  {employee}")
         print("Employers:")
-        for employer in self.emplyers:
+        for employer in self.employers:
             print(f"  {employer}")
-
 
 def create_username(first_name, last_name):
     return '@' + first_name.lower() + last_name.lower()

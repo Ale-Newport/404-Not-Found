@@ -45,7 +45,7 @@ class Admin(models.Model):
         self.user.save()
 
     def __str__(self):
-        return f"{self.username} (Admin)"
+        return f"{self.user.username} (Admin)"
 
 class Employee(models.Model):
     """Job seeker user type."""
