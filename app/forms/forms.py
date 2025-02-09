@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from app.models import User, Admin, Employee, Employer, Job
 from django.contrib.auth import authenticate
-
+from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV2Checkbox
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -17,7 +18,6 @@ class LogInForm(forms.Form):
             password = self.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
         return user
-
 
 class EmployeeSignUpForm(UserCreationForm):
     COUNTRIES = [
@@ -38,47 +38,42 @@ class EmployeeSignUpForm(UserCreationForm):
     ]
     
     country = forms.ChoiceField(choices=COUNTRIES)
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
     
     class Meta:
-        model = User  # Changed from Employee to User
+        model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
-    
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.user_type = 'employee'
-        if commit:
-            user.save()
-        return user
-
+            if field_name != 'captcha':  # Don't add form-control to captcha
+                field.widget.attrs.update({'class': 'form-control'})
 
 class EmployerSignUpForm(UserCreationForm):
     country = forms.CharField(max_length=100)
     company_name = forms.CharField(max_length=255)
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
 
     class Meta:
-        model = User  # Changed from Employer to User
+        model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add Bootstrap classes to all fields
+        # Add Bootstrap classes to all fields except captcha
         for field in self.fields:
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control',
-                'placeholder': f'Enter {field.replace("_", " ").title()}'
-            })
+            if field != 'captcha':
+                self.fields[field].widget.attrs.update({
+                    'class': 'form-control',
+                    'placeholder': f'Enter {field.replace("_", " ").title()}'
+                })
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.user_type = 'employer'
         if commit:
             user.save()
-            # Create the employer profile
             Employer.objects.create(
                 user=user,
                 country=self.cleaned_data['country'],

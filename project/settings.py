@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks',
     'app',
+    'captcha',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,6 @@ AUTH_USER_MODEL = 'app.User'
 
 LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
+
+RECAPTCHA_PUBLIC_KEY = '6LeqBtIqAAAAAKvoGChvtBpmqDB4vWPNdUDyD43Q'
+RECAPTCHA_PRIVATE_KEY = '6LeqBtIqAAAAAK4syqDA9qrn87QUuKw6cn2GAz7T'

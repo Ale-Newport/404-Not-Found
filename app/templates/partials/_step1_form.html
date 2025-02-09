@@ -1,38 +1,88 @@
+{% load static %}
 <form method="post" class="needs-validation" novalidate>
     {% csrf_token %}
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label class="form-label">First Name</label>
-            {{ form.first_name }}
-        </div>
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Last Name</label>
-            {{ form.last_name }}
-        </div>
-    </div>
     <div class="mb-3">
-        <label class="form-label">Username</label>
+        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+        {{ form.first_name }}
+        {% if form.first_name.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.first_name.errors.0 }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+        {{ form.last_name }}
+        {% if form.last_name.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.last_name.errors.0 }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
         {{ form.username }}
-        <small class="text-muted">Must start with @ and have at least 3 characters</small>
+        <small class="text-muted">Must start with @ and contain at least 3 characters</small>
+        {% if form.username.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.username.errors.0 }}
+            </div>
+        {% endif %}
     </div>
+
     <div class="mb-3">
-        <label class="form-label">Email</label>
+        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
         {{ form.email }}
+        {% if form.email.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.email.errors.0 }}
+            </div>
+        {% endif %}
     </div>
+
     <div class="mb-3">
-        <label class="form-label">Country</label>
-        {{ form.country }}
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Password</label>
+        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
         {{ form.password1 }}
+        {% if form.password1.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.password1.errors.0 }}
+            </div>
+        {% endif %}
     </div>
+
     <div class="mb-3">
-        <label class="form-label">Confirm Password</label>
+        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
         {{ form.password2 }}
+        {% if form.password2.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.password2.errors.0 }}
+            </div>
+        {% endif %}
     </div>
-    {% if form.errors %}
-        <div class="alert alert-danger">Please correct the errors below.</div>
-    {% endif %}
-    <button type="submit" class="btn btn-primary w-100 py-2">Next</button>
+
+    <div class="mb-3">
+        <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+        {{ form.country }}
+        {% if form.country.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.country.errors.0 }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- CAPTCHA field -->
+    <div class="mb-3">
+        {{ form.captcha }}
+        {% if form.captcha.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.captcha.errors.0 }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary">Continue</button>
+    </div>
 </form>
