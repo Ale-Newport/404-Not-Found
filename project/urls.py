@@ -17,6 +17,7 @@ urlpatterns = [
     path('employer/signup/', views.employer_signup, name='employer_signup'),
     # Employee routes
     path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
+     path('employee/update/', views.employee_update, name='employee_update'),
     # Employer routes
     path('employer/dashboard/', employer_views.employer_dashboard, name='employer_dashboard'),
     path('account/', employer_views.account_page, name='account_page'),

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, LogInForm
+from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, LogInForm, EmployeeAccountUpdateForm
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
@@ -91,6 +92,41 @@ def employee_signup_3(request):
 
     return render(request, "employee_signup.html", {"step": 3})
 
+def employee_update(request):
+    if request.method == 'POST':
+        form = EmployeeAccountUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+
+            password = form.cleaned_data.get('password1')
+            if password:
+                user.set_password(password)
+                update_session_auth_hash(request, user)
+
+            user.save()
+
+            if hasattr(user, 'employee'):
+                user.employee.country = form.cleaned_data['country']
+                user.employee.save()
+            
+            messages.success(request, 'Your account details have been updated successfully.')
+            return redirect('employee_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        initial_data = {}
+        if hasattr(request.user, 'employee'):
+            initial_data['country'] = request.user.employee.country
+        
+        form = EmployeeAccountUpdateForm(instance=request.user, initial=initial_data)
+
+    context = {
+        'form': form,
+        'username': request.user.username
+    }
+    
+    return render(request, 'employee_update_details.html', context)
+
 
 def employer_signup(request):
     if request.method == 'POST':
@@ -138,12 +174,6 @@ def get_redirect(user):
         return reverse('admin_dashboard')
     return reverse('login')
 
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.core.paginator import Paginator
-from app.models import Job, Employee
 
 @login_required
 def employee_dashboard(request):
@@ -218,6 +248,8 @@ def employee_dashboard(request):
     }
     
     return render(request, 'employee_dashboard.html', context)
+
+
 @login_required
 def admin_dashboard(request):
     if request.user.user_type != 'admin':

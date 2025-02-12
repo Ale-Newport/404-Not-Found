@@ -50,6 +50,29 @@ class EmployeeSignUpForm(UserCreationForm):
             if field_name != 'captcha':  # Don't add form-control to captcha
                 field.widget.attrs.update({'class': 'form-control'})
 
+class EmployeeAccountUpdateForm(EmployeeSignUpForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # make password fields optional
+        self.fields['password1'].required = False
+        self.fields['password2'].required = False
+        
+        # update help texts for password fields
+        self.fields['password1'].help_text = 'Leave blank to keep your current password'
+        self.fields['password2'].help_text = 'Leave blank to keep your current password'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+        
+        if password1 and not password2:
+            self.add_error('password2', 'Please confirm your new password')
+        elif password2 and not password1:
+            self.add_error('password1', 'Please enter your new password')
+        
+        return cleaned_data
+
 class EmployerSignUpForm(UserCreationForm):
     country = forms.CharField(max_length=100)
     company_name = forms.CharField(max_length=255)
