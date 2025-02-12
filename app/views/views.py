@@ -110,7 +110,6 @@ def employee_update(request):
                 user.employee.save()
             
             messages.success(request, 'Your account details have been updated successfully.')
-            return redirect('employee_dashboard')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
