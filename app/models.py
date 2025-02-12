@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from project.constants import COUNTRIES
 
 class User(AbstractUser):
     USER_TYPES = {
@@ -51,7 +52,7 @@ class Employee(models.Model):
     """Job seeker user type."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
-    country = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, choices=COUNTRIES, blank=True)
     skills = models.TextField(blank=True)
     interests = models.TextField(blank=True)
     preferred_contract = models.CharField(
@@ -68,7 +69,7 @@ class Employee(models.Model):
 class Employer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
-    country = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, choices=COUNTRIES, blank=True)
     company_name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from app.models import User, Admin, Employee, Employer, Job
+from project.constants import COUNTRIES
 from django.contrib.auth import authenticate
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
@@ -20,23 +21,6 @@ class LogInForm(forms.Form):
         return user
 
 class EmployeeSignUpForm(UserCreationForm):
-    COUNTRIES = [
-        ('', 'Select a country'),
-        ('US', 'United States'),
-        ('UK', 'United Kingdom'),
-        ('CA', 'Canada'),
-        ('AU', 'Australia'),
-        ('FR', 'France'),
-        ('DE', 'Germany'),
-        ('IT', 'Italy'),
-        ('ES', 'Spain'),
-        ('PT', 'Portugal'),
-        ('BR', 'Brazil'),
-        ('JP', 'Japan'),
-        ('CN', 'China'),
-        ('IN', 'India'),
-    ]
-    
     country = forms.ChoiceField(choices=COUNTRIES)
     captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
     
@@ -50,7 +34,7 @@ class EmployeeSignUpForm(UserCreationForm):
             if field_name != 'captcha':  # Don't add form-control to captcha
                 field.widget.attrs.update({'class': 'form-control'})
 
-class EmployeeAccountUpdateForm(EmployeeSignUpForm):
+class EmployeeAccountUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # make password fields optional
@@ -65,7 +49,7 @@ class EmployeeAccountUpdateForm(EmployeeSignUpForm):
         cleaned_data = super().clean()
         password1 = cleaned_data.get('password1')
         password2 = cleaned_data.get('password2')
-        
+
         if password1 and not password2:
             self.add_error('password2', 'Please confirm your new password')
         elif password2 and not password1:
@@ -74,7 +58,7 @@ class EmployeeAccountUpdateForm(EmployeeSignUpForm):
         return cleaned_data
 
 class EmployerSignUpForm(UserCreationForm):
-    country = forms.CharField(max_length=100)
+    country = forms.ChoiceField(choices=COUNTRIES)
     company_name = forms.CharField(max_length=255)
     captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
 
