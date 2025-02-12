@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from app.models import User, Admin, Employee, Employer, Job
 from project.constants import COUNTRIES
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, password_validation
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
 
@@ -35,27 +35,78 @@ class EmployeeSignUpForm(UserCreationForm):
                 field.widget.attrs.update({'class': 'form-control'})
 
 class EmployeeAccountUpdateForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # make password fields optional
-        self.fields['password1'].required = False
-        self.fields['password2'].required = False
-        
-        # update help texts for password fields
-        self.fields['password1'].help_text = 'Leave blank to keep your current password'
-        self.fields['password2'].help_text = 'Leave blank to keep your current password'
+    password1 = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False,
+        help_text="Leave blank to keep your current password"
+    )
+    password2 = forms.CharField(
+        label="Confirm New Password",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False,
+        help_text="Enter the same password as above to confirm"
+    )
 
+    country = forms.ChoiceField(
+        choices=COUNTRIES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    email = forms.EmailField(
+        max_length=255,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+
+    first_name = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    last_name = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = User
+        fields =['first_name', 'last_name', 'email']
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('This email address is already in use.')
+        return email
+    
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get('password1')
         password2 = cleaned_data.get('password2')
 
-        if password1 and not password2:
-            self.add_error('password2', 'Please confirm your new password')
-        elif password2 and not password1:
-            self.add_error('password1', 'Please enter your new password')
-        
+        if password1 or password2:
+            if not password1:
+                self.add_error('password1', 'Please enter your new password')
+            if not password2:
+                self.add_error('password2', 'Please confirm your new password')
+            elif password1 != password2:
+                self.add_error('password2', 'Passwords do not match')
+            else:
+                try:
+                    password_validation.validate_password(password1, self.instance)
+                except forms.ValidationError as error:
+                    self.add_error('password1', error)
+
         return cleaned_data
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        if self.cleaned_data.get('password1'):
+            user.set_password(self.cleaned_data['password1'])
+        
+        if commit:
+            user.save()
+        return user
 
 class EmployerSignUpForm(UserCreationForm):
     country = forms.ChoiceField(choices=COUNTRIES)
