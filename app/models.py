@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from project.constants import COUNTRIES
+import random
+from datetime import timedelta
+from django.utils import timezone
 
 class User(AbstractUser):
     USER_TYPES = {
@@ -95,3 +98,18 @@ class Job(models.Model):
     skills_wanted = models.TextField(help_text='Comma separated preferred skills.', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
+
+class PasswordResetCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    @classmethod
+    def generate_code(cls):
+        """Generate a random 6-digit code"""
+        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+    def is_valid(self):
+        """Check if code is valid (not expired and not used)"""
+        return not self.is_used and self.created_at >= timezone.now() - timedelta(minutes=15)

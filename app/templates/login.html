@@ -14,6 +14,9 @@
     </div>
     {% endif %}
 
-    <p class="mt-3 text-center">Don't have an account? <a href="{% url 'home' %}">Sign up here</a>.</p>
+    <div class="mt-3 text-center">
+        <p>Don't have an account? <a href="{% url 'home' %}">Sign up here</a>.</p>
+        <p>Forgot your password? <a href="{% url 'password_reset' %}">Reset it here</a>.</p>
+    </div>
 </div>
 {% endblock %}

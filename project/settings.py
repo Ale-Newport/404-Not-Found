@@ -137,3 +137,13 @@ LOGIN_URL = 'login'
 
 RECAPTCHA_PUBLIC_KEY = '6LeqBtIqAAAAAKvoGChvtBpmqDB4vWPNdUDyD43Q'
 RECAPTCHA_PRIVATE_KEY = '6LeqBtIqAAAAAK4syqDA9qrn87QUuKw6cn2GAz7T'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  
+EMAIL_PORT = 587  
+EMAIL_USE_TLS = True  
+EMAIL_HOST_USER = 'add_email_here@gmail.com'  # Gmail address
+EMAIL_HOST_PASSWORD = 'test_app_pass'  # Gmail app password (not regular password)
+DEFAULT_FROM_EMAIL = 'add_email_here@gmail.com'
+
+

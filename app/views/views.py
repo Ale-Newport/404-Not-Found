@@ -1,16 +1,23 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, LogInForm, EmployeeAccountUpdateForm
+from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, LogInForm, EmployeeAccountUpdateForm, PasswordResetRequestForm, SetNewPasswordForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import User, Employee, Employer, Admin, Job
+from app.models import User, Employee, Employer, Admin, Job, PasswordResetCode
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_protect
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.sites.shortcuts import get_current_site
+
 
 def home(request):
     return render(request, 'home.html')
@@ -260,3 +267,101 @@ def log_out(request):
     """Log out the current user"""
     logout(request)
     return redirect('home')
+
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.filter(email=email).first()
+            
+            if user:
+                # Generate verification code
+                code = PasswordResetCode.generate_code()
+                
+                # Save the code
+                PasswordResetCode.objects.create(
+                    user=user,
+                    code=code
+                )
+                
+                # Create email content
+                current_site = get_current_site(request)
+                context = {
+                    'user': user,
+                    'code': code,
+                    'site_name': current_site.name,
+                }
+                
+                email_content = render_to_string('emails/password_reset_email.html', context)
+                
+                # Send email
+                try:
+                    send_mail(
+                        'Password Reset Verification Code',
+                        email_content,
+                        'noreply@yourdomain.com',
+                        [user.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    messages.error(request, "Error sending email. Please try again.")
+                    return render(request, 'password_reset.html', {'form': form})
+            
+            # Always redirect to code verification page
+            request.session['reset_email'] = email
+            return redirect('verify_reset_code')
+    else:
+        form = PasswordResetRequestForm()
+    
+    return render(request, 'password_reset.html', {'form': form})
+
+def verify_reset_code(request):
+    if 'reset_email' not in request.session:
+        return redirect('password_reset')
+        
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        email = request.session['reset_email']
+        
+        reset_code = PasswordResetCode.objects.filter(
+            user__email=email,
+            code=code,
+            is_used=False
+        ).order_by('-created_at').first()
+        
+        if reset_code and reset_code.is_valid():
+            reset_code.is_used = True
+            reset_code.save()
+            request.session['reset_code_verified'] = True
+            return redirect('set_new_password')
+        else:
+            messages.error(request, "Invalid or expired code. Please try again.")
+    
+    return render(request, 'verify_reset_code.html')
+
+def set_new_password(request):
+    if not request.session.get('reset_code_verified'):
+        return redirect('password_reset')
+        
+    if request.method == 'POST':
+        form = SetNewPasswordForm(request.POST)
+        if form.is_valid():
+            email = request.session['reset_email']
+            user = User.objects.get(email=email)
+            user.set_password(form.cleaned_data['password1'])
+            user.save()
+            
+            # Clear session data
+            del request.session['reset_email']
+            del request.session['reset_code_verified']
+            
+            messages.success(request, "Your password has been changed successfully!")
+            return redirect('login')
+    else:
+        form = SetNewPasswordForm()
+    
+    return render(request, 'set_new_password.html', {'form': form})
+
+

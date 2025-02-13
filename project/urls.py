@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from app.views import views, employer_views, admin_views
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -10,6 +11,12 @@ urlpatterns = [
     # Authentication routes
     path('login/', views.user_login, name='login'),
     path('logout/', views.log_out, name='logout'),
+
+    # Password reset routes
+    path('password-reset/', views.password_reset_request, name='password_reset'),
+    path('password-reset/verify/', views.verify_reset_code, name='verify_reset_code'),
+    path('password-reset/set-password/', views.set_new_password, name='set_new_password'),
+
     # Sign-up routes
     path('employee/signup/', views.employee_signup, name='employee_signup'),
     path("employee-signup/step2/", views.employee_signup_2, name="employee_signup_2"),
