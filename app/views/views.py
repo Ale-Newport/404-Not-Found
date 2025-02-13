@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import User, Employee, Employer, Admin, Job, PasswordResetCode
+from app.models import User, Employee, Employer, Admin, Job, VerificationCode
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_protect
 from django.core.files.storage import FileSystemStorage
@@ -35,12 +35,102 @@ def employee_signup(request):
                 'last_name': form.cleaned_data['last_name'],
                 'country': form.cleaned_data['country'],
             }
-            request.session["signup_data"] = session_data
-            return redirect("employee_signup_2")
+            
+            # Create user but set as inactive
+            user = User.objects.create_user(
+                username=session_data["username"],
+                email=session_data["email"],
+                password=session_data["password1"],
+                first_name=session_data["first_name"],
+                last_name=session_data["last_name"],
+                user_type='employee',
+                is_active=False  # Set as inactive until email is verified
+            )
+
+            # Generate and send verification code
+            code = VerificationCode.generate_code()
+            VerificationCode.objects.create(
+                user=user,
+                code=code,
+                code_type='email_verification'
+            )
+
+            # Send verification email
+            current_site = get_current_site(request)
+            context = {
+                'user': user,
+                'code': code,
+                'site_name': current_site.name,
+            }
+            email_content = render_to_string('emails/email_verification.html', context)
+            
+            try:
+                send_mail(
+                    'Verify your email address',
+                    email_content,
+                    'noreply@yourdomain.com',
+                    [user.email],
+                    fail_silently=False,
+                )
+                request.session['verification_email'] = user.email
+                request.session["signup_data"] = session_data
+                return redirect('verify_email')
+            except Exception as e:
+                user.delete()  # Delete the user if email sending fails
+                messages.error(request, "Error sending verification email. Please try again.")
+                return render(request, "employee_signup.html", {"form": form, "step": 1})
     else:
         form = EmployeeSignUpForm()
     
     return render(request, "employee_signup.html", {"form": form, "step": 1})
+
+def verify_email(request):
+    if 'verification_email' not in request.session:
+        return redirect('employee_signup')
+        
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        email = request.session['verification_email']
+        
+        user = User.objects.filter(email=email, is_active=False).first()
+        if not user:
+            messages.error(request, "Invalid verification attempt.")
+            return redirect('employee_signup')
+            
+        verification = VerificationCode.objects.filter(
+            user=user,
+            code=code,
+            code_type='email_verification',
+            is_used=False
+        ).order_by('-created_at').first()
+        
+        if verification and verification.is_valid():
+            # Activate user
+            user.is_active = True
+            user.save()
+            
+            # Mark code as used
+            verification.is_used = True
+            verification.save()
+            
+            # Create employee profile
+            Employee.objects.create(
+                user=user,
+                country=request.session["signup_data"]["country"]
+            )
+            
+            # Clear session data
+            request.session.pop('verification_email', None)
+            request.session.pop('signup_data', None)
+            
+            # Log the user in
+            login(request, user)
+            messages.success(request, "Email verified successfully! Welcome aboard!")
+            return redirect('employee_dashboard')
+        else:
+            messages.error(request, "Invalid or expired code. Please try again.")
+    
+    return render(request, 'verify_email.html')
 
 
 def employee_signup_2(request):
@@ -278,12 +368,13 @@ def password_reset_request(request):
             
             if user:
                 # Generate verification code
-                code = PasswordResetCode.generate_code()
-                
+                code = VerificationCode.generate_code()
+
                 # Save the code
-                PasswordResetCode.objects.create(
+                VerificationCode.objects.create(
                     user=user,
-                    code=code
+                    code=code,
+                    code_type='password_reset'
                 )
                 
                 # Create email content
@@ -325,9 +416,10 @@ def verify_reset_code(request):
         code = request.POST.get('code')
         email = request.session['reset_email']
         
-        reset_code = PasswordResetCode.objects.filter(
+        reset_code = VerificationCode.objects.filter(
             user__email=email,
             code=code,
+            code_type='password_reset',
             is_used=False
         ).order_by('-created_at').first()
         

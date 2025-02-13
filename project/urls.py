@@ -19,9 +19,11 @@ urlpatterns = [
 
     # Sign-up routes
     path('employee/signup/', views.employee_signup, name='employee_signup'),
+    path('verify-email/', views.verify_email, name='verify_email'),
     path("employee-signup/step2/", views.employee_signup_2, name="employee_signup_2"),
     path("employee-signup/step3/", views.employee_signup_3, name="employee_signup_3"),
     path('employer/signup/', views.employer_signup, name='employer_signup'),
+    
     # Employee routes
     path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
      path('employee/update/', views.employee_update, name='employee_update'),

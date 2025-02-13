@@ -34,6 +34,29 @@ class EmployeeSignUpForm(UserCreationForm):
             if field_name != 'captcha':  # Don't add form-control to captcha
                 field.widget.attrs.update({'class': 'form-control'})
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            # Check if username exists but exclude current instance if updating
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError("This username is already taken.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Check if email exists but exclude current instance if updating
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("This email is already registered.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self._errors:
+            # Print form errors for debugging
+            print("Form errors:", self._errors)
+        return cleaned_data
+
 class EmployeeAccountUpdateForm(forms.ModelForm):
     password1 = forms.CharField(
         label="New Password",

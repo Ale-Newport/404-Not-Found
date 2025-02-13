@@ -99,9 +99,15 @@ class Job(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
 
-class PasswordResetCode(models.Model):
+class VerificationCode(models.Model):
+    CODE_TYPES = [
+        ('password_reset', 'Password Reset'),
+        ('email_verification', 'Email Verification'),
+    ]
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
+    code_type = models.CharField(max_length=20, choices=CODE_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
 
@@ -113,3 +119,6 @@ class PasswordResetCode(models.Model):
     def is_valid(self):
         """Check if code is valid (not expired and not used)"""
         return not self.is_used and self.created_at >= timezone.now() - timedelta(minutes=15)
+
+    class Meta:
+        ordering = ['-created_at']
