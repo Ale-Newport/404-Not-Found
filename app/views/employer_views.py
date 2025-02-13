@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from app.models import Job
 from app.forms.forms import JobForm
+from django.contrib import messages
 
 
 @login_required
@@ -27,7 +28,10 @@ def job_detail(request, job_id):
 
 @login_required
 def employer_dashboard(request):
-    jobs = Job.objects.filter(created_by=request.user)
+    if request.user.user_type != 'employer':
+        messages.error(request, "Access denied. Employer access only.")
+        return redirect('login')
+    jobs = Job.objects.filter(created_by=request.user.employer)
     return render(request, 'employer_dashboard.html', {
         'jobs': jobs,
         'username': request.user.email
