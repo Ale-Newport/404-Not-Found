@@ -170,7 +170,7 @@
                                 </div>
                             </div>
                             <div class="card-footer bg-white">
-                                <small class="text-muted">Posted {{ job.created_at|date:"M d, Y" }} by {{ job.created_by.employer.company_name }}</small>
+                                <small class="text-muted">Posted {{ job.created_at|date:"M d, Y" }} by {{ job.created_by.company_name }}</small>
                             </div>
                         </div>
                     {% empty %}
