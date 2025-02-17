@@ -1,0 +1,9 @@
+[
+    {
+        "model": "app.Admin",
+        "pk": 1,
+        "fields": {
+          "user": 1
+        }
+      }
+]

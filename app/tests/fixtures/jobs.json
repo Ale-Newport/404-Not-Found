@@ -1,0 +1,18 @@
+[
+    {
+        "model": "app.Job",
+        "pk": 1,
+        "fields": {
+          "name": "Software Developer",
+          "department": "Engineering",
+          "description": "We are looking for a software developer to join our team",
+          "salary": 50000,
+          "job_type": "FT",
+          "bonus": 0,
+          "skills_needed": "Python, JavaScript, React, Django",
+          "skills_wanted": "Machine Learning, Artificial Intelligence",
+          "created_at": "2021-01-01T00:00:00Z",
+          "created_by": 3
+        }
+      }
+]
