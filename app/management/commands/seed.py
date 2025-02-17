@@ -81,8 +81,8 @@ class Command(BaseCommand):
     
     def generate_fixtures_jobs(self):
         job_fixtures = [
-            {'name': 'Software Developer', 'department': 'Engineering', 'description': '', 'salary': 50000, 'job_type': 'FT', 'bonus': 0, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': User.objects.get(username='@employer')},
-            {'name': 'Senior Developer', 'department': 'Engineering', 'description': '', 'salary': 100000, 'job_type': 'FT', 'bonus': 10000, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': User.objects.get(username='@employer')},
+            {'name': 'Software Developer', 'department': 'Engineering', 'description': '', 'salary': 50000, 'job_type': 'FT', 'bonus': 0, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer')},
+            {'name': 'Senior Developer', 'department': 'Engineering', 'description': '', 'salary': 100000, 'job_type': 'FT', 'bonus': 10000, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer')},
         ]
         for data in job_fixtures:
             self.create_job(data)
@@ -105,7 +105,7 @@ class Command(BaseCommand):
         skills_needed = ', '.join(self.faker.words(3))
         skills_wanted = ', '.join(self.faker.words(3))
         created_at = self.faker.date_time_this_year()
-        created_by = choices(User.objects.filter(user_type='employer'), k=1)[0]
+        created_by = choices(Employer.objects.all(), k=1)[0]
         self.create_job({'name': name, 'department': department, 'description': description, 'salary': salary, 'job_type': job_type, 'bonus': bonus, 'skills_needed': skills_needed, 'skills_wanted': skills_wanted, 'created_at': created_at, 'created_by': created_by})
 
     def create_job(self, data):
