@@ -1,0 +1,11 @@
+[
+    {
+        "model": "app.Employer",
+        "pk": 1,
+        "fields": {
+          "user": 3,
+          "country": "",
+          "company_name": ""
+        }
+    }
+]

@@ -1,27 +1,15 @@
 from django.test import TestCase
-from app.models import Job, Employer
+from app.models import Job, Employer, Admin
 from decimal import Decimal
 
 class JobModelTest(TestCase):
+
+    fixtures = ['app/tests/fixtures/users.json', 'app/tests/fixtures/employer_users.json', 'app/tests/fixtures/jobs.json']
+
     def setUp(self):
-        self.employer = Employer.objects.create_user(
-            username="employer",
-            email="employer@test.com",
-            password="testpass123",
-            first_name="Test",
-            last_name="Employer",
-            company_name="Test Company"
-        )
-        
-        self.job = Job.objects.create(
-            name="Software Developer",
-            department="Engineering",
-            description="Test job description",
-            salary=Decimal("75000.00"),
-            job_type="FT",
-            skills_needed="Python, Django",
-            created_by=self.employer
-        )
+        super().setUp()
+        self.job = Job.objects.get(pk=1)
+        self.employer = Employer.objects.get(pk=1)
 
     def test_job_creation(self):
         self.assertEqual(self.job.name, "Software Developer")
@@ -34,8 +22,8 @@ class JobModelTest(TestCase):
         self.assertEqual(str(self.job), expected_string)
 
     def test_optional_fields(self):
-        self.assertIsNone(self.job.bonus)
-        self.assertIsNone(self.job.skills_wanted)
+        self.assertEqual(self.job.bonus, Decimal("0"))
+        self.assertEqual(self.job.skills_wanted, "Machine Learning, Artificial Intelligence")
 
     def test_job_with_optional_fields(self):
         job_with_bonus = Job.objects.create(

@@ -1,0 +1,14 @@
+[
+    {
+        "model": "app.Employee",
+        "pk": 1,
+        "fields": {
+          "user": 2,
+          "country": "UK",
+          "skills": "Python, JavaScript, React, Django",
+          "interests": "Software Development, Machine Learning, Artificial Intelligence",
+          "preferred_contract": "FT",
+          "cv_filename": ""
+        }
+      }
+]
