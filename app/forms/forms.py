@@ -22,7 +22,7 @@ class LogInForm(forms.Form):
 
 class EmployeeSignUpForm(UserCreationForm):
     country = forms.ChoiceField(choices=COUNTRIES)
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    #captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
     
     class Meta:
         model = User
@@ -31,13 +31,12 @@ class EmployeeSignUpForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
-            if field_name != 'captcha':  # Don't add form-control to captcha
+            if field_name != 'captcha':
                 field.widget.attrs.update({'class': 'form-control'})
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
         if username:
-            # Check if username exists but exclude current instance if updating
             if User.objects.filter(username=username).exists():
                 raise forms.ValidationError("This username is already taken.")
         return username
@@ -45,16 +44,12 @@ class EmployeeSignUpForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:
-            # Check if email exists but exclude current instance if updating
             if User.objects.filter(email=email).exists():
                 raise forms.ValidationError("This email is already registered.")
         return email
 
     def clean(self):
         cleaned_data = super().clean()
-        if self._errors:
-            # Print form errors for debugging
-            print("Form errors:", self._errors)
         return cleaned_data
 
 class EmployeeAccountUpdateForm(forms.ModelForm):
@@ -134,7 +129,7 @@ class EmployeeAccountUpdateForm(forms.ModelForm):
 class EmployerSignUpForm(UserCreationForm):
     country = forms.ChoiceField(choices=COUNTRIES)
     company_name = forms.CharField(max_length=255)
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    #captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
 
     class Meta:
         model = User

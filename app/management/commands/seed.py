@@ -1,12 +1,15 @@
 from django.core.management.base import BaseCommand
-from app.models import Admin, Employee, Employer, User
+from app.models import Admin, Employee, Employer, User, Job
 from random import choices
 from faker import Faker
+from datetime import datetime, timedelta
+import pytz
 
 class Command(BaseCommand):
     help = "Seed the database with initial data"
 
     USER_COUNT = 100
+    JOB_COUNT = 100
     DEFAULT_PASSWORD = 'Password123'
 
     def __init__(self):
@@ -17,7 +20,7 @@ class Command(BaseCommand):
         self.admins = Admin.objects.all()
         self.employees = Employee.objects.all()
         self.employers = Employer.objects.all()
-        self.printAll()
+        self.create_jobs()
 
     # User seeding
     def create_users(self):
@@ -70,6 +73,57 @@ class Command(BaseCommand):
             user.save()
         except Exception as e:
             print(f"Error creating user: {data} - {e}")
+
+    # Job seeding
+    def create_jobs(self):
+        self.generate_fixtures_jobs()
+        self.generate_random_jobs()
+    
+    def generate_fixtures_jobs(self):
+        job_fixtures = [
+            {'name': 'Software Developer', 'department': 'Engineering', 'description': '', 'salary': 50000, 'job_type': 'FT', 'bonus': 0, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer')},
+            {'name': 'Senior Developer', 'department': 'Engineering', 'description': '', 'salary': 100000, 'job_type': 'FT', 'bonus': 10000, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer')},
+        ]
+        for data in job_fixtures:
+            self.create_job(data)
+    
+    def generate_random_jobs(self):
+        job_count = Job.objects.count()
+        while job_count < self.JOB_COUNT:
+            print(f"Seeding jobs {job_count}/{self.JOB_COUNT}", end='\r')
+            self.generate_job()
+            job_count = Job.objects.count()
+        print("Job seeding complete.      ")
+
+    def generate_job(self):
+        name = self.faker.job()
+        department = self.faker.bs()
+        description = self.faker.text()
+        salary = self.faker.random_int(20000, 100000)
+        job_type = choices(['FT', 'PT'], weights=[85, 15], k=1)[0]
+        bonus = self.faker.random_int(0, 20000)
+        skills_needed = ', '.join(self.faker.words(3))
+        skills_wanted = ', '.join(self.faker.words(3))
+        created_at = self.faker.date_time_this_year()
+        created_by = choices(Employer.objects.all(), k=1)[0]
+        self.create_job({'name': name, 'department': department, 'description': description, 'salary': salary, 'job_type': job_type, 'bonus': bonus, 'skills_needed': skills_needed, 'skills_wanted': skills_wanted, 'created_at': created_at, 'created_by': created_by})
+
+    def create_job(self, data):
+        try:
+            job = Job.objects.create(
+                name=data['name'],
+                department=data['department'],
+                description=data['description'],
+                salary=data['salary'],
+                job_type=data['job_type'],
+                bonus=data['bonus'],
+                skills_needed=data['skills_needed'],
+                skills_wanted=data['skills_wanted'],
+                created_at=data['created_at'],
+                created_by=data['created_by']
+            )
+        except Exception as e:
+            print(f"Error creating job: {data} - {e}")
 
     def printAll(self):
         print("Admins:")

@@ -1,37 +1,47 @@
 [
-    {
-      "model": "app.Admin",
-      "pk": 1,
-      "fields": {
-        "first_name": "Super",
-        "last_name": "Admin",
-        "email": "admin@example.com",
-        "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
-        "is_active": true,
-        "is_staff": true
-      }
-    },
-    {
-      "model": "app.Employee",
-      "pk": 1,
-      "fields": {
-        "first_name": "John",
-        "last_name": "Doe",
-        "email": "employee1@example.com",
-        "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
-        "is_active": true
-      }
-    },
-    {
-      "model": "app.Employer",
-      "pk": 1,
-      "fields": {
-        "first_name": "Alice",
-        "last_name": "Johnson",
-        "email": "employer1@example.com",
-        "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
-        "is_active": true,
-        "company_name": "Company1"
-      }
+  {
+    "model": "app.User",
+    "pk": 1,
+    "fields": {
+      "first_name": "Admin",
+      "last_name": "Test",
+      "username": "@adminTest",
+      "email": "admin@test.com",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "user_type": "admin",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true
     }
-  ]
+  },
+  {
+    "model": "app.User",
+    "pk": 2,
+    "fields": {
+      "first_name": "Employee",
+      "last_name": "Test",
+      "username": "@employeeTest",
+      "email": "employee@test.com",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "user_type": "employee",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false
+    }
+  },
+  {
+    "model": "app.User",
+    "pk": 3,
+    "fields": {
+      "first_name": "Employer",
+      "last_name": "Test",
+      "username": "@employerTest",
+      "email": "employer@test.com",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "user_type": "employer",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false
+    }
+  }
+]
