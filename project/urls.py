@@ -3,6 +3,10 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from app.views import views, employer_views, admin_views
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -37,4 +41,11 @@ urlpatterns = [
     path('administrator/list-users/', admin_views.list_users, name='list_users'),
     path('administrator/list-jobs/', admin_views.list_jobs, name='list_jobs'),
 
+    path('job/<int:job_id>/apply/', views.apply_to_job, name='apply_job'),
+    path('application/<int:application_id>/update/', views.update_application_status, name='update_application_status'),
+    path('employee/applications/', views.my_applications, name='my_applications'),
+
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from app.models import User, Admin, Employee, Employer, Job
+from app.models import JobApplication, User, Admin, Employee, Employer, Job
 from project.constants import COUNTRIES
 from django.contrib.auth import authenticate, password_validation
 from captcha.fields import ReCaptchaField
@@ -208,3 +208,29 @@ class SetNewPasswordForm(forms.Form):
             if password1 != password2:
                 raise forms.ValidationError("The two passwords must match.")
         return cleaned_data
+    
+
+# Add to forms.py
+class JobApplicationForm(forms.ModelForm):
+    class Meta:
+        model = JobApplication
+        fields = [
+            'cover_letter', 'full_name', 'email', 'phone', 'country',
+            'current_position', 'skills', 'experience', 'education',
+            'portfolio_url', 'linkedin_url', 'custom_cv'
+        ]
+        widgets = {
+            'cover_letter': forms.Textarea(attrs={'rows': 6}),
+            'skills': forms.Textarea(attrs={'rows': 4}),
+            'experience': forms.Textarea(attrs={'rows': 4}),
+            'education': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, employee=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if employee:
+            # Pre-fill form with employee data
+            self.fields['full_name'].initial = f"{employee.user.first_name} {employee.user.last_name}"
+            self.fields['email'].initial = employee.user.email
+            self.fields['country'].initial = employee.country
+            self.fields['skills'].initial = employee.skills

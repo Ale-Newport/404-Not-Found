@@ -1,0 +1,164 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Applications</h2>
+    
+    {% if applications %}
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Company</th>
+                                <th>Date Applied</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                                <tr>
+                                    <td>{{ app.job.name }}</td>
+                                    <td>{{ app.job.created_by.company_name }}</td>
+                                    <td>{{ app.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if app.status == 'pending' %}bg-secondary{% endif %}
+                                            {% if app.status == 'reviewing' %}bg-primary{% endif %}
+                                            {% if app.status == 'accepted' %}bg-success{% endif %}
+                                            {% if app.status == 'rejected' %}bg-danger{% endif %}">
+                                            {{ app.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'job_detail' app.job.id %}" class="btn btn-sm btn-outline-primary">View Job</a>
+                                        <button class="btn btn-sm btn-outline-info" data-toggle="modal" data-target="#applicationDetails{{ app.id }}">View Application</button>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Application Details Modal -->
+                                <div class="modal fade" id="applicationDetails{{ app.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Application for {{ app.job.name }}</h5>
+                                                <button type="button" class="close" data-dismiss="modal">
+                                                    <span>&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!-- Status -->
+                                                <div class="mb-4">
+                                                    <h6>Status</h6>
+                                                    <p>
+                                                        <span class="badge 
+                                                            {% if app.status == 'pending' %}bg-secondary{% endif %}
+                                                            {% if app.status == 'reviewing' %}bg-primary{% endif %}
+                                                            {% if app.status == 'accepted' %}bg-success{% endif %}
+                                                            {% if app.status == 'rejected' %}bg-danger{% endif %}">
+                                                            {{ app.get_status_display }}
+                                                        </span>
+                                                    </p>
+                                                    {% if app.status == 'accepted' %}
+                                                        <div class="alert alert-success">
+                                                            <p>Congratulations! Your application has been accepted. The employer may contact you soon.</p>
+                                                        </div>
+                                                    {% elif app.status == 'rejected' %}
+                                                        <div class="alert alert-danger">
+                                                            <p>We're sorry, but your application has been rejected.</p>
+                                                        </div>
+                                                    {% elif app.status == 'reviewing' %}
+                                                        <div class="alert alert-info">
+                                                            <p>Your application is currently under review. We'll update you on any changes.</p>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="alert alert-secondary">
+                                                            <p>Your application is pending review.</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <hr>
+                                                
+                                                <!-- Cover Letter -->
+                                                <h6>Cover Letter</h6>
+                                                <div class="bg-light p-3 mb-3">
+                                                    {{ app.cover_letter|linebreaks }}
+                                                </div>
+                                                
+                                                <!-- Application Details -->
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6>Personal Information</h6>
+                                                        <p><strong>Name:</strong> {{ app.full_name }}</p>
+                                                        <p><strong>Email:</strong> {{ app.email }}</p>
+                                                        <p><strong>Phone:</strong> {{ app.phone|default:"Not provided" }}</p>
+                                                        <p><strong>Country:</strong> {{ app.country }}</p>
+                                                        <p><strong>Current Position:</strong> {{ app.current_position|default:"Not provided" }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Job Information</h6>
+                                                        <p><strong>Position:</strong> {{ app.job.name }}</p>
+                                                        <p><strong>Company:</strong> {{ app.job.created_by.company_name }}</p>
+                                                        <p><strong>Department:</strong> {{ app.job.department }}</p>
+                                                        <p><strong>Salary:</strong> ${{ app.job.salary }}</p>
+                                                        <p><strong>Applied on:</strong> {{ app.created_at|date:"M d, Y" }}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <hr>
+                                                
+                                                <!-- Skills, Experience, Education -->
+                                                <h6>Skills</h6>
+                                                <p>{{ app.skills }}</p>
+                                                
+                                                <h6>Experience</h6>
+                                                <div class="bg-light p-3 mb-3">
+                                                    {{ app.experience|linebreaks }}
+                                                </div>
+                                                
+                                                <h6>Education</h6>
+                                                <div class="bg-light p-3 mb-3">
+                                                    {{ app.education|default:"Not provided"|linebreaks }}
+                                                </div>
+                                                
+                                                <!-- Links -->
+                                                {% if app.portfolio_url or app.linkedin_url %}
+                                                    <h6>Links</h6>
+                                                    {% if app.portfolio_url %}
+                                                        <p><strong>Portfolio:</strong> <a href="{{ app.portfolio_url }}" target="_blank">{{ app.portfolio_url }}</a></p>
+                                                    {% endif %}
+                                                    {% if app.linkedin_url %}
+                                                        <p><strong>LinkedIn:</strong> <a href="{{ app.linkedin_url }}" target="_blank">{{ app.linkedin_url }}</a></p>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                <a href="{% url 'job_detail' app.job.id %}" class="btn btn-primary">View Job</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <h4 class="alert-heading">No applications yet</h4>
+            <p>You haven't applied to any jobs yet. Browse available positions and submit your first application!</p>
+            <a href="{% url 'employee_dashboard' %}" class="btn btn-primary mt-2">Browse Jobs</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Include necessary JavaScript -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

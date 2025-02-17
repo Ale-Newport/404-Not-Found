@@ -1,12 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, LogInForm, EmployeeAccountUpdateForm, PasswordResetRequestForm, SetNewPasswordForm
+from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, JobApplicationForm, LogInForm, EmployeeAccountUpdateForm, PasswordResetRequestForm, SetNewPasswordForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import User, Employee, Employer, Admin, Job, VerificationCode
+from app.models import JobApplication, User, Employee, Employer, Admin, Job, VerificationCode
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_protect
 from django.core.files.storage import FileSystemStorage
@@ -17,6 +17,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
+from django.shortcuts import render, redirect, get_object_or_404
 
 
 def home(request):
@@ -457,3 +458,75 @@ def set_new_password(request):
     return render(request, 'set_new_password.html', {'form': form})
 
 
+@login_required
+def apply_to_job(request, job_id):
+    if not hasattr(request.user, 'employee'):
+        messages.error(request, "Only employees can apply for jobs.")
+        return redirect('employee_dashboard')
+        
+    job = get_object_or_404(Job, id=job_id)
+    
+    # Check if already applied
+    if JobApplication.objects.filter(job=job, applicant=request.user.employee).exists():
+        messages.warning(request, "You have already applied for this position.")
+        return redirect('job_detail', job_id=job_id)
+    
+    if request.method == 'POST':
+        application = JobApplication(
+            job=job,
+            applicant=request.user.employee,
+            cover_letter=request.POST.get('cover_letter'),
+            full_name=request.POST.get('full_name'),
+            email=request.POST.get('email'),
+            phone=request.POST.get('phone'),
+            country=request.POST.get('country'),
+            current_position=request.POST.get('current_position'),
+            skills=request.POST.get('skills'),
+            experience=request.POST.get('experience'),
+            education=request.POST.get('education'),
+            portfolio_url=request.POST.get('portfolio_url'),
+            linkedin_url=request.POST.get('linkedin_url')
+        )
+        
+        if 'custom_cv' in request.FILES:
+            application.custom_cv = request.FILES['custom_cv']
+            
+        application.save()
+        messages.success(request, "Your application has been submitted successfully!")
+        return redirect('employee_dashboard')
+        
+    return redirect('job_detail', job_id=job_id)
+
+@login_required
+def update_application_status(request, application_id):
+    if not hasattr(request.user, 'employer'):
+        messages.error(request, "Access denied.")
+        return redirect('login')
+        
+    application = get_object_or_404(JobApplication, id=application_id)
+    
+    # Ensure the employer owns the job
+    if application.job.created_by != request.user.employer:
+        messages.error(request, "Access denied.")
+        return redirect('employer_dashboard')
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(JobApplication.STATUS_CHOICES):
+            application.status = new_status
+            application.save()
+            messages.success(request, f"Application status updated to {new_status}.")
+            
+    return redirect('job_detail', job_id=application.job.id)
+
+@login_required
+def my_applications(request):
+    if not hasattr(request.user, 'employee'):
+        messages.error(request, "Access denied. Employee access only.")
+        return redirect('login')
+    
+    applications = JobApplication.objects.filter(applicant=request.user.employee).order_by('-created_at')
+    
+    return render(request, 'my_applications.html', {
+        'applications': applications
+    })

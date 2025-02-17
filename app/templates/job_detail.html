@@ -8,15 +8,21 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">Job Hiring App</a>
+        <a class="navbar-brand" href="{% if is_employee %}{% url 'employee_dashboard' %}{% else %}{% url 'employer_dashboard' %}{% endif %}">Job Hiring App</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
+                {% if is_employee %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
+                </li>
+                {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'account_page' %}">Account</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
                 </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                 </li>
@@ -26,81 +32,333 @@
 
     <div class="container mt-4">
         <div class="card shadow mb-4">
-            <div class="card-header">
-                <h2>{{ job.name }}</h2>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">{{ job.name }}</h2>
+                {% if is_employee and not has_applied %}
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#applyModal">
+                    Apply Now
+                </button>
+                {% endif %}
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8">
-                        <p><strong>Department:</strong> {{ job.department }}</p>
-                        <p><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
-                        <p><strong>Salary:</strong> ${{ job.salary }}</p>
-                        {% if job.bonus %}
-                            <p><strong>Bonus:</strong> ${{ job.bonus }}</p>
-                        {% endif %}
-                        <hr>
-                        <h4>Description</h4>
-                        <p>{{ job.description }}</p>
-                        <hr>
-                        <h4>Required Skills</h4>
-                        <p>{{ job.skills_needed }}</p>
+                        <div class="mb-4">
+                            <h4>Job Details</h4>
+                            <p><strong>Department:</strong> {{ job.department }}</p>
+                            <p><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
+                            <p><strong>Salary:</strong> ${{ job.salary }}</p>
+                            {% if job.bonus %}
+                                <p><strong>Bonus:</strong> ${{ job.bonus }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <h4>Description</h4>
+                            <p>{{ job.description }}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4>Required Skills</h4>
+                            <p>{{ job.skills_needed }}</p>
+                        </div>
+
                         {% if job.skills_wanted %}
+                        <div class="mb-4">
                             <h4>Preferred Skills</h4>
                             <p>{{ job.skills_wanted }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Add this section to job_detail.html after the job details and before the closing div -->
+{% if not is_employee %}
+<div class="mt-4">
+    <h4>Applications ({{ applications|length }})</h4>
+    
+    {% if applications %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>Status</th>
+                        <th>Applied On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                        <tr>
+                            <td>{{ app.full_name|default:app.applicant.user.get_full_name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if app.status == 'pending' %}bg-secondary{% endif %}
+                                    {% if app.status == 'reviewing' %}bg-primary{% endif %}
+                                    {% if app.status == 'accepted' %}bg-success{% endif %}
+                                    {% if app.status == 'rejected' %}bg-danger{% endif %}">
+                                    {{ app.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ app.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary view-application" 
+                                   data-toggle="modal" data-target="#applicationModal{{ app.id }}">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                        
+                        <!-- Application Detail Modal -->
+                        <div class="modal fade" id="applicationModal{{ app.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Application from {{ app.full_name|default:app.applicant.user.get_full_name }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>Personal Information</h6>
+                                                <p><strong>Name:</strong> {{ app.full_name|default:app.applicant.user.get_full_name }}</p>
+                                                <p><strong>Email:</strong> {{ app.email|default:app.applicant.user.email }}</p>
+                                                <p><strong>Phone:</strong> {{ app.phone|default:"Not provided" }}</p>
+                                                <p><strong>Country:</strong> {{ app.country|default:app.applicant.country }}</p>
+                                                <p><strong>Current Position:</strong> {{ app.current_position|default:"Not provided" }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Status</h6>
+                                                <form method="post" action="{% url 'update_application_status' app.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="form-group">
+                                                        <select name="status" class="form-control">
+                                                            <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                            <option value="reviewing" {% if app.status == 'reviewing' %}selected{% endif %}>Reviewing</option>
+                                                            <option value="accepted" {% if app.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                                                            <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">Update Status</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        
+                                        <hr>
+                                        
+                                        <h6>Cover Letter</h6>
+                                        <div class="bg-light p-3 mb-3">
+                                            {{ app.cover_letter|linebreaks }}
+                                        </div>
+                                        
+                                        <h6>Skills</h6>
+                                        <p>{{ app.skills|default:"Not provided" }}</p>
+                                        
+                                        <h6>Experience</h6>
+                                        <div class="bg-light p-3 mb-3">
+                                            {{ app.experience|default:"Not provided"|linebreaks }}
+                                        </div>
+                                        
+                                        <h6>Education</h6>
+                                        <div class="bg-light p-3 mb-3">
+                                            {{ app.education|default:"Not provided"|linebreaks }}
+                                        </div>
+                                        
+                                        {% if app.portfolio_url or app.linkedin_url %}
+                                            <h6>Links</h6>
+                                            {% if app.portfolio_url %}
+                                                <p><strong>Portfolio:</strong> <a href="{{ app.portfolio_url }}" target="_blank">{{ app.portfolio_url }}</a></p>
+                                            {% endif %}
+                                            {% if app.linkedin_url %}
+                                                <p><strong>LinkedIn:</strong> <a href="{{ app.linkedin_url }}" target="_blank">{{ app.linkedin_url }}</a></p>
+                                            {% endif %}
+                                        {% endif %}
+                                        
+                                        {% if app.custom_cv %}
+                                            <h6>Resume/CV</h6>
+                                            <p><a href="{{ app.custom_cv.url }}" target="_blank" class="btn btn-outline-secondary">Download CV</a></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No applications received yet for this job posting.</p>
+        </div>
+    {% endif %}
+</div>
+{% endif %}
+
+                        {% if is_employee and has_applied %}
+                            <div class="alert alert-info">
+                                <h5 class="alert-heading">Application Submitted</h5>
+                                <p>You have already applied for this position. We will notify you of any updates.</p>
+                            </div>
                         {% endif %}
                     </div>
                     <div class="col-md-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Job Details</h5>
-                                <p class="card-text">
-                                    <small class="text-muted">Posted on: {{ job.created_at|date:"M d, Y" }}</small>
-                                </p>
-                                <p class="card-text">
-                                    <small class="text-muted">Total Applicants: {{ applicants|length }}</small>
-                                </p>
+                                <h5 class="card-title">Company Information</h5>
+                                <p><strong>Company:</strong> {{ job.created_by.company_name }}</p>
+                                <p><strong>Location:</strong> {{ job.created_by.country }}</p>
+                                <p><strong>Posted on:</strong> {{ job.created_at|date:"M d, Y" }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="card shadow">
-            <div class="card-header">
-                <h3>Applicants</h3>
-            </div>
-            <div class="card-body">
-                {% if applicants %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Applied Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for applicant in applicants %}
-                                    <tr>
-                                        <td>{{ applicant.first_name }} {{ applicant.last_name }}</td>
-                                        <td>{{ applicant.email }}</td>
-                                        <td>{{ applicant.applied_date|date:"M d, Y" }}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary">View Profile</button>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <!-- Apply Modal -->
+    {% if is_employee and not has_applied %}
+    <!-- Apply Modal -->
+<div class="modal fade" id="applyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'apply_job' job.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Apply for {{ job.name }}</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Cover Letter -->
+                    <div class="form-group">
+                        <label for="cover_letter">Cover Letter</label>
+                        <textarea class="form-control" id="cover_letter" name="cover_letter" rows="6" required 
+                            placeholder="Explain why you're a good fit for this position."></textarea>
                     </div>
-                {% else %}
-                    <p class="text-center">No applicants yet.</p>
-                {% endif %}
-            </div>
+
+                    <hr>
+                    <h5 class="mb-3">Personal Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" class="form-control" name="full_name" 
+                                    value="{{ user.first_name }} {{ user.last_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" name="email" 
+                                    value="{{ user.email }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" 
+                                    placeholder="Your contact number">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Country</label>
+                                <select class="form-control" name="country" required>
+                                    <option value="">Select a country</option>
+                                    <option value="US" {% if employee and employee.country == 'US' %}selected{% endif %}>United States</option>
+                                    <option value="UK" {% if employee and employee.country == 'UK' %}selected{% endif %}>United Kingdom</option>
+                                    <option value="CA" {% if employee and employee.country == 'CA' %}selected{% endif %}>Canada</option>
+                                    <option value="AU" {% if employee and employee.country == 'AU' %}selected{% endif %}>Australia</option>
+                                    <option value="FR" {% if employee and employee.country == 'FR' %}selected{% endif %}>France</option>
+                                    <option value="DE" {% if employee and employee.country == 'DE' %}selected{% endif %}>Germany</option>
+                                    <option value="IT" {% if employee and employee.country == 'IT' %}selected{% endif %}>Italy</option>
+                                    <option value="ES" {% if employee and employee.country == 'ES' %}selected{% endif %}>Spain</option>
+                                    <option value="PT" {% if employee and employee.country == 'PT' %}selected{% endif %}>Portugal</option>
+                                    <option value="BR" {% if employee and employee.country == 'BR' %}selected{% endif %}>Brazil</option>
+                                    <option value="JP" {% if employee and employee.country == 'JP' %}selected{% endif %}>Japan</option>
+                                    <option value="CN" {% if employee and employee.country == 'CN' %}selected{% endif %}>China</option>
+                                    <option value="IN" {% if employee and employee.country == 'IN' %}selected{% endif %}>India</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Current Position</label>
+                        <input type="text" class="form-control" name="current_position" 
+                            placeholder="Your current job title">
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3">Professional Information</h5>
+
+                    <div class="form-group">
+                        <label>Skills</label>
+                        <textarea class="form-control" name="skills" rows="3" required
+                            placeholder="List your relevant skills, separated by commas">{{ employee.skills }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Professional Experience</label>
+                        <textarea class="form-control" name="experience" rows="4" required
+                            placeholder="Provide a brief overview of your relevant experience"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Education</label>
+                        <textarea class="form-control" name="education" rows="3"
+                            placeholder="List your educational background"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Portfolio URL</label>
+                                <input type="url" class="form-control" name="portfolio_url" 
+                                    placeholder="https://your-portfolio.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>LinkedIn URL</label>
+                                <input type="url" class="form-control" name="linkedin_url" 
+                                    placeholder="https://linkedin.com/in/your-profile">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload CV</label>
+                        <input type="file" class="form-control-file" name="custom_cv" accept=".pdf,.doc,.docx">
+                        {% if employee.cv_filename %}
+                            <small class="form-text text-muted">
+                                Current CV: {{ employee.cv_filename }}
+                                (Upload a new one to replace)
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

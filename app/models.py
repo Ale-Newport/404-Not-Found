@@ -5,6 +5,7 @@ from project.constants import COUNTRIES
 import random
 from datetime import timedelta
 from django.utils import timezone
+from project.constants import COUNTRIES
 
 class User(AbstractUser):
     USER_TYPES = {
@@ -122,3 +123,39 @@ class VerificationCode(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class JobApplication(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('reviewing', 'Reviewing'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected')
+    ]
+    
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    applicant = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='applications')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Application Details
+    cover_letter = models.TextField()
+    full_name = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=100, choices=COUNTRIES, blank=True, null=True)
+    current_position = models.CharField(max_length=100, blank=True)
+    skills = models.TextField(blank=True)
+    experience = models.TextField(blank=True)
+    education = models.TextField(blank=True)
+    portfolio_url = models.URLField(blank=True)
+    linkedin_url = models.URLField(blank=True)
+    custom_cv = models.FileField(upload_to='applications/cvs/', blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('job', 'applicant')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.full_name or self.applicant.user.get_full_name()} - {self.job.name}"

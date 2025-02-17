@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks',
     'app',
+    'django_seed',
     'captcha',
 ]
 
@@ -125,10 +127,10 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend', 
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
-AUTH_USER_MODEL = 'app.User' 
+AUTH_USER_MODEL = 'app.User'
 
 # AUTH_USER_MODEL = 'app.AbstractUser' ## Decide main user model after
 
@@ -138,12 +140,13 @@ LOGIN_URL = 'login'
 RECAPTCHA_PUBLIC_KEY = '6LeqBtIqAAAAAKvoGChvtBpmqDB4vWPNdUDyD43Q'
 RECAPTCHA_PRIVATE_KEY = '6LeqBtIqAAAAAK4syqDA9qrn87QUuKw6cn2GAz7T'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  
-EMAIL_PORT = 587  
-EMAIL_USE_TLS = True  
-EMAIL_HOST_USER = 'example@gmail.com'  # Gmail address
-EMAIL_HOST_PASSWORD = 'gmail_app_pass'  # Gmail app password (not regular password)
-DEFAULT_FROM_EMAIL = 'example@gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'eduardosanchez4848@gmail.com'  # Gmail address
+#EMAIL_HOST_PASSWORD = 'gmail_app_pass'  # Gmail app password (not regular password)
+#DEFAULT_FROM_EMAIL = 'example@gmail.com'
 
-
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

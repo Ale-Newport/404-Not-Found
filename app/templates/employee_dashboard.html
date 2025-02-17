@@ -11,12 +11,18 @@
         <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Job Hiring App</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
+                {% if is_employee or request.user.user_type == 'employee' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'my_applications' %}">My Applications</a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                 </li>
+                
             </ul>
         </div>
     </nav>
