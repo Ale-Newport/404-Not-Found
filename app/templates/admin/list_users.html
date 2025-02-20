@@ -10,9 +10,9 @@
             <div class="col-md-2">
                 <select name="type" class="form-control">
                     <option value="">All Statuses</option>
-                    <option value="admin" {% if request.GET.type == Admin %}selected{% endif %}>Admin</option>
-                    <option value="employer" {% if request.GET.type == Employer %}selected{% endif %}>Employer</option>
-                    <option value="employee" {% if request.GET.type == Employee %}selected{% endif %}>Employee</option>
+                    <option value="Admin" {% if request.GET.type == 'Admin' %}selected{% endif %}>Admin</option>
+                    <option value="Employer" {% if request.GET.type == 'Employer' %}selected{% endif %}>Employer</option>
+                    <option value="Employee" {% if request.GET.type == 'Employee' %}selected{% endif %}>Employee</option>
                 </select>
             </div>
             <div class="col-md-8">
@@ -80,54 +80,36 @@
             </tr>
         </thead>
         <tbody>
-            {% for user in admins %}
+            {% for admin in admins %}
             <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.first_name }}</td>
-                <td>{{ user.last_name }}</td>
+                <td>{{ admin.user.username }}</td>
+                <td>{{ admin.user.email }}</td>
+                <td>{{ admin.user.first_name }}</td>
+                <td>{{ admin.user.last_name }}</td>
                 <td>
-                    {% if user.type == Admin %}
                     <span class="badge bg-danger">Admin</span>
-                    {% elif user.type == Employee %}
-                    <span class="badge bg-warning">Employee</span>
-                    {% else %}
-                    <span class="badge bg-success">Employer</span>
-                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
-            {% for user in employees %}
+            {% for employee in employees %}
             <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.first_name }}</td>
-                <td>{{ user.last_name }}</td>
+                <td>{{ employee.user.username }}</td>
+                <td>{{ employee.user.email }}</td>
+                <td>{{ employee.user.first_name }}</td>
+                <td>{{ employee.user.last_name }}</td>
                 <td>
-                    {% if user.type == Admin %}
-                    <span class="badge bg-danger">Admin</span>
-                    {% elif user.type == Employee %}
                     <span class="badge bg-warning">Employee</span>
-                    {% else %}
-                    <span class="badge bg-success">Employer</span>
-                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
-            {% for user in employers %}
+            {% for employer in employers %}
             <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.first_name }}</td>
-                <td>{{ user.last_name }}</td>
+                <td>{{ employer.user.username }}</td>
+                <td>{{ employer.user.email }}</td>
+                <td>{{ employer.user.first_name }}</td>
+                <td>{{ employer.user.last_name }}</td>
                 <td>
-                    {% if user.type == Admin %}
-                    <span class="badge bg-danger">Admin</span>
-                    {% elif user.type == Employee %}
-                    <span class="badge bg-warning">Employee</span>
-                    {% else %}
                     <span class="badge bg-success">Employer</span>
-                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
