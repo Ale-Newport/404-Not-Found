@@ -69,10 +69,33 @@ class Command(BaseCommand):
             elif data['user_type'] == 'employee':
                 Employee.objects.create(user=user)
             elif data['user_type'] == 'employer':
-                Employer.objects.create(user=user)
+                company_name = data.get('company_name', self.generate_company_name())
+                Employer.objects.create(user=user,
+                                        company_name = company_name,)
             user.save()
         except Exception as e:
             print(f"Error creating user: {data} - {e}")
+    
+
+    
+    def generate_company_name(self):
+        """Generate a realistic company name using various patterns"""
+        patterns = [
+            lambda: f"{self.faker.last_name()} {self.get_company_suffix()}",  # Smith Industries
+            lambda: f"{self.faker.word().capitalize()} {self.get_company_suffix()}",  # Innovate Technologies
+            lambda: f"{self.faker.last_name()} & {self.faker.last_name()} {self.get_company_suffix()}",  # Smith & Jones Associates
+            lambda: f"{self.faker.word().capitalize()}{self.faker.word().capitalize()}",  # TechWorks
+        ]
+        return self.faker.random_element(patterns)()
+
+    def get_company_suffix(self):
+        """Return a random company suffix"""
+        suffixes = [
+            'Ltd', 'Limited', 'LLC', 'Inc', 'Industries',
+            'Group', 'Technologies', 'Solutions', 'Associates',
+            'Consulting', 'Services', 'Systems', 'Corporation'
+        ]
+        return self.faker.random_element(suffixes)
 
     # Job seeding
     def create_jobs(self):
@@ -135,6 +158,7 @@ class Command(BaseCommand):
         print("Employers:")
         for employer in self.employers:
             print(f"  {employer}")
+
 
 def create_username(first_name, last_name):
     return '@' + first_name.lower() + last_name.lower()
