@@ -69,7 +69,7 @@ def list_jobs(request):
 
     if department_filter: jobs = jobs.filter(department=department_filter)
     if job_type_filter: jobs = jobs.filter(job_type=job_type_filter)
-    if job_type_filter: jobs = jobs.filter(created_by__id=created_by_filter)
+    if created_by_filter: jobs = jobs.filter(created_by__id=created_by_filter)
 
     # Searching
     search_query = request.GET.get('search')
@@ -80,7 +80,7 @@ def list_jobs(request):
     jobs = jobs.order_by(order_by)
 
     # Get values for dropdowns
-    employers_with_jobs = Employer.objects.filter(id__in=Job.objects.all().values_list('created_by', flat=True).distinct()).order_by('username')
+    employers_with_jobs = Employer.objects.filter(user_id__in=Job.objects.all().values_list('created_by', flat=True).distinct()).order_by('company_name')
     job_types = Job.objects.all().values_list('job_type', flat=True).distinct()
     departments = Job.objects.all().values_list('department', flat=True).distinct()
     
