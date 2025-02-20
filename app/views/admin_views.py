@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from app.models import Admin, Employee, Employer, Job
+from app.models import Admin, Employee, Employer, Job, User
+from django.core.paginator import Paginator
 from django.db.models import Q
 from itertools import chain
 from django.apps import apps
@@ -26,69 +27,32 @@ def dashboard(request):
 
 
 def list_users(request):
-    admins = Admin.objects.all().select_related('user')
-    employees = Employee.objects.all().select_related('user')
-    employers = Employer.objects.all().select_related('user')
+    users = User.objects.all()
     
     type_filter = request.GET.get('type')
     if type_filter:
-        if type_filter == 'Admin':
-            employees = Employee.objects.none()
-            employers = Employer.objects.none()
-        elif type_filter == 'Employee':
-            admins = Admin.objects.none()
-            employers = Employer.objects.none()
-        elif type_filter == 'Employer':
-            admins = Admin.objects.none()
-            employees = Employee.objects.none()
+        users = users.filter(user_type = type_filter.lower())
     
     search_query = request.GET.get('search')
     if search_query:
-        admins = admins.filter(
-            Q(user__username__icontains=search_query) | 
-            Q(user__email__icontains=search_query) | 
-            Q(user__first_name__icontains=search_query) | 
-            Q(user__last_name__icontains=search_query)
-        )
-        employees = employees.filter(
-            Q(user__username__icontains=search_query) | 
-            Q(user__email__icontains=search_query) | 
-            Q(user__first_name__icontains=search_query) | 
-            Q(user__last_name__icontains=search_query)
-        )
-        employers = employers.filter(
-            Q(user__username__icontains=search_query) | 
-            Q(user__email__icontains=search_query) | 
-            Q(user__first_name__icontains=search_query) | 
-            Q(user__last_name__icontains=search_query)
+        users = users.filter(
+            Q(username__icontains=search_query) | 
+            Q(email__icontains=search_query) | 
+            Q(first_name__icontains=search_query) | 
+            Q(last_name__icontains=search_query)
         )
     
-    order_by = request.GET.get('order_by', 'user__username')
+    order_by = request.GET.get('order_by', 'username')
     
-    field_mapping = {
-        'username': 'user__username',
-        '-username': '-user__username',
-        'email': 'user__email',
-        '-email': '-user__email',
-        'first_name': 'user__first_name',
-        '-first_name': '-user__first_name', 
-        'last_name': 'user__last_name',
-        '-last_name': '-user__last_name',
-        'type': 'user__user_type',
-        '-type': '-user__user_type'
-    }
-    
-    django_order_by = field_mapping.get(order_by, 'user__username')
-    
-    admins = admins.order_by(django_order_by)
-    employees = employees.order_by(django_order_by)
-    employers = employers.order_by(django_order_by)
+    paginator = Paginator(users, 25)
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
     
     context = {
-        'admins': admins,
-        'employees': employees,
-        'employers': employers,
-        'order_by': order_by
+        'users_page' : users_page,
+        'order_by': order_by,
+        'current_type': type_filter or '',
+        'current_search': search_query or '',
     }
     
     return render(request, 'admin/list_users.html', context)

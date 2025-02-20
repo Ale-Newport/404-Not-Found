@@ -10,13 +10,13 @@
             <div class="col-md-2">
                 <select name="type" class="form-control">
                     <option value="">All Statuses</option>
-                    <option value="Admin" {% if request.GET.type == 'Admin' %}selected{% endif %}>Admin</option>
-                    <option value="Employer" {% if request.GET.type == 'Employer' %}selected{% endif %}>Employer</option>
-                    <option value="Employee" {% if request.GET.type == 'Employee' %}selected{% endif %}>Employee</option>
+                    <option value="Admin" {% if current_type == 'Admin' %}selected{% endif %}>Admin</option>
+                    <option value="Employer" {% if current_type == 'Employer' %}selected{% endif %}>Employer</option>
+                    <option value="Employee" {% if current_type == 'Employee' %}selected{% endif %}>Employee</option>
                 </select>
             </div>
             <div class="col-md-8">
-                <input type="text" name="search" class="form-control" placeholder="Search" value="{{ request.GET.search }}">
+                <input type="text" name="search" class="form-control" placeholder="Search" value="{{ current_search }}">
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary">Apply</button>
@@ -28,7 +28,7 @@
         <thead>
             <tr>
                 <th>
-                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'username' %}order_by=-username{% else %}order_by=username{% endif %}">
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'username' %}order_by=-username{% else %}order_by=username{% endif %}&type={{ current_type }}&search={{ current_search }}">
                         Username
                         {% if request.GET.order_by == 'username' %}
                             <i class="fa fa-angle-down"></i>
@@ -38,7 +38,7 @@
                     </a>
                 </th>
                 <th>
-                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'email' %}order_by=-email{% else %}order_by=email{% endif %}">
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'email' %}order_by=-email{% else %}order_by=email{% endif %}&type={{ current_type }}&search={{ current_search }}">
                         Email
                         {% if request.GET.order_by == 'email' %}
                             <i class="fa fa-angle-down"></i>
@@ -48,7 +48,7 @@
                     </a>
                 </th>
                 <th>
-                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'first_name' %}order_by=-first_name{% else %}order_by=first_name{% endif %}">
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'first_name' %}order_by=-first_name{% else %}order_by=first_name{% endif %}&type={{ current_type }}&search={{ current_search }}">
                         First Name
                         {% if request.GET.order_by == 'first_name' %}
                             <i class="fa fa-angle-down"></i>
@@ -58,7 +58,7 @@
                     </a>
                 </th>
                 <th>
-                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'last_name' %}order_by=-last_name{% else %}order_by=last_name{% endif %}">
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'last_name' %}order_by=-last_name{% else %}order_by=last_name{% endif %}&type={{ current_type }}&search={{ current_search }}">
                         Last Name
                         {% if request.GET.order_by == 'last_name' %}
                             <i class="fa fa-angle-down"></i>
@@ -68,11 +68,11 @@
                     </a>
                 </th>
                 <th>
-                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'type' %}order_by=-type{% else %}order_by=type{% endif %}">
+                    <a class="text-decoration-none" href="?{% if request.GET.order_by == 'user_type' %}order_by=-user_type{% else %}order_by=user_type{% endif %}&type={{ current_type }}&search={{ current_search }}">
                         Type
-                        {% if request.GET.order_by == 'type' %}
+                        {% if request.GET.order_by == 'user_type' %}
                             <i class="fa fa-angle-down"></i>
-                        {% elif request.GET.order_by == '-type' %}
+                        {% elif request.GET.order_by == '-user_type' %}
                             <i class="fa fa-angle-up"></i>
                         {% endif %}
                     </a>
@@ -80,40 +80,89 @@
             </tr>
         </thead>
         <tbody>
-            {% for admin in admins %}
+            {% for user in users_page %}
             <tr>
-                <td>{{ admin.user.username }}</td>
-                <td>{{ admin.user.email }}</td>
-                <td>{{ admin.user.first_name }}</td>
-                <td>{{ admin.user.last_name }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.first_name }}</td>
+                <td>{{ user.last_name }}</td>
                 <td>
+                    {% if user.user_type == 'admin' %}
                     <span class="badge bg-danger">Admin</span>
-                </td>
-            </tr>
-            {% endfor %}
-            {% for employee in employees %}
-            <tr>
-                <td>{{ employee.user.username }}</td>
-                <td>{{ employee.user.email }}</td>
-                <td>{{ employee.user.first_name }}</td>
-                <td>{{ employee.user.last_name }}</td>
-                <td>
+                    {% elif user.user_type == 'employee' %}
                     <span class="badge bg-warning">Employee</span>
-                </td>
-            </tr>
-            {% endfor %}
-            {% for employer in employers %}
-            <tr>
-                <td>{{ employer.user.username }}</td>
-                <td>{{ employer.user.email }}</td>
-                <td>{{ employer.user.first_name }}</td>
-                <td>{{ employer.user.last_name }}</td>
-                <td>
+                    {% else %}
                     <span class="badge bg-success">Employer</span>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if users_page.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&order_by={{ order_by }}&type={{ current_type }}&search={{ current_search }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ users_page.previous_page_number }}&order_by={{ order_by }}&type={{ current_type }}&search={{ current_search }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for i in users_page.paginator.page_range %}
+                {% if users_page.number == i %}
+                    <li class="page-item active">
+                        <a class="page-link" href="#">{{ i }}</a>
+                    </li>
+                {% elif i > users_page.number|add:'-3' and i < users_page.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}&order_by={{ order_by }}&type={{ current_type }}&search={{ current_search }}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if users_page.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ users_page.next_page_number }}&order_by={{ order_by }}&type={{ current_type }}&search={{ current_search }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ users_page.paginator.num_pages }}&order_by={{ order_by }}&type={{ current_type }}&search={{ current_search }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
 {% endblock %}
