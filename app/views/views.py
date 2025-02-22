@@ -18,7 +18,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render, redirect, get_object_or_404
-
+from app.decorators import user_type_required
 
 def home(request):
     return render(request, 'home.html')
@@ -190,6 +190,7 @@ def employee_signup_3(request):
 
     return render(request, "employee_signup.html", {"step": 3})
 
+@user_type_required('employee')
 def employee_update(request):
     if request.method == 'POST':
         form = EmployeeAccountUpdateForm(request.POST, instance=request.user)
@@ -272,7 +273,7 @@ def get_redirect(user):
     return reverse('login')
 
 
-@login_required
+@user_type_required('employee')
 def employee_dashboard(request):
     if request.user.user_type != 'employee':
         messages.error(request, "Access denied. Employee access only.")
@@ -497,7 +498,7 @@ def apply_to_job(request, job_id):
         
     return redirect('job_detail', job_id=job_id)
 
-@login_required
+@user_type_required('employer')
 def update_application_status(request, application_id):
     if not hasattr(request.user, 'employer'):
         messages.error(request, "Access denied.")
@@ -519,7 +520,7 @@ def update_application_status(request, application_id):
             
     return redirect('job_detail', job_id=application.job.id)
 
-@login_required
+@user_type_required('employee')
 def my_applications(request):
     if not hasattr(request.user, 'employee'):
         messages.error(request, "Access denied. Employee access only.")

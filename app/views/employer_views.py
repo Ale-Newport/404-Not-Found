@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from app.models import Job, JobApplication
 from app.forms.forms import JobForm
 from django.contrib import messages
+from app.decorators import user_type_required
 
-
-@login_required
+@user_type_required('employer')
 def add_job(request):
     if request.method == 'POST':
         form = JobForm(request.POST)
@@ -18,11 +17,9 @@ def add_job(request):
         form = JobForm()
     return render(request, 'add_job.html', {'form': form})
 
-# In employer_views.py
-@login_required
+@user_type_required(['employer', 'employee', 'admin'])
 def job_detail(request, job_id):
     if not hasattr(request.user, 'employer'):
-        # If user is an employee, show the job application view
         job = get_object_or_404(Job, id=job_id)
         has_applied = False
         if hasattr(request.user, 'employee'):
@@ -37,9 +34,8 @@ def job_detail(request, job_id):
             'employee': request.user.employee if hasattr(request.user, 'employee') else None
         })
     
-    # Employer view
     job = get_object_or_404(Job, id=job_id, created_by=request.user.employer)
-    applications = JobApplication.objects.filter(job=job)  # Ensure applications are queried
+    applications = JobApplication.objects.filter(job=job)
     
     return render(request, 'job_detail.html', {
         'job': job,
@@ -47,46 +43,16 @@ def job_detail(request, job_id):
         'is_employee': False
     })
 
-@login_required
+@user_type_required('employer')
 def employer_dashboard(request):
-    if request.user.user_type != 'employer':
-        messages.error(request, "Access denied. Employer access only.")
-        return redirect('login')
     jobs = Job.objects.filter(created_by=request.user.employer)
     return render(request, 'employer_dashboard.html', {
         'jobs': jobs,
         'username': request.user.email
     })
 
-@login_required
+@user_type_required('employer')
 def account_page(request):
     return render(request, 'account_page.html', {
         'user': request.user
-    })
-
-@login_required
-def job_detail(request, job_id):
-    if not hasattr(request.user, 'employer'):
-        # If user is an employee, show the job application view
-        job = get_object_or_404(Job, id=job_id)
-        has_applied = False
-        if hasattr(request.user, 'employee'):
-            has_applied = JobApplication.objects.filter(
-                job=job, 
-                applicant=request.user.employee
-            ).exists()
-        return render(request, 'job_detail.html', {
-            'job': job,
-            'has_applied': has_applied,
-            'is_employee': True
-        })
-    
-    # Employer view
-    job = get_object_or_404(Job, id=job_id, created_by=request.user.employer)
-    applications = job.applications.all()
-    
-    return render(request, 'job_detail.html', {
-        'job': job,
-        'applications': applications,
-        'is_employee': False
     })

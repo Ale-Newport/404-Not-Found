@@ -1,15 +1,14 @@
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from app.models import Admin, Employee, Employer, Job, User
 from django.core.paginator import Paginator
 from django.db.models import Q
 from itertools import chain
 from django.apps import apps
+from app.decorators import user_type_required
 
-# Admin dashboard
+@user_type_required('admin')
 def dashboard(request):
     """Display the admin dashboard"""
-    
     total_users = Admin.objects.count() + Employee.objects.count() + Employer.objects.count()
     employee_users = Employee.objects.count()
     employer_users = Employer.objects.count()
@@ -25,7 +24,7 @@ def dashboard(request):
     }
     return render(request, 'admin/admin_dashboard.html', context)
 
-
+@user_type_required('admin')
 def list_users(request):
     users = User.objects.all()
     
@@ -57,12 +56,10 @@ def list_users(request):
     
     return render(request, 'admin/list_users.html', context)
 
-
-# Jobs views
+@user_type_required('admin')
 def list_jobs(request):
     jobs = Job.objects.all()
 
-    # Filtering
     department_filter = request.GET.get('department')
     job_type_filter = request.GET.get('job_type')
     created_by_filter = request.GET.get('created_by')
@@ -71,15 +68,12 @@ def list_jobs(request):
     if job_type_filter: jobs = jobs.filter(job_type=job_type_filter)
     if created_by_filter: jobs = jobs.filter(created_by__id=created_by_filter)
 
-    # Searching
     search_query = request.GET.get('search')
     if search_query: jobs = jobs.filter(Q(name__icontains=search_query) | Q(created_by__username__icontains=search_query) | Q(department__icontains=search_query) | Q(description__icontains=search_query) | Q(skills_needed__icontains=search_query) | Q(skills_wanted__icontains=search_query))
 
-    # Ordering
     order_by = request.GET.get('order_by', 'created_at')
     jobs = jobs.order_by(order_by)
 
-    # Get values for dropdowns
     employers_with_jobs = Employer.objects.filter(user_id__in=Job.objects.all().values_list('created_by', flat=True).distinct()).order_by('company_name')
     job_types = Job.objects.all().values_list('job_type', flat=True).distinct()
     departments = Job.objects.all().values_list('department', flat=True).distinct()
