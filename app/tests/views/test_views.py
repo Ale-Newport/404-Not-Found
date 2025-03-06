@@ -247,4 +247,4 @@ class ViewsTestCase(TestCase):
             'username': '@generic',
             'password': 'testpass123'
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
