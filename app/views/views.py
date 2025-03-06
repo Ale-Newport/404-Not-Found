@@ -473,20 +473,21 @@ def apply_to_job(request, job_id):
         return redirect('job_detail', job_id=job_id)
     
     if request.method == 'POST':
+        # Make sure to provide default empty string or None appropriately
         application = JobApplication(
             job=job,
             applicant=request.user.employee,
-            cover_letter=request.POST.get('cover_letter'),
-            full_name=request.POST.get('full_name'),
-            email=request.POST.get('email'),
-            phone=request.POST.get('phone'),
-            country=request.POST.get('country'),
-            current_position=request.POST.get('current_position'),
-            skills=request.POST.get('skills'),
-            experience=request.POST.get('experience'),
-            education=request.POST.get('education'),
-            portfolio_url=request.POST.get('portfolio_url'),
-            linkedin_url=request.POST.get('linkedin_url')
+            cover_letter=request.POST.get('cover_letter', ''),
+            full_name=request.POST.get('full_name', f"{request.user.first_name} {request.user.last_name}"),
+            email=request.POST.get('email', request.user.email),
+            phone=request.POST.get('phone', ''),
+            country=request.POST.get('country', request.user.employee.country),
+            current_position=request.POST.get('current_position', ''),
+            skills=request.POST.get('skills', request.user.employee.skills or ''),
+            experience=request.POST.get('experience', ''),
+            education=request.POST.get('education', ''),
+            portfolio_url=request.POST.get('portfolio_url', ''),
+            linkedin_url=request.POST.get('linkedin_url', '')
         )
         
         if 'custom_cv' in request.FILES:

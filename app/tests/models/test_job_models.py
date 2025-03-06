@@ -1,15 +1,36 @@
 from django.test import TestCase
-from app.models import Job, Employer, Admin
+from app.models import Job, Employer, User
 from decimal import Decimal
 
 class JobModelTest(TestCase):
-
-    fixtures = ['app/tests/fixtures/users.json', 'app/tests/fixtures/employer_users.json', 'app/tests/fixtures/jobs.json']
-
     def setUp(self):
-        super().setUp()
-        self.job = Job.objects.get(pk=1)
-        self.employer = Employer.objects.get(pk=1)
+        # Create an employer for testing
+        employer_user = User.objects.create_user(
+            username='@testemployer',
+            email='employer@test.com',
+            password='password123',
+            first_name='Test',
+            last_name='Employer',
+            user_type='employer'
+        )
+        self.employer = Employer.objects.create(
+            user=employer_user,
+            company_name='Test Company',
+            country='US'
+        )
+        
+        # Create a job for testing
+        self.job = Job.objects.create(
+            name="Software Developer",
+            department="Engineering",
+            description="Test job description",
+            salary=Decimal("50000.00"),
+            job_type="FT",
+            bonus=Decimal("0"),
+            skills_needed="Python, Django",
+            skills_wanted="Machine Learning, Artificial Intelligence",
+            created_by=self.employer
+        )
 
     def test_job_creation(self):
         self.assertEqual(self.job.name, "Software Developer")
