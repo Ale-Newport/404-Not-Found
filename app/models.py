@@ -8,11 +8,11 @@ from django.utils import timezone
 from project.constants import COUNTRIES
 
 class User(AbstractUser):
-    USER_TYPES = {
+    USER_TYPES = [
         ('admin', 'Admin'),
         ('employee', 'Employee'),
         ('employer', 'Employer')
-    }
+    ]
     user_type = models.CharField(max_length=10, choices=USER_TYPES)
 
     username = models.CharField(max_length=50, unique=True,
