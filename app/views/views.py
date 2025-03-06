@@ -177,18 +177,24 @@ def upload_cv(request):
 
 
 def review_cv_data(request):
-    cv_filename = request.session.get("cv_filename", "")
-    cv_data = defaultdict(str)
     
+    cv_filename = request.session.get("cv_filename", "")
     if cv_filename:
         try:
             file_path = os.path.join(settings.MEDIA_ROOT, cv_filename)
             cv_data = parse_cv(file_path)
-            print("CV Data extracted:", cv_data)  # Debug info
         except Exception as e:
             print(f"Error parsing CV: {e}")
+            cv_data = defaultdict(str)
+    else:
+        cv_data = defaultdict(str)
 
     if request.method == "POST":
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            messages.error(request, "You must be logged in to complete this action.")
+            return redirect("login")
+            
         user = request.user
         employee, created = Employee.objects.get_or_create(user=user)
 
