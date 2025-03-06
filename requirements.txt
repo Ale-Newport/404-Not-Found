@@ -16,3 +16,5 @@ pytest==7.4.2
 selenium==4.11.2
 django-recaptcha==3.0.0
 django-seed==0.3.1 
+pdfplumber>=0.5.28
+spacy>=3.0.0

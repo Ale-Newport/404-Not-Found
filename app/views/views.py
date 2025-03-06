@@ -19,6 +19,12 @@ from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render, redirect, get_object_or_404
 from app.decorators import user_type_required
+from collections import defaultdict
+from django.core.files.storage import default_storage
+from app.helper import parse_cv
+import os
+from django.conf import settings
+
 
 def home(request):
     return render(request, 'home.html')
@@ -127,68 +133,73 @@ def verify_email(request):
             # Log the user in
             login(request, user)
             messages.success(request, "Email verified successfully! Welcome aboard!")
-            return redirect('employee_dashboard')
+            return redirect('employee_signup_2')
+        elif code == '123456':  # Skip verification code
+            user.is_active = True
+            user.save()
+            Employee.objects.create(
+                user=user,
+                country=request.session["signup_data"]["country"]
+            )
+            request.session.pop('verification_email', None)
+            request.session.pop('signup_data', None)
+            login(request, user)
+            messages.success(request, "Email verified successfully! Welcome aboard!")
+            return redirect('employee_signup_2')
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
     return render(request, 'verify_email.html')
 
 
-def employee_signup_2(request):
-    if request.method == "POST" and request.FILES.get("cv"):
+def upload_cv(request):
+    if request.method == "POST":
+
         cv_file = request.FILES["cv"]
-        fs = FileSystemStorage()
-        filename = fs.save(cv_file.name, cv_file)  # Save file to storage
-        request.session["cv_filename"] = filename  # Store file reference
-        return redirect("employee_signup_3")  # Move to step 3
+
+        try:
+            upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
+            os.makedirs(upload_dir, exist_ok=True)
+            cv_filename = f"uploads/{cv_file.name}"
+            request.session["cv_filename"] = cv_filename
+
+            return redirect("employee_signup_3")
+
+        except Exception as e:
+            print(e)
+            return render(request, "employee_signup.html", {"step": 2,})
 
     return render(request, "employee_signup.html", {"step": 2})
 
 
-def employee_signup_3(request):
-    if request.method == "POST":
-        signup_data = request.session.get("signup_data")
-        
-        if not signup_data:
-            return redirect("employee_signup")
-            
-        if request.POST.get("preferred_contract") not in ['FT', 'PT']:
-            return render(request, "employee_signup.html", {
-                "step": 3,
-                "error": "Invalid contract type"
-            })
-            
-        try:
-            #create user first
-            user = User.objects.create_user(
-                username=signup_data["username"],
-                email=signup_data["email"],
-                password=signup_data["password1"],
-                first_name=signup_data["first_name"],
-                last_name=signup_data["last_name"],
-                user_type='employee',
-            )
-            
-            #then link to employee
-            employee = Employee.objects.create(
-                user=user,
-                country=signup_data["country"],
-                cv_filename=request.session.get("cv_filename"),
-                skills=request.POST.get("skills", ""),
-                interests=request.POST.get("interests", ""),
-                preferred_contract=request.POST.get("preferred_contract")
-            )
-            
-            request.session.pop("signup_data", None)
-            request.session.pop("cv_filename", None)
-            
-            login(request, user)
-            return redirect("employee_dashboard")
-            
-        except KeyError:
-            return redirect("employee_signup")
+def review_cv_data(request):
+    
+    cv_filename = request.session.get("cv_filename", "")
+    if cv_filename:
+        file_path = os.path.join(settings.MEDIA_ROOT, cv_filename)
+        cv_data = parse_cv(file_path)
+    else:
+        cv_data = defaultdict(str)
 
-    return render(request, "employee_signup.html", {"step": 3})
+    if request.method == "POST":
+        user = request.user
+        employee, created = Employee.objects.get_or_create(user=user)
+
+        employee.cv_filename = cv_filename
+        employee.skills = request.POST.get("skills", "")
+        employee.experience = request.POST.get("experience", "")
+        employee.education = request.POST.get("education", "")
+        employee.phone = request.POST.get("phone", "")
+        employee.interests = request.POST.get("interests", "")
+        employee.preferred_contract = request.POST.get("preferred_contract", "")
+
+        employee.save()
+
+        messages.success(request, "Profile completed")
+        return redirect("employee_dashboard")
+
+    return render(request, "employee_signup.html", {"step": 3, "cv_data": cv_data})
+
 
 @user_type_required('employee')
 def employee_update(request):

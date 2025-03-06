@@ -58,6 +58,10 @@ class Employee(models.Model):
 
     country = models.CharField(max_length=100, choices=COUNTRIES, blank=True)
     skills = models.TextField(blank=True)
+    experience = models.TextField(blank=True)
+    education = models.TextField(blank=True)
+    languages = models.TextField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
     interests = models.TextField(blank=True)
     preferred_contract = models.CharField(
         max_length=2,
