@@ -54,14 +54,24 @@ def extract_skills(text):
     found_skills = [skill for skill in common_skills if skill.lower() in text.lower()]
     return found_skills
 
+def extract_interests(text):
+    """Extract interests or hobbies from the CV text."""
+    interest_keywords = ["Interest", "Hobby", "Hobbies", "Passion", "Activities", "Enjoy"]
+    interest_info = []
+    for line in text.split("\n"):
+        if any(keyword.lower() in line.lower() for keyword in interest_keywords):
+            interest_info.append(line.strip())
+    return interest_info
+
 def parse_cv(pdf_path):
     text = extract_text_from_pdf(pdf_path)
     extracted_data = {
         "Name": extract_name(text),
         "E-mail": extract_email(text),
         "Phone": extract_phone_number(text),
-        "Educación": extract_education(text),
-        "Experiencia": extract_experience(text),
-        "Habilidades": extract_skills(text)
+        "Education": extract_education(text),
+        "Experience": extract_experience(text),
+        "Skills": extract_skills(text),
+        "Interests": extract_interests(text)
     }
     return extracted_data

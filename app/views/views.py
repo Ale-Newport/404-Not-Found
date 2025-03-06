@@ -154,21 +154,25 @@ def verify_email(request):
 
 def upload_cv(request):
     if request.method == "POST":
-
         cv_file = request.FILES["cv"]
-
         try:
+            # Create the uploads directory if it doesn't exist
             upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
             os.makedirs(upload_dir, exist_ok=True)
+            
+            # Construct the relative file path
             cv_filename = f"uploads/{cv_file.name}"
-            request.session["cv_filename"] = cv_filename
-
+            
+            # Save the file using Django's storage API
+            file_path = default_storage.save(cv_filename, cv_file)
+            
+            # Save the filename in the session
+            request.session["cv_filename"] = file_path
+            
             return redirect("employee_signup_3")
-
         except Exception as e:
             print(e)
             return render(request, "employee_signup.html", {"step": 2,})
-
     return render(request, "employee_signup.html", {"step": 2})
 
 
