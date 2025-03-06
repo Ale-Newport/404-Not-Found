@@ -13,7 +13,10 @@
 
     <div class="mb-3">
         <label class="form-label">Skills</label>
-        <input type="text" name="skills" class="form-control" value="{{ cv_data.Skills|join:', '|default:'' }}">
+        <div class="tag-input-container border rounded p-2 d-flex flex-wrap" id="skills-container">
+            <input type="text" id="skills-input" class="tag-input border-0 flex-grow-1" placeholder="Type to add skills...">
+        </div>
+        <input type="hidden" name="skills" id="skills-hidden-input" value="{{ cv_data.Skills|join:', '|default:'' }}">
     </div>
 
     <div class="mb-3">
@@ -23,7 +26,10 @@
 
     <div class="mb-3">
         <label class="form-label">Interests</label>
-        <input type="text" name="interests" class="form-control" value="{{ cv_data.Interests|join:', '|default:'' }}">
+        <div class="tag-input-container border rounded p-2 d-flex flex-wrap" id="interests-container">
+            <input type="text" id="interests-input" class="tag-input border-0 flex-grow-1" placeholder="Type to add interests...">
+        </div>
+        <input type="hidden" name="interests" id="interests-hidden-input" value="{{ cv_data.Interests|join:', '|default:'' }}">
     </div>
 
     <div class="mb-3">
@@ -37,3 +43,106 @@
 
     <button type="submit" class="btn btn-success w-100">Finish Signup</button>
 </form>
+
+<style>
+    .tag-item {
+        background-color: #e9ecef;
+        border-radius: 4px;
+        padding: 4px 8px;
+        margin: 2px;
+        display: inline-flex;
+        align-items: center;
+    }
+    .tag-close {
+        margin-left: 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .tag-input-container {
+        min-height: 38px;
+    }
+    .tag-input {
+        outline: none;
+        min-width: 60px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tag inputs
+    initTagInput('skills');
+    initTagInput('interests');
+});
+
+function initTagInput(fieldName) {
+    const container = document.getElementById(`${fieldName}-container`);
+    const input = document.getElementById(`${fieldName}-input`);
+    const hiddenInput = document.getElementById(`${fieldName}-hidden-input`);
+    
+    // Initial tags from hidden input value
+    if (hiddenInput.value) {
+        const initialTags = hiddenInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        initialTags.forEach(tag => addTag(fieldName, tag));
+    }
+    
+    // Handle input keydown
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const value = input.value.trim();
+            
+            if (value) {
+                addTag(fieldName, value);
+                input.value = '';
+                updateHiddenInput(fieldName);
+            }
+        }
+    });
+    
+    // Handle input blur
+    input.addEventListener('blur', function() {
+        const value = input.value.trim();
+        if (value) {
+            addTag(fieldName, value);
+            input.value = '';
+            updateHiddenInput(fieldName);
+        }
+    });
+}
+
+function addTag(fieldName, text) {
+    const container = document.getElementById(`${fieldName}-container`);
+    const input = document.getElementById(`${fieldName}-input`);
+    
+    // Create tag element
+    const tag = document.createElement('div');
+    tag.className = 'tag-item';
+    tag.dataset.value = text;
+    
+    // Tag text
+    const tagText = document.createElement('span');
+    tagText.textContent = text;
+    tag.appendChild(tagText);
+    
+    // Remove button
+    const closeBtn = document.createElement('span');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'tag-close';
+    closeBtn.addEventListener('click', function() {
+        tag.remove();
+        updateHiddenInput(fieldName);
+    });
+    tag.appendChild(closeBtn);
+    
+    // Insert tag before the input
+    container.insertBefore(tag, input);
+}
+
+function updateHiddenInput(fieldName) {
+    const container = document.getElementById(`${fieldName}-container`);
+    const hiddenInput = document.getElementById(`${fieldName}-hidden-input`);
+    
+    const tags = Array.from(container.querySelectorAll('.tag-item')).map(tag => tag.dataset.value);
+    hiddenInput.value = tags.join(', ');
+}
+</script>
