@@ -22,15 +22,15 @@ urlpatterns = [
     path('password-reset/set-password/', views.set_new_password, name='set_new_password'),
 
     # Sign-up routes
+    path('employer/signup/', views.employer_signup, name='employer_signup'),
     path('employee/signup/', views.employee_signup, name='employee_signup'),
     path('verify-email/', views.verify_email, name='verify_email'),
-    path("employee-signup/step2/", views.employee_signup_2, name="employee_signup_2"),
-    path("employee-signup/step3/", views.employee_signup_3, name="employee_signup_3"),
-    path('employer/signup/', views.employer_signup, name='employer_signup'),
+    path("employee-signup/CV/", views.upload_cv, name="employee_signup_2"),
+    path("employee-signup/CV/parse/", views.review_cv_data, name="employee_signup_3"),
     
     # Employee routes
     path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
-     path('employee/update/', views.employee_update, name='employee_update'),
+    path('employee/update/', views.employee_update, name='employee_update'),
     # Employer routes
     path('employer/dashboard/', employer_views.employer_dashboard, name='employer_dashboard'),
     path('account/', employer_views.account_page, name='account_page'),
