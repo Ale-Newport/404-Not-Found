@@ -177,13 +177,16 @@ def upload_cv(request):
 
 
 def review_cv_data(request):
-    
     cv_filename = request.session.get("cv_filename", "")
+    cv_data = defaultdict(str)
+    
     if cv_filename:
-        file_path = os.path.join(settings.MEDIA_ROOT, cv_filename)
-        cv_data = parse_cv(file_path)
-    else:
-        cv_data = defaultdict(str)
+        try:
+            file_path = os.path.join(settings.MEDIA_ROOT, cv_filename)
+            cv_data = parse_cv(file_path)
+            print("CV Data extracted:", cv_data)  # Debug info
+        except Exception as e:
+            print(f"Error parsing CV: {e}")
 
     if request.method == "POST":
         user = request.user
