@@ -5,8 +5,147 @@ from project.constants import COUNTRIES
 import random
 from datetime import timedelta
 from django.utils import timezone
-from project.constants import COUNTRIES
 
+# ------------------------------------------------------------------------------
+# USER DELEGATION MIXIN
+# ------------------------------------------------------------------------------
+class UserDelegationMixin:
+    @property
+    def email(self):
+        return self.user.email
+
+    @email.setter
+    def email(self, value):
+        self.user.email = value
+        self.user.save()
+
+    @property
+    def first_name(self):
+        return self.user.first_name
+
+    @first_name.setter
+    def first_name(self, value):
+        self.user.first_name = value
+        self.user.save()
+
+    @property
+    def last_name(self):
+        return self.user.last_name
+
+    @last_name.setter
+    def last_name(self, value):
+        self.user.last_name = value
+        self.user.save()
+
+    @property
+    def is_staff(self):
+        return self.user.is_staff
+
+    @is_staff.setter
+    def is_staff(self, value):
+        self.user.is_staff = value
+        self.user.save()
+
+    @property
+    def is_superuser(self):
+        return self.user.is_superuser
+
+    @is_superuser.setter
+    def is_superuser(self, value):
+        self.user.is_superuser = value
+        self.user.save()
+
+    @property
+    def is_active(self):
+        return self.user.is_active
+
+    @is_active.setter
+    def is_active(self, value):
+        self.user.is_active = value
+        self.user.save()
+
+# ------------------------------------------------------------------------------
+# CUSTOM MANAGERS
+# ------------------------------------------------------------------------------
+from django.db.models import Manager, F
+
+class AdminManager(Manager):
+    def create(self, **kwargs):
+        user_keys = {'username', 'email', 'first_name', 'last_name', 'password', 'is_staff', 'is_superuser'}
+        if user_keys.intersection(kwargs.keys()):
+            return self.create_user(**kwargs)
+        return super().create(**kwargs)
+        
+    def create_user(self, **kwargs):
+        user_fields = {}
+        for field in ['username', 'email', 'first_name', 'last_name', 'password', 'is_staff', 'is_superuser']:
+            if field in kwargs:
+                user_fields[field] = kwargs.pop(field)
+        if not user_fields.get('email'):
+            raise ValueError("Users must have an email address")
+        if not user_fields.get('username'):
+            raise ValueError("Users must have a username")
+        user_fields['user_type'] = 'admin'
+        user_fields.setdefault('is_staff', True)
+        user_fields.setdefault('is_superuser', True)
+        # Use Django's built-in create_user for proper password handling.
+        user = User.objects.create_user(**user_fields)
+        return super().create(user=user, **kwargs)
+    
+    def create_superuser(self, **kwargs):
+        kwargs.setdefault('is_staff', True)
+        kwargs.setdefault('is_superuser', True)
+        return self.create_user(**kwargs)
+
+class EmployeeManager(Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('user').annotate(email=F('user__email'))
+    
+    def create(self, **kwargs):
+        user_keys = {'username', 'email', 'first_name', 'last_name', 'password'}
+        if user_keys.intersection(kwargs.keys()):
+            return self.create_user(**kwargs)
+        return super().create(**kwargs)
+        
+    def create_user(self, **kwargs):
+        user_fields = {}
+        for field in ['username', 'email', 'first_name', 'last_name', 'password']:
+            if field in kwargs:
+                user_fields[field] = kwargs.pop(field)
+        if not user_fields.get('email'):
+            raise ValueError("Users must have an email address")
+        if not user_fields.get('username'):
+            raise ValueError("Users must have a username")
+        user_fields['user_type'] = 'employee'
+        user = User.objects.create_user(**user_fields)
+        return super().create(user=user, **kwargs)
+
+class EmployerManager(Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('user').annotate(email=F('user__email'))
+    
+    def create(self, **kwargs):
+        user_keys = {'username', 'email', 'first_name', 'last_name', 'password'}
+        if user_keys.intersection(kwargs.keys()):
+            return self.create_user(**kwargs)
+        return super().create(**kwargs)
+        
+    def create_user(self, **kwargs):
+        user_fields = {}
+        for field in ['username', 'email', 'first_name', 'last_name', 'password']:
+            if field in kwargs:
+                user_fields[field] = kwargs.pop(field)
+        if not user_fields.get('email'):
+            raise ValueError("Users must have an email address")
+        if not user_fields.get('username'):
+            raise ValueError("Users must have a username")
+        user_fields['user_type'] = 'employer'
+        user = User.objects.create_user(**user_fields)
+        return super().create(user=user, **kwargs)
+
+# ------------------------------------------------------------------------------
+# MODELS
+# ------------------------------------------------------------------------------
 class User(AbstractUser):
     USER_TYPES = {
         ('admin', 'Admin'),
@@ -39,11 +178,12 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'username'
 
-class Admin(models.Model):
+class Admin(UserDelegationMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-
+    
+    objects = AdminManager()
+    
     def clean(self):
-        """Ensure admin users have staff/superuser status"""
         super().clean()
         self.user.is_staff = True
         self.user.is_superuser = True
@@ -52,9 +192,11 @@ class Admin(models.Model):
     def __str__(self):
         return f"{self.user.username} (Admin)"
 
-class Employee(models.Model):
+class Employee(UserDelegationMixin, models.Model):
     """Job seeker user type."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
+    objects = EmployeeManager()
 
     country = models.CharField(max_length=100, choices=COUNTRIES, blank=True)
     skills = models.TextField(blank=True)
@@ -69,16 +211,16 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.user.username} (Employee)"
 
-
-class Employer(models.Model):
+class Employer(UserDelegationMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
+    objects = EmployerManager()
 
     country = models.CharField(max_length=100, choices=COUNTRIES, blank=True)
     company_name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"{self.user.username} (Employer) - {self.company_name}"
-
 
 class Job(models.Model):
     def __str__(self):
@@ -114,11 +256,9 @@ class VerificationCode(models.Model):
 
     @classmethod
     def generate_code(cls):
-        """Generate a random 6-digit code"""
         return ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
     def is_valid(self):
-        """Check if code is valid (not expired and not used)"""
         return not self.is_used and self.created_at >= timezone.now() - timedelta(minutes=15)
 
     class Meta:
@@ -136,18 +276,17 @@ class JobApplication(models.Model):
     applicant = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
-    # Application Details
-    cover_letter = models.TextField()
+    cover_letter = models.TextField(blank=True, default='')          # Updated
     full_name = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True)
+    phone = models.CharField(max_length=20, blank=True, default='')   # Added default
     country = models.CharField(max_length=100, choices=COUNTRIES, blank=True, null=True)
-    current_position = models.CharField(max_length=100, blank=True)
-    skills = models.TextField(blank=True)
-    experience = models.TextField(blank=True)
-    education = models.TextField(blank=True)
-    portfolio_url = models.URLField(blank=True)
-    linkedin_url = models.URLField(blank=True)
+    current_position = models.CharField(max_length=100, blank=True, default='')  # Updated
+    skills = models.TextField(blank=True, default='')                 # Added default
+    experience = models.TextField(blank=True, default='')             # Added default
+    education = models.TextField(blank=True, default='')              # Updated
+    portfolio_url = models.URLField(blank=True, default='')           # Added default
+    linkedin_url = models.URLField(blank=True, default='')            # Updated
     custom_cv = models.FileField(upload_to='applications/cvs/', blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
