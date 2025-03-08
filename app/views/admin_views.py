@@ -57,6 +57,7 @@ def list_users(request):
     return render(request, 'admin/list_users.html', context)
 
 @user_type_required('admin')
+# In app/views/admin_views.py
 def list_jobs(request):
     jobs = Job.objects.all()
 
@@ -69,7 +70,15 @@ def list_jobs(request):
     if created_by_filter: jobs = jobs.filter(created_by__id=created_by_filter)
 
     search_query = request.GET.get('search')
-    if search_query: jobs = jobs.filter(Q(name__icontains=search_query) | Q(created_by__username__icontains=search_query) | Q(department__icontains=search_query) | Q(description__icontains=search_query) | Q(skills_needed__icontains=search_query) | Q(skills_wanted__icontains=search_query))
+    if search_query: 
+        # Remove the problematic created_by__username__icontains part
+        jobs = jobs.filter(
+            Q(name__icontains=search_query) | 
+            Q(department__icontains=search_query) | 
+            Q(description__icontains=search_query) | 
+            Q(skills_needed__icontains=search_query) | 
+            Q(skills_wanted__icontains=search_query)
+        )
 
     order_by = request.GET.get('order_by', 'created_at')
     jobs = jobs.order_by(order_by)

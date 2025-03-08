@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 Employer.objects.create(user=user,
                                         company_name = company_name,)
             user.save()
-        except Exception as e:
+        except Exception as e: 
             print(f"Error creating user: {data} - {e}")
     
 
