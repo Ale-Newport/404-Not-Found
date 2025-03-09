@@ -1,4 +1,5 @@
 from django.db.models import Q
+from app.models import Job, Employee
 
 class JobMatcher:
     """
@@ -111,4 +112,55 @@ class JobMatcher:
         all_matches = required_matches + [s for s in preferred_matches if s not in required_matches]
         
         return round(final_score, 1), all_matches, missing_required
+    
+    @staticmethod
+    def match_employee_to_jobs(employee, jobs = None):
+        #if no specific jobs provided, use all
+        if jobs is None:
+            jobs = Job.objects.all()
 
+        matches = []
+        for job in jobs:
+            score, matching_skills, missing_skills = JobMatcher.calculate_match_score(
+                employee.skills, 
+                job.skills_needed, 
+                job.skills_wanted,
+                employee.preferred_contract,
+                job.job_type
+            )
+            
+            matches.append({
+                'job': job,
+                'score': score,
+                'matching_skills': matching_skills,
+                'missing_skills': missing_skills,
+                'contract_match': employee.preferred_contract == job.job_type
+            })
+
+        return sorted(matches, key=lambda x: x['score'], reverse=True)
+    
+
+    @staticmethod
+    def match_job_to_employees(job, employees=None):
+        if employees is None:
+            employees = Employee.objects.all()
+        
+        matches = []
+        for employee in employees:
+            score, matching_skills, missing_skills = JobMatcher.calculate_match_score(
+                employee.skills, 
+                job.skills_needed, 
+                job.skills_wanted,
+                employee.preferred_contract,
+                job.job_type
+            )
+            
+            matches.append({
+                'employee': employee,
+                'score': score,
+                'matching_skills': matching_skills,
+                'missing_skills': missing_skills,
+                'contract_match': employee.preferred_contract == job.job_type
+            })
+        
+        return sorted(matches, key=lambda x: x['score'], reverse=True)
