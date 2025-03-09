@@ -142,6 +142,7 @@ class JobMatcher:
 
     @staticmethod
     def match_job_to_employees(job, employees=None):
+        #if no specific employees provided, use all
         if employees is None:
             employees = Employee.objects.all()
         
