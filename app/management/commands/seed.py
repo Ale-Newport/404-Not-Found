@@ -119,14 +119,71 @@ class Command(BaseCommand):
         print("Job seeding complete.      ")
 
     def generate_job(self):
-        name = self.faker.job()
+        # Dictionary of job roles and associated skills
+        job_skills = {
+            'Software Engineer': [
+                'python', 'java', 'javascript', 'react', 'django', 'node.js', 'sql', 'nosql', 
+                'docker', 'kubernetes', 'aws', 'git', 'ci/cd', 'microservices', 'rest api'
+            ],
+            'Data Scientist': [
+                'python', 'r', 'sql', 'machine learning', 'deep learning', 'tensorflow', 
+                'pytorch', 'pandas', 'numpy', 'data visualization', 'statistics', 'big data'
+            ],
+            'Web Developer': [
+                'html', 'css', 'javascript', 'react', 'vue', 'angular', 'node.js', 'php',
+                'wordpress', 'responsive design', 'ui/ux', 'bootstrap', 'sass'
+            ],
+            'Product Manager': [
+                'agile', 'scrum', 'jira', 'product development', 'user research', 'roadmap planning',
+                'stakeholder management', 'market analysis', 'a/b testing', 'analytics'
+            ],
+            'Marketing Specialist': [
+                'seo', 'sem', 'social media', 'content marketing', 'analytics', 'email marketing',
+                'google ads', 'copywriting', 'brand strategy', 'market research'
+            ],
+            'UX Designer': [
+                'figma', 'sketch', 'adobe xd', 'user research', 'wireframing', 'prototyping',
+                'usability testing', 'interaction design', 'information architecture'
+            ],
+            'DevOps Engineer': [
+                'linux', 'aws', 'azure', 'gcp', 'terraform', 'docker', 'kubernetes', 
+                'jenkins', 'gitlab ci', 'monitoring', 'automation', 'scripting'
+            ],
+            'Project Manager': [
+                'agile', 'scrum', 'kanban', 'jira', 'ms project', 'risk management',
+                'budgeting', 'stakeholder management', 'reporting', 'leadership'
+            ],
+            'Sales Representative': [
+                'crm', 'salesforce', 'negotiation', 'prospecting', 'account management',
+                'sales funnel', 'cold calling', 'relationship building', 'presentations'
+            ],
+            'Accountant': [
+                'quickbooks', 'excel', 'financial reporting', 'tax preparation', 'gaap',
+                'accounts payable', 'accounts receivable', 'auditing', 'bookkeeping'
+            ]
+        }
+
+        job_category = self.faker.random_element(list(job_skills.keys()))
+        name = f"{job_category} - {self.faker.job()}"
+
         department = self.faker.bs()
         description = self.faker.text()
         salary = self.faker.random_int(20000, 100000)
         job_type = choices(['FT', 'PT'], weights=[85, 15], k=1)[0]
         bonus = self.faker.random_int(0, 20000)
-        skills_needed = ', '.join(self.faker.words(3))
-        skills_wanted = ', '.join(self.faker.words(3))
+        all_skills = job_skills[job_category].copy()
+        required_count = self.faker.random_int(3, 5)
+        required_skills = self.faker.random_elements(all_skills, length=min(required_count, len(all_skills)), unique=True)
+        
+        for skill in required_skills:
+            if skill in all_skills:
+                all_skills.remove(skill)
+        
+        preferred_count = self.faker.random_int(2, 4)
+        preferred_skills = self.faker.random_elements(all_skills, length=min(preferred_count, len(all_skills)), unique=True)
+        
+        skills_needed = ', '.join(required_skills)
+        skills_wanted = ', '.join(preferred_skills)
         created_at = self.faker.date_time_this_year()
         created_by = choices(Employer.objects.all(), k=1)[0]
         self.create_job({'name': name, 'department': department, 'description': description, 'salary': salary, 'job_type': job_type, 'bonus': bonus, 'skills_needed': skills_needed, 'skills_wanted': skills_wanted, 'created_at': created_at, 'created_by': created_by})
