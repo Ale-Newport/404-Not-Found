@@ -61,7 +61,7 @@ class JobMatcher:
         
         return False
 
-
+    @staticmethod
     def calculate_match_score(employee_skills, job_required_skills, 
             job_preferred_skills = None, employee_preferred_contract = None, job_type = None):
         """
