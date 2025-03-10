@@ -302,52 +302,70 @@ def employee_dashboard(request):
     if request.user.user_type != 'employee':
         messages.error(request, "Access denied. Employee access only.")  # pragma: no cover
         return redirect('login')  # pragma: no cover
-        
+    
     # Get the employee profile
     employee = Employee.objects.get(user=request.user)
     
     # Determine active tab
     active_tab = request.GET.get('tab', 'all')
     
-    # Only query jobs if we're on the 'all' tab
+    # Create filters dictionary for both tabs
+    filters = {
+        'search': request.GET.get('search', ''),
+        'job_type': request.GET.get('job_type', ''),
+        'department': request.GET.get('department', ''),
+        'country': request.GET.get('country', ''),
+        'min_salary': request.GET.get('min_salary', ''),
+        'tab': active_tab,  # Include tab in filters to preserve it during pagination
+    }
+    
+    # Initialize job_matches as None (will be populated if on suitable tab)
+    job_matches = None
     jobs = []
-    if active_tab == 'all':
-        # Build the job query
-        jobs = Job.objects.all().order_by('-created_at')
+    
+    # Base query for jobs that applies to both tabs
+    base_jobs_query = Job.objects.all().order_by('-created_at')
+    
+    # Apply filters that are relevant to both tabs
+    if filters['search']:
+        base_jobs_query = base_jobs_query.filter(
+            Q(name__icontains=filters['search']) |
+            Q(description__icontains=filters['search']) |
+            Q(department__icontains=filters['search']) |
+            Q(skills_needed__icontains=filters['search'])
+        )
+    
+    if filters['job_type'] in ['FT', 'PT']:
+        base_jobs_query = base_jobs_query.filter(job_type=filters['job_type'])
+    
+    if filters['department']:
+        base_jobs_query = base_jobs_query.filter(department__icontains=filters['department'])
+    
+    if filters['min_salary']:
+        try:
+            base_jobs_query = base_jobs_query.filter(salary__gte=float(filters['min_salary']))
+        except ValueError:  # pragma: no cover
+            pass  # pragma: no cover
+    
+    if filters['country']:  # pragma: no cover
+        base_jobs_query = base_jobs_query.filter(created_by__employer__country__icontains=filters['country'])  # pragma: no cover
+    
+    # Handle specific tab logic
+    if active_tab == 'suitable':
+        # Get all filtered jobs
+        filtered_jobs = base_jobs_query
         
-        # Apply filters
-        if 'search' in request.GET:
-            search_query = request.GET.get('search')
-            if search_query:
-                jobs = jobs.filter(
-                    Q(name__icontains=search_query) |
-                    Q(description__icontains=search_query) |
-                    Q(department__icontains=search_query) |
-                    Q(skills_needed__icontains=search_query)
-                )
-                
-        if 'job_type' in request.GET:
-            job_type = request.GET.get('job_type')
-            if job_type in ['FT', 'PT']:
-                jobs = jobs.filter(job_type=job_type)
-                
-        if 'department' in request.GET:
-            department = request.GET.get('department')
-            if department:
-                jobs = jobs.filter(department__icontains=department)
-                
-        if 'min_salary' in request.GET:
-            min_salary = request.GET.get('min_salary')
-            if min_salary:
-                try:
-                    jobs = jobs.filter(salary__gte=float(min_salary))
-                except ValueError: # pragma: no cover
-                    pass# pragma: no cover
-                    
-        if 'country' in request.GET: # pragma: no cover
-            country = request.GET.get('country') # pragma: no cover
-            if country:# pragma: no cover
-                jobs = jobs.filter(created_by__employer__country__icontains=country)# pragma: no cover
+        # Use JobMatcher to calculate matches
+        from app.services.job_matcher import JobMatcher
+        job_matches_list = JobMatcher.match_employee_to_jobs(employee, filtered_jobs)
+        
+        # Pagination for matches
+        paginator = Paginator(job_matches_list, 10)  # 10 matches per page
+        page_number = request.GET.get('page')
+        job_matches = paginator.get_page(page_number)
+    else:  # 'all' tab
+        # Use the filtered jobs
+        jobs = base_jobs_query
         
         # Pagination
         paginator = Paginator(jobs, 10)  # 10 jobs per page
@@ -357,16 +375,9 @@ def employee_dashboard(request):
     context = {
         'employee': employee,
         'jobs': jobs,
+        'job_matches': job_matches,
         'active_tab': active_tab,
-        # Preserve filter values for form
-        'filters': {
-            'search': request.GET.get('search', ''),
-            'job_type': request.GET.get('job_type', ''),
-            'department': request.GET.get('department', ''),
-            'country': request.GET.get('country', ''),
-            'min_salary': request.GET.get('min_salary', ''),
-            'tab': active_tab,  # Include tab in filters to preserve it during pagination
-        }
+        'filters': filters
     }
     
     return render(request, 'employee_dashboard.html', context)
