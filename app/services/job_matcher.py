@@ -11,9 +11,15 @@ class JobMatcher:
         if not skills_text:
             return []
         
-        skills = [skill.strip().lower() for skill in skills_text.split(',')]
-        
-        return [skill for skill in skills if skill]
+        separator = ','
+        if ';' in skills_text and skills_text.count(';') > skills_text.count(','):
+            separator = ';'
+        elif '\n' in skills_text and skills_text.count('\n') > max(skills_text.count(','), skills_text.count(';')):
+            separator = '\n'
+    
+    # Split, clean, and filter skills
+    skills = [skill.strip().lower() for skill in skills_text.split(separator)]
+    return [skill for skill in skills if skill]
     
     @staticmethod
     def _skill_matches(job_skill, employee_skills):
