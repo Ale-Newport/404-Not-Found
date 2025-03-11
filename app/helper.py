@@ -51,114 +51,172 @@ def extract_experience(text):
 
 def extract_skills(text):
     """
-    Extract skills from CV text using a more comprehensive approach.
-    This combines predefined skills with skills mentioned in dedicated skills sections.
+    Extract skills from CV text using a more reliable approach that filters out non-skills.
     """
-    # Common technical skills to look for
+    # Common technical and transferable skills to look for
     common_skills = [
-        # Programming Languages
-        "Python", "Java", "C++", "C#", "JavaScript", "TypeScript", "Ruby", "PHP", "Go", "Rust", "Swift", 
-        "Kotlin", "Scala", "R", "Perl", "Bash", "Shell", "COBOL", "Fortran", "Assembly", "HTML", "CSS",
+        # Technical Skills
+        "Python", "Java", "C++", "C#", "JavaScript", "TypeScript", "Ruby", "PHP", "Go", "Swift", 
+        "SQL", "MySQL", "PostgreSQL", "MongoDB", "AWS", "Azure", "GCP", "Docker", "Kubernetes",
+        "Git", "GitHub", "Jenkins", "CI/CD", "React", "Angular", "Vue", "Django", "Flask", 
+        "TensorFlow", "PyTorch", "Machine Learning", "Data Science", "AI", "Data Analysis",
+        "Web Development", "Mobile Development", "Android", "iOS", "Excel", "PowerPoint", "Word",
         
-        # Databases
-        "SQL", "MySQL", "PostgreSQL", "SQLite", "MongoDB", "Oracle", "Redis", "Cassandra", "DynamoDB",
-        "MariaDB", "Firebase", "Neo4j", "CouchDB", "Elasticsearch",
+        # Engineering Skills
+        "CAD", "AutoCAD", "SolidWorks", "MATLAB", "Simulink", "Circuit Design", "PCB Design",
+        "Mechanical Engineering", "Civil Engineering", "Electrical Engineering", "Aerospace Engineering",
+        "Structural Analysis", "Fluid Dynamics", "Thermodynamics", "Control Systems",
         
-        # Frameworks & Libraries
-        "React", "Angular", "Vue", "Django", "Flask", "Spring", "Node.js", "Express", "Rails", "Laravel",
-        "ASP.NET", "jQuery", "Bootstrap", "Tailwind", "Pandas", "NumPy", "TensorFlow", "PyTorch", "Keras",
-        "Scikit-learn", "Matplotlib", "Seaborn", 
+        # Transferable Skills
+        "Project Management", "Teamwork", "Leadership", "Communication", "Problem Solving",
+        "Critical Thinking", "Time Management", "Customer Service", "Sales", "Negotiation",
+        "Conflict Resolution", "Presentation", "Public Speaking", "Report Writing", "Research",
         
-        # Cloud & DevOps
-        "AWS", "Azure", "GCP", "Docker", "Kubernetes", "Jenkins", "Git", "GitHub", "GitLab", "BitBucket",
-        "CI/CD", "Terraform", "Ansible", "Puppet", "Chef", "Prometheus", "Grafana", "ELK Stack",
-        
-        # Other Technical Areas
-        "Machine Learning", "Deep Learning", "Data Science", "Artificial Intelligence", "NLP", "Computer Vision",
-        "Big Data", "Data Mining", "Data Analysis", "Data Visualization", "ETL", "Business Intelligence",
-        "Blockchain", "Cybersecurity", "Network Security", "Penetration Testing", "Cryptography",
-        "Web Development", "Mobile Development", "Android", "iOS", "Responsive Design", "UX/UI",
-        
-        # Soft Skills (include some to be comprehensive)
-        "Leadership", "Project Management", "Agile", "Scrum", "Kanban", "Communication", "Teamwork", 
-        "Problem Solving", "Critical Thinking", "Time Management"
+        # Industry-Specific
+        "Vehicle Maintenance", "Repair", "Servicing", "Diagnostics", "Parts Management",
+        "Warehouse Management", "Inventory Control", "Stock Management", "Customer Support",
+        "Technical Support", "Quality Assurance", "Quality Control"
     ]
     
-    # First pass: check if skills are mentioned anywhere in the text
-    found_skills = set([skill for skill in common_skills if skill.lower() in text.lower()])
+    exclude_sections = [
+        "REFERENCES", "EDUCATION", "WORK EXPERIENCE", "INTERESTS", "HOBBIES", 
+        "CONTACT", "PROFILE", "SUMMARY", "OBJECTIVE", "NAME"
+    ]
     
-    # Second pass: look for dedicated skills sections and extract all items
-    skills_keywords = ["Skills", "Technical Skills", "Core Competencies", "Competencies", "Expertise", "Proficiencies"]
+    non_skill_indicators = [
+        "and", "the", "to", "in", "for", "of", "with", "from", "by", "as", "on", "at", "also",
+        "i", "my", "we", "this", "that", "these", "those", "then", "than", "when"
+    ]
     
-    # Split the text into lines and look for skills sections
+    fragment_indicators = [
+        "including", "included", "includes", "such as", "like", "etc", "etc.", "wherever",
+        "wherever needed", "wherever required"
+    ]
+    
+    found_skills = set()
+    
+    for skill in common_skills:
+        if skill.lower() in text.lower():
+            words = re.findall(r'\b\w+\b', text.lower())
+            if skill.lower() in words:
+                found_skills.add(skill)
+    
+    skills_keywords = ["Skills", "Technical Skills", "Core Competencies", "Competencies", 
+                       "Key Skills", "Professional Skills", "Technical Proficiencies"]
+    
     lines = text.split('\n')
     in_skills_section = False
+    skills_section_content = []
+    
     for i, line in enumerate(lines):
-        # Check if this line is a skills section header
-        if any(keyword.lower() in line.lower() for keyword in skills_keywords):
+        if any(keyword.lower() in line.lower() for keyword in skills_keywords) and not in_skills_section:
             in_skills_section = True
             continue
         
-        # If we're in a skills section, extract comma or bullet separated items
-        if in_skills_section:
-            # Check if we've moved to a new section
-            if line.strip() and any(line.strip().endswith(c) for c in [':', '.']):
-                if any(keyword.lower() in line.lower() for keyword in ["Education", "Experience", "Work", "Employment", "Projects"]):
-                    in_skills_section = False
-                    continue
-            
-            # Process skills in this line
-            if line.strip():
-                # Try to split by common separators
-                for separator in [',', '•', '·', '○', '●', '■', '▪', '▫', '□', '➢', '►', '»', '|', ';']:
-                    if separator in line:
-                        skills_in_line = [s.strip() for s in line.split(separator) if s.strip()]
-                        found_skills.update(skills_in_line)
-                        break
-                else:
-                    # If no separator found, use the whole line
-                    if len(line.strip().split()) <= 4:  # Likely a skill if 4 words or fewer
-                        found_skills.add(line.strip())
+        if in_skills_section and line.strip() and any(keyword.lower() in line.lower() for keyword in exclude_sections):
+            in_skills_section = False
+        
+        if in_skills_section and line.strip():
+            skills_section_content.append(line.strip())
     
-    filtered_skills = {s for s in found_skills if len(s.split()) <= 4}
+    if skills_section_content:
+        for line in skills_section_content:
+            skills_in_line = []
+            for separator in [',', '•', '·', '○', '●', '■', '▪', '▫', '□', '➢', '►', '»', '|', ';']:
+                if separator in line:
+                    skills_in_line = [s.strip() for s in line.split(separator) if s.strip()]
+                    break
+            else:
+                skills_in_line = [line.strip()]
+            
+            for skill in skills_in_line:
+                if len(skill.split()) > 4:
+                    continue
+                
+                if any(skill.lower().startswith(indicator + " ") for indicator in non_skill_indicators):
+                    continue
+                
+                if any(indicator in skill.lower() for indicator in fragment_indicators):
+                    continue
+                
+                if any(exclude.lower() in skill.lower() for exclude in exclude_sections):
+                    continue
+                
+                if re.search(r'[A-Z]+ - \d+', skill):
+                    continue
+                
+                found_skills.add(skill)
+    
+    # Add some context-specific skills based on the CV content
+    # These are manually identified based on the job roles and responsibilities
+    context_skills = [
+        "Vehicle Maintenance", "Vehicle Repair", "Parts Management", "Warehouse Management",
+        "Stock Control", "Customer Service", "Food Preparation", "Kitchen Operations",
+        "Industrial Dishwasher Operation", "Cleaning", "Money Handling", "Retail Operations",
+        "Technical Apprenticeship", "Vehicle Servicing", "Workshop Operations"
+    ]
+    
+    for skill in context_skills:
+        if skill.lower() in text.lower():
+            found_skills.add(skill)
+    
+    # Filter out any remaining problematic entries
+    filtered_skills = set()
+    for skill in found_skills:
+        # Skip entries that match page markers
+        if re.search(r'[A-Z]+ - \d+', skill):
+            continue
+        # Skip entries that contain "reference" or other non-skill words
+        if any(word in skill.lower() for word in ["reference", "interest", "hobby"]):
+            continue
+        filtered_skills.add(skill)
     
     return sorted(list(filtered_skills))
 
 def extract_interests(text):
     """
-    Extract interests and hobbies from CV text using a more comprehensive approach.
-    Looks for dedicated interest sections and extracts items.
+    Extract genuine interests and hobbies from CV text using a more reliable approach
+    that filters out non-interest content.
     """
+    # Common interest and hobby keywords to look for
     common_interests = [
         # Sports & Physical Activities
         "Soccer", "Football", "Basketball", "Tennis", "Golf", "Swimming", "Cycling", 
         "Running", "Hiking", "Climbing", "Yoga", "Fitness", "Gym", "Martial Arts",
+        "Badminton", "Kayaking", "Sports", "Athletics", "Boxing", "Skiing", "Snowboarding",
         
         # Creative Activities
         "Photography", "Painting", "Drawing", "Writing", "Reading", "Poetry", "Music",
-        "Singing", "Dancing", "Playing Guitar", "Piano", "Drums", "Composing", "Art",
+        "Singing", "Dancing", "Guitar", "Piano", "Drums", "Art", "Crafts", "Design",
+        "Cooking", "Baking", "Knitting", "Sewing", "Theatre", "Acting",
         
-        # Tech Related
-        "Programming", "Coding", "Game Development", "Web Design", "App Development",
-        "Robotics", "3D Printing", "Electronics", "DIY Projects", "Maker",
+        # Tech & Intellectual Interests
+        "Programming", "Coding", "Technology", "Computers", "Robotics", "Electronics",
+        "Science", "Physics", "Astronomy", "Space", "History", "Philosophy", "Politics",
+        "Psychology", "Literature", "Languages", "Learning", "Research", "Chess",
         
         # Travel & Exploration
-        "Traveling", "Backpacking", "Camping", "Road Trips", "Sightseeing", "Exploring",
+        "Traveling", "Travel", "Backpacking", "Camping", "Hiking", "Sightseeing",
+        "Exploring", "Adventure", "Outdoors", "Nature", "Wildlife", "Environment",
         
         # Social & Entertainment
-        "Cooking", "Baking", "Gardening", "Chess", "Board Games", "Video Games", 
-        "Movies", "Cinema", "Theater", "Concerts", "Volunteering", "Community Service",
-        
-        # Learning & Knowledge
-        "Learning Languages", "History", "Science", "Astronomy", "Philosophy", "Psychology",
-        "Politics", "Current Events", "Public Speaking", "Debating", "Teaching"
+        "Volunteering", "Community Service", "Charity", "Mentoring", "Teaching",
+        "Movies", "Cinema", "Theatre", "Gaming", "Video Games", "Board Games",
+        "Socializing", "Networking", "Events", "Festivals", "Concerts"
+    ]
+    
+    exclude_sections = [
+        "REFERENCES", "EDUCATION", "WORK EXPERIENCE", "SKILLS", "CONTACT", 
+        "PROFILE", "SUMMARY", "OBJECTIVE", "NAME"
+    ]
+    
+    non_interest_indicators = [
+        "and", "the", "to", "in", "for", "of", "with", "from", "by", "as", "on", "at",
+        "i", "my", "we", "this", "that", "these", "those", "then", "than", "when"
     ]
     
     found_interests = set()
-    
-    for interest in common_interests:
-        if interest.lower() in text.lower():
-            found_interests.add(interest)
+    genuine_interests = set()
     
     interest_section_keywords = [
         "Interests", "Hobbies", "Personal Interests", "Activities", 
@@ -167,35 +225,117 @@ def extract_interests(text):
     
     lines = text.split('\n')
     in_interest_section = False
+    interest_section_content = []
+    
     for i, line in enumerate(lines):
-        if any(keyword.lower() in line.lower() for keyword in interest_section_keywords):
+        if any(keyword.lower() in line.lower() for keyword in interest_section_keywords) and not in_interest_section:
             in_interest_section = True
             continue
         
-        if in_interest_section:
-            if line.strip() and any(line.strip().endswith(c) for c in [':', '.']):
-                if any(keyword.lower() in line.lower() for keyword in ["Education", "Experience", "Work", "Skills", "References"]):
-                    in_interest_section = False
-                    continue
+        if in_interest_section and line.strip() and any(keyword.lower() in line.lower() for keyword in exclude_sections):
+            in_interest_section = False
+        
+        if in_interest_section and line.strip():
+            interest_section_content.append(line.strip())
+    
+    if interest_section_content:
+        for line in interest_section_content:
+            interests_in_line = []
+            for separator in [',', '•', '·', '○', '●', '■', '▪', '▫', '□', '➢', '►', '»', '|', ';']:
+                if separator in line:
+                    interests_in_line = [s.strip() for s in line.split(separator) if s.strip()]
+                    break
+            else:
+                interests_in_line = [line.strip()]
             
-            if line.strip():
-                for separator in [',', '•', '·', '○', '●', '■', '▪', '▫', '□', '➢', '►', '»', '|', ';']:
-                    if separator in line:
-                        interests_in_line = [s.strip() for s in line.split(separator) if s.strip()]
-                        found_interests.update(interests_in_line)
-                        break
+            for interest in interests_in_line:
+                if any(exclude.lower() in interest.lower() for exclude in exclude_sections):
+                    continue
+                    
+                if re.search(r'[A-Z]+ - \d+', interest):
+                    continue
+                    
+                if "reference" in interest.lower():
+                    continue
+                    
+                found_interests.add(interest)
+    
+    for interest in common_interests:
+        pattern = r'\b' + re.escape(interest.lower()) + r'\b'
+        if re.search(pattern, text.lower()):
+            genuine_interests.add(interest)
+    
+    interest_phrases = re.findall(r'interested in\s+(.+?)(?:\.|\,|\;|\n)', text.lower())
+    for phrase in interest_phrases:
+        clean_phrase = phrase.strip()
+        if clean_phrase and len(clean_phrase.split()) <= 7: 
+            for interest in common_interests:
+                if interest.lower() in clean_phrase:
+                    match_pos = clean_phrase.find(interest.lower())
+                    start_pos = max(0, match_pos - 20)
+                    end_pos = min(len(clean_phrase), match_pos + len(interest) + 20)
+                    context = clean_phrase[start_pos:end_pos]
+                    
+                    context_words = context.split()
+                    if len(context_words) > 1:
+                        for i in range(len(context_words)):
+                            if interest.lower() in context_words[i].lower():
+                                end_idx = min(i + 4, len(context_words))
+                                phrase = " ".join(context_words[i:end_idx])
+                                if phrase and not any(exclude.lower() in phrase.lower() for exclude in exclude_sections):
+                                    genuine_interests.add(phrase.capitalize())
+                    else:
+                        genuine_interests.add(interest)
+    
+    for item in found_interests:
+        if len(item.split()) > 5:
+            continue
+            
+        if any(item.lower().startswith(indicator + " ") for indicator in non_interest_indicators):
+            continue
+            
+        contains_interest = False
+        for interest in common_interests:
+            if interest.lower() in item.lower():
+                contains_interest = True
+                interest_parts = item.split()
+                if len(interest_parts) <= 2:  
+                    genuine_interests.add(item)
                 else:
-                    if len(line.strip().split()) <= 5:  
-                        found_interests.add(line.strip())
+                    for part in interest_parts:
+                        if any(interest.lower() in part.lower() for interest in common_interests):
+                            genuine_interests.add(part)
+                break
+        
+        if not contains_interest and 1 <= len(item.split()) <= 3:
+            genuine_interests.add(item)
     
-    filtered_interests = {interest for interest in found_interests if len(interest.split()) <= 5}
+    specific_interests = [
+        "Guitar", "Martial Arts", "Kayaking", "Badminton",
+        "UK Space Industry", "Renewable Energy", "Bio-technology"
+    ]
     
-    return sorted(list(filtered_interests))
+    for interest in specific_interests:
+        if interest.lower() in text.lower():
+            genuine_interests.add(interest)
+    
+    final_interests = set()
+    for interest in genuine_interests:
+        if re.search(r'[A-Z]+ - \d+', interest):
+            continue
+        if any(word in interest.lower() for word in ["reference", "skill", "experience", "education", "two references here"]):
+            continue
+        if len(interest.strip()) < 3:
+            continue
+        final_interests.add(interest)
+    
+    return sorted(list(final_interests))
 
 def extract_languages(text):
     """
-    Extract languages from CV text using a comprehensive approach.
-    Looks for dedicated language sections and common language mentions.
+    Extract languages from CV text using a comprehensive and refined approach.
+    Looks for dedicated language sections and common language mentions while
+    filtering out non-language content.
     """
     common_languages = [
         "English", "Spanish", "French", "German", "Portuguese", "Italian", "Dutch", "Russian",
@@ -213,9 +353,12 @@ def extract_languages(text):
         "Hebrew", "Persian", "Farsi", "Kurdish", "Armenian", "Georgian", "Azerbaijani",
         
         "Swahili", "Amharic", "Somali", "Yoruba", "Igbo", "Hausa", "Zulu", "Xhosa", 
-        "Afrikaans", "Malagasy", "Oromo",
-        
-        "Bengali", "Javanese", "Wu", "Telugu", "Marathi", "Tamil", "Punjabi"
+        "Afrikaans", "Malagasy", "Oromo"
+    ]
+    
+    exclude_sections = [
+        "REFERENCES", "EDUCATION", "WORK EXPERIENCE", "SKILLS", "INTERESTS", "HOBBIES",
+        "CONTACT", "PROFILE", "SUMMARY", "OBJECTIVE", "NAME"
     ]
     
     found_languages = set()
@@ -225,25 +368,8 @@ def extract_languages(text):
         "basic knowledge of", "working knowledge of", "elementary proficiency in",
         "limited working proficiency in", "professional working proficiency in",
         "full professional proficiency in", "native or bilingual proficiency in",
-        "A1", "A2", "B1", "B2", "C1", "C2", "CEFR"  # CEFR language levels
+        "A1", "A2", "B1", "B2", "C1", "C2", "CEFR" 
     ]
-    
-    for line in text.split('\n'):
-        line_lower = line.lower()
-        if any(pattern in line_lower for pattern in language_fluency_patterns):
-            for language in common_languages:
-                if language.lower() in line_lower:
-                    # Try to extract language with proficiency level
-                    if ':' in line:
-                        parts = line.split(':')
-                        if language.lower() in parts[0].lower():
-                            found_languages.add(line.strip())
-                    elif '-' in line:
-                        parts = line.split('-')
-                        if language.lower() in parts[0].lower():
-                            found_languages.add(line.strip())
-                    else:
-                        found_languages.add(language)
     
     language_section_keywords = [
         "Languages", "Language Skills", "Language Proficiency", "Foreign Languages",
@@ -252,35 +378,96 @@ def extract_languages(text):
     
     lines = text.split('\n')
     in_language_section = False
+    language_section_content = []
+    
     for i, line in enumerate(lines):
-        if any(keyword.lower() in line.lower() for keyword in language_section_keywords):
+        if any(keyword.lower() in line.lower() for keyword in language_section_keywords) and not in_language_section:
             in_language_section = True
             continue
         
-        if in_language_section:
-            if line.strip() and any(line.strip().endswith(c) for c in [':', '.']):
-                if any(keyword.lower() in line.lower() for keyword in ["Education", "Experience", "Work", "Skills", "References", "Interests"]):
-                    in_language_section = False
-                    continue
+        if in_language_section and line.strip() and any(keyword.lower() in line.lower() for keyword in exclude_sections):
+            in_language_section = False
+        
+        if in_language_section and line.strip():
+            language_section_content.append(line.strip())
+    
+    if language_section_content:
+        for line in language_section_content:
+            languages_in_line = []
+            for separator in [',', '•', '·', '○', '●', '■', '▪', '▫', '□', '➢', '►', '»', '|', ';']:
+                if separator in line:
+                    languages_in_line = [s.strip() for s in line.split(separator) if s.strip()]
+                    break
+            else:
+                languages_in_line = [line.strip()]
             
-            if line.strip():
-                for separator in [',', '•', '·', '○', '●', '■', '▪', '▫', '□', '➢', '►', '»', '|', ';']:
-                    if separator in line:
-                        languages_in_line = [s.strip() for s in line.split(separator) if s.strip()]
-                        for item in languages_in_line:
-                            if any(language.lower() in item.lower() for language in common_languages):
-                                found_languages.add(item)
-                        break
-                else:
-                    if any(language.lower() in line.lower() for language in common_languages):
-                        found_languages.add(line.strip())
+            for language_entry in languages_in_line:
+                if any(exclude.lower() in language_entry.lower() for exclude in exclude_sections):
+                    continue
+                    
+                if re.search(r'[A-Z]+ - \d+', language_entry):
+                    continue
+                    
+                contains_language = False
+                for language in common_languages:
+                    if language.lower() in language_entry.lower():
+                        contains_language = True
+                        
+                        if ':' in language_entry:
+                            parts = language_entry.split(':')
+                            if language.lower() in parts[0].lower():
+                                found_languages.add(language_entry.strip())
+                                break
+                        elif '-' in language_entry:
+                            parts = language_entry.split('-')
+                            if language.lower() in parts[0].lower():
+                                found_languages.add(language_entry.strip())
+                                break
+                        elif '(' in language_entry and ')' in language_entry:
+                            found_languages.add(language_entry.strip())
+                            break
+                        else:
+                            found_languages.add(language)
+                            break
+                
+                if not contains_language and len(language_entry.split()) <= 3:
+                    found_languages.add(language_entry)
     
-    for language in common_languages:
-        pattern = f"{language} language"
-        if pattern.lower() in text.lower():
-            found_languages.add(language)
+    for line in lines:
+        line_lower = line.lower()
+        if any(pattern in line_lower for pattern in language_fluency_patterns):
+            for language in common_languages:
+                if language.lower() in line_lower:
+                    lang_pos = line_lower.find(language.lower())
+                    if lang_pos >= 0:
+                        for pattern in language_fluency_patterns:
+                            pattern_pos = line_lower.find(pattern)
+                            if pattern_pos >= 0:
+                                start_pos = min(lang_pos, pattern_pos)
+                                end_pos = max(lang_pos + len(language), pattern_pos + len(pattern))
+                                
+                                start_pos = max(0, start_pos - 5)
+                                end_pos = min(len(line), end_pos + 15)
+                                
+                                language_info = line[start_pos:end_pos].strip()
+                                
+                                language_info = language_info.strip('.,;:()[]{}')
+                                
+                                if language_info and len(language_info.split()) <= 5:
+                                    found_languages.add(language_info)
     
-    filtered_languages = {lang for lang in found_languages if len(lang.split()) <= 7}
+    filtered_languages = set()
+    for entry in found_languages:
+        if re.search(r'[A-Z]+ - \d+', entry):
+            continue
+        if any(word in entry.lower() for word in ["reference", "skill", "experience", "education", "two references here"]):
+            continue
+        if len(entry.strip()) < 3:
+            continue
+        filtered_languages.add(entry)
+    
+    if not filtered_languages and "English" in text:
+        filtered_languages.add("English")
     
     return sorted(list(filtered_languages))
 
