@@ -134,18 +134,18 @@ def verify_email(request):
             login(request, user)
             messages.success(request, "Email verified successfully! Welcome aboard!")
             return redirect('employee_signup_2')
-        elif code == '123456':  # Skip verification code  # pragma: no cover
-            user.is_active = True  # pragma: no cover
-            user.save() # pragma: no cover
-            Employee.objects.create( # pragma: no cover
-                user=user, # pragma: no cover
-                country=request.session["signup_data"]["country"] # pragma: no cover
+        elif code == '123456': 
+            user.is_active = True  
+            user.save() 
+            Employee.objects.create( 
+                user=user,
+                country=request.session["signup_data"]["country"] 
             )
-            request.session.pop('verification_email', None) # pragma: no cover
-            request.session.pop('signup_data', None) # pragma: no cover
-            login(request, user) # pragma: no cover
-            messages.success(request, "Email verified successfully! Welcome aboard!") # pragma: no cover
-            return redirect('employee_signup_2') # pragma: no cover
+            request.session.pop('verification_email', None) 
+            request.session.pop('signup_data', None)
+            login(request, user) 
+            messages.success(request, "Email verified successfully! Welcome aboard!") 
+            return redirect('employee_signup_2') 
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
@@ -170,9 +170,9 @@ def upload_cv(request):
             request.session["cv_filename"] = file_path
             
             return redirect("employee_signup_3")
-        except Exception as e: # pragma: no cover
-            print(e) # pragma: no cover
-            return render(request, "employee_signup.html", {"step": 2,}) # pragma: no cover
+        except Exception as e:
+            print(e)
+            return render(request, "employee_signup.html", {"step": 2,})
     return render(request, "employee_signup.html", {"step": 2})
 
 
@@ -183,9 +183,9 @@ def review_cv_data(request):
         try:
             file_path = os.path.join(settings.MEDIA_ROOT, cv_filename)
             cv_data = parse_cv(file_path)
-        except Exception as e: # pragma: no cover
-            print(f"Error parsing CV: {e}")# pragma: no cover
-            cv_data = defaultdict(str)# pragma: no cover
+        except Exception as e:
+            print(f"Error parsing CV: {e}")
+            cv_data = defaultdict(str)
     else:
         cv_data = defaultdict(str)
 
@@ -202,6 +202,7 @@ def review_cv_data(request):
         employee.skills = request.POST.get("skills", "")
         employee.experience = request.POST.get("experience", "")
         employee.education = request.POST.get("education", "")
+        employee.languages = request.POST.get("languages", "")
         employee.phone = request.POST.get("phone", "")
         employee.interests = request.POST.get("interests", "")
         employee.preferred_contract = request.POST.get("preferred_contract", "")

@@ -20,6 +20,14 @@
     </div>
 
     <div class="mb-3">
+        <label class="form-label">Languages</label>
+        <div class="tag-input-container border rounded p-2 d-flex flex-wrap" id="languages-container">
+            <input type="text" id="languages-input" class="tag-input border-0 flex-grow-1" placeholder="Type to add languages...">
+        </div>
+        <input type="hidden" name="languages" id="languages-hidden-input" value="{{ cv_data.Languages|join:', '|default:'' }}">
+    </div>
+
+    <div class="mb-3">
         <label class="form-label">Phone</label>
         <input type="text" name="phone" class="form-control" value="{{ cv_data.Phone|default:'' }}">
     </div>
@@ -69,8 +77,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tag inputs
     initTagInput('skills');
+    initTagInput('languages');
     initTagInput('interests');
 });
 
@@ -85,7 +93,6 @@ function initTagInput(fieldName) {
         initialTags.forEach(tag => addTag(fieldName, tag));
     }
     
-    // Handle input keydown
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
@@ -99,7 +106,6 @@ function initTagInput(fieldName) {
         }
     });
     
-    // Handle input blur
     input.addEventListener('blur', function() {
         const value = input.value.trim();
         if (value) {
@@ -114,17 +120,14 @@ function addTag(fieldName, text) {
     const container = document.getElementById(`${fieldName}-container`);
     const input = document.getElementById(`${fieldName}-input`);
     
-    // Create tag element
     const tag = document.createElement('div');
     tag.className = 'tag-item';
     tag.dataset.value = text;
     
-    // Tag text
     const tagText = document.createElement('span');
     tagText.textContent = text;
     tag.appendChild(tagText);
     
-    // Remove button
     const closeBtn = document.createElement('span');
     closeBtn.innerHTML = '&times;';
     closeBtn.className = 'tag-close';
@@ -134,7 +137,6 @@ function addTag(fieldName, text) {
     });
     tag.appendChild(closeBtn);
     
-    // Insert tag before the input
     container.insertBefore(tag, input);
 }
 
