@@ -140,13 +140,11 @@ LOGIN_URL = 'login'
 RECAPTCHA_PUBLIC_KEY = '6LeqBtIqAAAAAKvoGChvtBpmqDB4vWPNdUDyD43Q'
 RECAPTCHA_PRIVATE_KEY = '6LeqBtIqAAAAAK4syqDA9qrn87QUuKw6cn2GAz7T'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-#EMAIL_HOST = 'smtp.gmail.com'
-#EMAIL_PORT = 587
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = 'eduardosanchez4848@gmail.com'  # Gmail address
-#EMAIL_HOST_PASSWORD = 'gmail_app_pass'  # Gmail app password (not regular password)
-#DEFAULT_FROM_EMAIL = 'example@gmail.com'
+# SendGrid Email Settings
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+SENDGRID_API_KEY = 'YSG.tVnqSpIlSKCf5LAKGnJ5bg.IcXio_0J7x_v3nt8PkZ9L9IFIXO4wV4PRmpzriZDQoI'  
+DEFAULT_FROM_EMAIL = 'ShultsMaxwell@proton.me' 
+SENDGRID_SANDBOX_MODE_IN_DEBUG = True  #change to false when we're sending real emails
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
