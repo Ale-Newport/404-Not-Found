@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -142,7 +145,9 @@ RECAPTCHA_PRIVATE_KEY = '6LeqBtIqAAAAAK4syqDA9qrn87QUuKw6cn2GAz7T'
 
 # SendGrid Email Settings
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-SENDGRID_API_KEY = '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'  
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '') 
+#api key is held in a .env file cuz SendGrid will be mad at us and delete it if we put it here
+#message max if you need it!
 DEFAULT_FROM_EMAIL = 'ShultsMaxwell@proton.me' 
 SENDGRID_SANDBOX_MODE_IN_DEBUG = True  #change to false when we're sending real emails
 
