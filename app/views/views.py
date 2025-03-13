@@ -24,6 +24,8 @@ from django.core.files.storage import default_storage
 from app.helper import parse_cv
 import os
 from django.conf import settings
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 
 def home(request):
@@ -72,20 +74,24 @@ def employee_signup(request):
             email_content = render_to_string('emails/email_verification.html', context)
             
             try:
-                send_mail(
-                    'Verify your email address',
-                    email_content,
-                    'noreply@yourdomain.com',
-                    [user.email],
-                    fail_silently=False,
+                message = Mail(
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to_emails=user.email,
+                    subject='Verify your email address',
+                    html_content=email_content
                 )
+                message.reply_to = settings.DEFAULT_FROM_EMAIL
+                
+                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                response = sg.send(message)
+                
                 request.session['verification_email'] = user.email
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
-            except Exception as e: # pragma: no cover
-                user.delete()  # Delete the user if email sending fails# pragma: no cover
-                messages.error(request, "Error sending verification email. Please try again.")# pragma: no cover
-                return render(request, "employee_signup.html", {"form": form, "step": 1})# pragma: no cover
+            except Exception as e:
+                user.delete()  #delete the user if email sending fails
+                messages.error(request, "Error sending verification email. Please try again.")
+                return render(request, "employee_signup.html", {"form": form, "step": 1})
     else:
         form = EmployeeSignUpForm()
     
