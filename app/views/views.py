@@ -433,13 +433,16 @@ def password_reset_request(request):
                 
                 # Send email
                 try:
-                    send_mail(
-                        'Password Reset Verification Code',
-                        email_content,
-                        'noreply@yourdomain.com',
-                        [user.email],
-                        fail_silently=False,
+                    message = Mail(
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to_emails=user.email,
+                        subject='Password Reset Verification Code',
+                        html_content=email_content
                     )
+                    message.reply_to = settings.DEFAULT_FROM_EMAIL
+                    
+                    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                    response = sg.send(message)
                 except Exception as e: # pragma: no cover
                     messages.error(request, "Error sending email. Please try again.")# pragma: no cover
                     return render(request, 'password_reset.html', {'form': form})# pragma: no cover
