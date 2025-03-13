@@ -20,4 +20,5 @@ pdfplumber>=0.5.28
 spacy>=3.0.0
 sendgrid>=6.10.0
 django-sendgrid-v5>=1.2.2
+python-dotenv>=1.0.0
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0-py3-none-any.whl
