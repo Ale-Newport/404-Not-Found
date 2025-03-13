@@ -142,7 +142,7 @@ RECAPTCHA_PRIVATE_KEY = '6LeqBtIqAAAAAK4syqDA9qrn87QUuKw6cn2GAz7T'
 
 # SendGrid Email Settings
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-SENDGRID_API_KEY = 'YSG.tVnqSpIlSKCf5LAKGnJ5bg.IcXio_0J7x_v3nt8PkZ9L9IFIXO4wV4PRmpzriZDQoI'  
+SENDGRID_API_KEY = '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'  
 DEFAULT_FROM_EMAIL = 'ShultsMaxwell@proton.me' 
 SENDGRID_SANDBOX_MODE_IN_DEBUG = True  #change to false when we're sending real emails
 
