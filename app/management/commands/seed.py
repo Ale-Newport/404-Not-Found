@@ -70,8 +70,7 @@ class Command(BaseCommand):
                 Employee.objects.create(user=user)
             elif data['user_type'] == 'employer':
                 company_name = data.get('company_name', self.generate_company_name())
-                Employer.objects.create(user=user,
-                                        company_name = company_name,)
+                Employer.objects.create(user=user, company_name = company_name,)
             user.save()
         except Exception as e: 
             print(f"Error creating user: {data} - {e}")
@@ -81,10 +80,10 @@ class Command(BaseCommand):
     def generate_company_name(self):
         """Generate a realistic company name using various patterns"""
         patterns = [
-            lambda: f"{self.faker.last_name()} {self.get_company_suffix()}",  # Smith Industries
-            lambda: f"{self.faker.word().capitalize()} {self.get_company_suffix()}",  # Innovate Technologies
-            lambda: f"{self.faker.last_name()} & {self.faker.last_name()} {self.get_company_suffix()}",  # Smith & Jones Associates
-            lambda: f"{self.faker.word().capitalize()}{self.faker.word().capitalize()}",  # TechWorks
+            lambda: f"{self.faker.last_name()} {self.get_company_suffix()}",
+            lambda: f"{self.faker.word().capitalize()} {self.get_company_suffix()}",
+            lambda: f"{self.faker.last_name()} & {self.faker.last_name()} {self.get_company_suffix()}",
+            lambda: f"{self.faker.word().capitalize()}{self.faker.word().capitalize()}",
         ]
         return self.faker.random_element(patterns)()
 
