@@ -411,17 +411,14 @@ def password_reset_request(request):
             user = User.objects.filter(email=email).first()
             
             if user:
-                # Generate verification code
                 code = VerificationCode.generate_code()
 
-                # Save the code
                 VerificationCode.objects.create(
                     user=user,
                     code=code,
                     code_type='password_reset'
                 )
                 
-                # Create email content
                 current_site = get_current_site(request)
                 context = {
                     'user': user,
@@ -431,7 +428,6 @@ def password_reset_request(request):
                 
                 email_content = render_to_string('emails/password_reset_email.html', context)
                 
-                # Send email
                 try:
                     message = Mail(
                         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -443,11 +439,10 @@ def password_reset_request(request):
                     
                     sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
                     response = sg.send(message)
-                except Exception as e: # pragma: no cover
-                    messages.error(request, "Error sending email. Please try again.")# pragma: no cover
-                    return render(request, 'password_reset.html', {'form': form})# pragma: no cover
+                except Exception as e:
+                    messages.error(request, "Error sending email. Please try again.")
+                    return render(request, 'password_reset.html', {'form': form})
             
-            # Always redirect to code verification page
             request.session['reset_email'] = email
             return redirect('verify_reset_code')
     else:

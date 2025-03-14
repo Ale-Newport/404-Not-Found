@@ -42,7 +42,7 @@ def list_users(request):
         )
     
     order_by = request.GET.get('order_by', 'username')
-    
+    users = User.objects.all().order_by(order_by)
     paginator = Paginator(users, 25)
     page_number = request.GET.get('page')
     users_page = paginator.get_page(page_number)
@@ -57,7 +57,6 @@ def list_users(request):
     return render(request, 'admin/list_users.html', context)
 
 @user_type_required('admin')
-# In app/views/admin_views.py
 def list_jobs(request):
     jobs = Job.objects.all()
 
@@ -71,7 +70,6 @@ def list_jobs(request):
 
     search_query = request.GET.get('search')
     if search_query: 
-        # Remove the problematic created_by__username__icontains part
         jobs = jobs.filter(
             Q(name__icontains=search_query) | 
             Q(department__icontains=search_query) | 

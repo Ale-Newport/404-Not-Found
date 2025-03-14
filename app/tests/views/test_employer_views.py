@@ -7,7 +7,6 @@ class EmployerViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
         
-        # Create user and employer separately
         employer_user = User.objects.create_user(
             username="@employer",
             email="employer@test.com",
@@ -33,7 +32,6 @@ class EmployerViewsTest(TestCase):
             created_by=self.employer
         )
         
-        # URLs
         self.login_url = reverse('login')
         self.dashboard_url = reverse('employer_dashboard')
         self.add_job_url = reverse('add_job')
@@ -99,7 +97,6 @@ class EmployerViewsTest(TestCase):
 
     def test_unauthorized_job_detail_access(self):
         """Test that employers can't view other employers' job details"""
-        # Create another employer properly
         other_user = User.objects.create_user(
             username="@other",
             email="other@test.com",

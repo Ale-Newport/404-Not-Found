@@ -1,4 +1,3 @@
-# app/tests/test_helper.py
 import os
 import tempfile
 from django.test import TestCase

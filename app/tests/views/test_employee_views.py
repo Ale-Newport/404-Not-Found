@@ -1,4 +1,3 @@
-# app/tests/views/test_employee_views.py
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -10,7 +9,6 @@ class EmployeeViewsTests(TestCase):
     def setUp(self):
         self.client = Client()
         
-        # Create an employee user
         self.employee_user = User.objects.create_user(
             username="@employeetest",
             email="employee@test.com",

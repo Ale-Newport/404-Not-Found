@@ -1,21 +1,34 @@
-# Helper methods for the application
-
-# CV reader:
 import pdfplumber
 import spacy
 import re
-
+import fitz
 
 nlp = spacy.load("en_core_web_sm")
 
+def is_valid_pdf(pdf_path):
+    """Check if a file is a valid PDF before attempting to parse it."""
+    try:
+        doc = fitz.open(pdf_path)
+        return len(doc) > 0
+    except Exception:
+        return False
+
 def extract_text_from_pdf(pdf_path):
+    """Extract text from a PDF, ensuring it is valid."""
+    if not is_valid_pdf(pdf_path):
+        return ""
+
     text = ""
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            extracted_text = page.extract_text()
-            if extracted_text:
-                text += extracted_text + "\n"
-    return text.strip()
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                extracted_text = page.extract_text()
+                if extracted_text:
+                    text += extracted_text + "\n"
+        return text.strip()
+    except Exception as e:
+        return ""
+
 
 def extract_email(text):
     match = re.search(r'[\w\.-]+@[\w\.-]+', text)
@@ -53,7 +66,6 @@ def extract_skills(text):
     """
     Extract skills from CV text using a more reliable approach that filters out non-skills.
     """
-    # Common technical and transferable skills to look for
     common_skills = [
         # Technical Skills
         "Python", "Java", "C++", "C#", "JavaScript", "TypeScript", "Ruby", "PHP", "Go", "Swift", 
@@ -147,8 +159,6 @@ def extract_skills(text):
                 
                 found_skills.add(skill)
     
-    # Add some context-specific skills based on the CV content
-    # These are manually identified based on the job roles and responsibilities
     context_skills = [
         "Vehicle Maintenance", "Vehicle Repair", "Parts Management", "Warehouse Management",
         "Stock Control", "Customer Service", "Food Preparation", "Kitchen Operations",
@@ -160,13 +170,10 @@ def extract_skills(text):
         if skill.lower() in text.lower():
             found_skills.add(skill)
     
-    # Filter out any remaining problematic entries
     filtered_skills = set()
     for skill in found_skills:
-        # Skip entries that match page markers
         if re.search(r'[A-Z]+ - \d+', skill):
             continue
-        # Skip entries that contain "reference" or other non-skill words
         if any(word in skill.lower() for word in ["reference", "interest", "hobby"]):
             continue
         filtered_skills.add(skill)
