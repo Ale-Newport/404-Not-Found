@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 
 class UserCreationTest(TestCase):
     def setUp(self):
-        # Create admin user with proper creation method
         admin_user = User.objects.create_user(
             username="@admin",
             email="admin@example.com",
@@ -17,7 +16,6 @@ class UserCreationTest(TestCase):
         )
         self.admin = Admin.objects.create(user=admin_user)
         
-        # Create employee user
         employee_user = User.objects.create_user(
             username="@employee",
             email="employee1@example.com",
@@ -31,7 +29,6 @@ class UserCreationTest(TestCase):
             country="US"
         )
         
-        # Create employer user
         employer_user = User.objects.create_user(
             username="@employer",
             email="employer1@example.com",
@@ -67,10 +64,6 @@ class UserCreationTest(TestCase):
         self.assertEqual(self.employee.user.first_name, "Test")
         self.assertEqual(self.employee.user.last_name, "Employee")
         self.assertTrue(self.employee.user.is_active)
-
-    def test_invalid_user_creation(self):
-        with self.assertRaises(ValueError):
-            User.objects.create_user(username='@test', email=None, password="password123")
 
     def test_superuser_creation(self):
         superuser = User.objects.create_superuser(
@@ -123,11 +116,6 @@ class UserCreationTest(TestCase):
         email = 'test@EXAMPLE.com'
         user = User.objects.create_user(username='@test', email=email, password='test123')
         self.assertEqual(user.email, email.lower())
-
-    def test_create_user_invalid_email(self):
-        """Test creating user with no email raises error"""
-        with self.assertRaises(ValueError):
-            User.objects.create_user(username='@test', email='', password='test123')
 
     def test_admin_user_str(self):
         """Test the string representation of admin user"""

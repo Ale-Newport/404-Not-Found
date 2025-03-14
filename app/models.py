@@ -192,6 +192,23 @@ class Admin(UserDelegationMixin, models.Model):
 
     def __str__(self):
         return f"{self.user.username} (Admin)"
+    
+    @classmethod
+    def create_user(cls, username, email, password, first_name, last_name, **extra_fields):
+        extra_fields.setdefault('user_type', 'admin')
+        
+        user = User.objects.create_user(
+            username=username, 
+            email=email, 
+            password=password,
+            first_name=first_name, 
+            last_name=last_name, 
+            **extra_fields
+        )
+        
+        admin = cls.objects.create(user=user)
+        admin.clean()
+        return admin
 
 class Employee(UserDelegationMixin, models.Model):
     """Job seeker user type."""
@@ -216,6 +233,22 @@ class Employee(UserDelegationMixin, models.Model):
 
     def __str__(self):
         return f"{self.user.username} (Employee)"
+    
+    @classmethod
+    def create_user(cls, username, email, password, first_name, last_name, country="", **extra_fields):
+        extra_fields.setdefault('user_type', 'employee')
+        
+        user = User.objects.create_user(
+            username=username, 
+            email=email, 
+            password=password,
+            first_name=first_name, 
+            last_name=last_name, 
+            **extra_fields
+        )
+        
+        employee = cls.objects.create(user=user, country=country)
+        return employee
 
 class Employer(UserDelegationMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)

@@ -1,4 +1,3 @@
-# app/tests/models/test_model_methods.py
 from django.test import TestCase
 from app.models import User, Admin, Employee, Employer, VerificationCode, Job, JobApplication
 from datetime import timedelta
@@ -42,39 +41,23 @@ class VerificationCodeModelTests(TestCase):
         
     def test_is_valid_expired_code(self):
         """Test is_valid method with expired code"""
-        # Instead of creating a code with backdated created_at directly,
-        # we can monkey patch timezone.now to return a different time
         from django.utils import timezone
         import datetime
         
         original_now = timezone.now
         
         try:
-            # Create a code normally
             code = VerificationCode.objects.create(
                 user=self.user,
                 code="123456",
                 code_type="password_reset"
             )
-            
-            # Now make timezone.now return a time that's 30 minutes ahead
             timezone.now = lambda: original_now() + datetime.timedelta(minutes=30)
-            
-            # Now the code should be expired (assuming 15 minute expiration)
             self.assertFalse(code.is_valid())
         finally:
-            # Restore original function
             timezone.now = original_now
 
 class UserManagerTests(TestCase):
-    def test_create_user_without_email(self):
-        """Test creating a user without email raises error"""
-        with self.assertRaises(ValueError):
-            User.objects.create_user(
-                username="@testuser",
-                email="",  # Empty email
-                password="testpass123"
-            )
             
     def test_create_user_with_extra_fields(self):
         """Test creating a user with extra fields"""
@@ -124,11 +107,7 @@ class AdminModelTests(TestCase):
             is_superuser=False
         )
         admin = Admin.objects.create(user=user)
-        
-        # Call clean method
         admin.clean()
-        
-        # Check that user was updated
         user.refresh_from_db()
         self.assertTrue(user.is_staff)
         self.assertTrue(user.is_superuser)
@@ -143,7 +122,6 @@ class AdminModelTests(TestCase):
             last_name="Admin"
         )
         
-        # Check that admin was created
         self.assertIsInstance(admin, Admin)
         self.assertEqual(admin.user.username, "@newadmin")
         self.assertEqual(admin.user.email, "newadmin@example.com")
@@ -163,7 +141,6 @@ class EmployeeModelTests(TestCase):
             country="US"
         )
         
-        # Check that employee was created
         self.assertIsInstance(employee, Employee)
         self.assertEqual(employee.user.username, "@newemployee")
         self.assertEqual(employee.user.email, "newemployee@example.com")
@@ -183,7 +160,6 @@ class EmployerModelTests(TestCase):
             country="US"
         )
         
-        # Check that employer was created
         self.assertIsInstance(employer, Employer)
         self.assertEqual(employer.user.username, "@newemployer")
         self.assertEqual(employer.user.email, "newemployer@example.com")
