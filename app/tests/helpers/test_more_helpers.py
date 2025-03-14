@@ -29,7 +29,7 @@ class MoreHelperTests(TestCase):
     @patch('app.helper.pdfplumber.open')
     def test_extract_text_from_pdf(self, mock_open):
         """Test PDF text extraction"""
-        # Mock the PDF object and its pages
+        
         mock_pdf = MagicMock()
         mock_page = MagicMock()
         mock_page.extract_text.return_value = "Sample text from PDF"
@@ -39,7 +39,6 @@ class MoreHelperTests(TestCase):
         result = extract_text_from_pdf("dummy.pdf")
         self.assertEqual(result, "Sample text from PDF")
         
-        # Test with multiple pages
         mock_page2 = MagicMock()
         mock_page2.extract_text.return_value = "More text"
         mock_pdf.pages = [mock_page, mock_page2]
@@ -47,7 +46,6 @@ class MoreHelperTests(TestCase):
         result = extract_text_from_pdf("dummy.pdf")
         self.assertEqual(result, "Sample text from PDF\nMore text")
         
-        # Test with a page returning None (no text)
         mock_page3 = MagicMock()
         mock_page3.extract_text.return_value = None
         mock_pdf.pages = [mock_page, mock_page3, mock_page2]
@@ -58,12 +56,11 @@ class MoreHelperTests(TestCase):
     @patch('app.helper.nlp')
     def test_extract_name_with_entity(self, mock_nlp):
         """Test name extraction when PERSON entity is found"""
-        # Create mock entities
+
         mock_ent = MagicMock()
         mock_ent.label_ = "PERSON"
         mock_ent.text = "John Smith"
         
-        # Set up mock doc with entities
         mock_doc = MagicMock()
         mock_doc.ents = [mock_ent]
         mock_nlp.return_value = mock_doc

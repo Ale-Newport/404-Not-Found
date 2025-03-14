@@ -15,9 +15,7 @@ def is_valid_pdf(pdf_path):
 
 def extract_text_from_pdf(pdf_path):
     """Extract text from a PDF, ensuring it is valid."""
-    if not is_valid_pdf(pdf_path):
-        return ""
-
+    
     text = ""
     try:
         with pdfplumber.open(pdf_path) as pdf:

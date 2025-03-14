@@ -82,7 +82,6 @@ class UrlsTest(TestCase):
         resolver = resolve(url)
         self.assertEqual(resolver.func, views.my_applications)
 
-    # app/tests/test_url.py
     def test_update_application_status_url(self):
         """Test update application status URL pattern"""
         url = reverse('update_application_status', args=[1])
@@ -90,33 +89,23 @@ class UrlsTest(TestCase):
         resolver = resolve(url)
         self.assertEqual(resolver.func, views.update_application_status)
     
-    # app/tests/test_url.py
     def test_static_urls_in_debug_mode(self):
         """Test static URLs when DEBUG is True"""
         from django.conf import settings
         from django.conf.urls.static import static
         
-        # Save original debug value
         original_debug = settings.DEBUG
         
         try:
-            # Set DEBUG to True
             settings.DEBUG = True
-            
-            # Get static URLs
             static_urls = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
             
-            # Verify static URLs are generated
             self.assertTrue(len(static_urls) > 0)
         finally:
-            # Restore original DEBUG value
             settings.DEBUG = original_debug
 
-    # app/tests/test_url.py - add this test
     from django.test import override_settings
     import os
-
-    # app/tests/test_url.py
     from unittest.mock import patch
 
     def test_debug_static_urls(self):
@@ -124,24 +113,18 @@ class UrlsTest(TestCase):
         from django.conf import settings
         from project.urls import urlpatterns
         
-        # Store original urlpatterns and DEBUG setting
         original_urlpatterns = urlpatterns.copy()
         original_debug = settings.DEBUG
         
-        # Patch static function to return a known list
         with patch('django.conf.urls.static.static') as mock_static:
             mock_static.return_value = ['mock_static_url']
             
-            # Set DEBUG to True
             settings.DEBUG = True
             
-            # Import the module again to trigger urlpatterns evaluation
             import importlib
             import project.urls
             importlib.reload(project.urls)
             
-            # Check if the mock was called
             mock_static.assert_called_once()
             
-            # Reset DEBUG
             settings.DEBUG = original_debug
