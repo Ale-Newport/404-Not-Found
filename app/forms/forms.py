@@ -137,7 +137,6 @@ class EmployerSignUpForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add Bootstrap classes to all fields except captcha
         for field in self.fields:
             if field != 'captcha':
                 self.fields[field].widget.attrs.update({
@@ -205,7 +204,6 @@ class SetNewPasswordForm(forms.Form):
         return cleaned_data
     
 
-# Add to forms.py
 class JobApplicationForm(forms.ModelForm):
     class Meta:
         model = JobApplication
@@ -224,7 +222,6 @@ class JobApplicationForm(forms.ModelForm):
     def __init__(self, employee=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if employee:
-            # Pre-fill form with employee data
             self.fields['full_name'].initial = f"{employee.user.first_name} {employee.user.last_name}"
             self.fields['email'].initial = employee.user.email
             self.fields['country'].initial = employee.country

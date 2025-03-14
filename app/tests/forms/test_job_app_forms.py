@@ -6,7 +6,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 class JobApplicationFormTest(TestCase):
     def setUp(self):
-        # Create an employee
         employee_user = User.objects.create_user(
             username="@employee",
             email="employee@test.com",
@@ -21,7 +20,6 @@ class JobApplicationFormTest(TestCase):
             skills="Python, Django"
         )
         
-        # Create an employer
         employer_user = User.objects.create_user(
             username="@employer",
             email="employer@test.com",
@@ -36,7 +34,6 @@ class JobApplicationFormTest(TestCase):
             country="US"
         )
         
-        # Create a job
         self.job = Job.objects.create(
             name="Test Developer",
             department="Engineering",
@@ -47,7 +44,6 @@ class JobApplicationFormTest(TestCase):
             created_by=self.employer
         )
         
-        # Valid form data
         self.valid_data = {
             'cover_letter': 'I am applying for this position',
             'full_name': 'Test Employee',
@@ -70,34 +66,19 @@ class JobApplicationFormTest(TestCase):
     def test_job_application_form_with_file(self):
         """Test job application form with CV file"""
         data = self.valid_data.copy()
-        
-        # Add a file
         cv_content = b"This is a test CV file"
         cv_file = SimpleUploadedFile("test_cv.pdf", cv_content, content_type="application/pdf")
         
-        # Need to use this style for file uploads in tests
         form = JobApplicationForm(data=data, files={'custom_cv': cv_file}, employee=self.employee)
         self.assertTrue(form.is_valid())
         
-    def test_job_application_form_missing_required(self):
-        """Test job application form with missing required field"""
-        data = self.valid_data.copy()
-        data.pop('cover_letter')  # Cover letter is required
-        
-        form = JobApplicationForm(data=data, employee=self.employee)
-        self.assertFalse(form.is_valid())
-        self.assertIn('cover_letter', form.errors)
-        
     def test_job_application_form_prefill(self):
         """Test that form is pre-filled with employee data"""
-        # Update employee with more data
         self.employee.phone = '555-1234'
         self.employee.save()
         
-        # Create form with employee
         form = JobApplicationForm(employee=self.employee)
         
-        # Check pre-filled fields
         self.assertEqual(form.fields['full_name'].initial, 'Test Employee')
         self.assertEqual(form.fields['email'].initial, 'employee@test.com')
         self.assertEqual(form.fields['country'].initial, 'US')

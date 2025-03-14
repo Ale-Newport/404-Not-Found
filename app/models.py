@@ -298,17 +298,17 @@ class JobApplication(models.Model):
     applicant = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
-    cover_letter = models.TextField(blank=True, default='')          # Updated
+    cover_letter = models.TextField(blank=True, default='')
     full_name = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, default='')   # Added default
+    phone = models.CharField(max_length=20, blank=True, default='')
     country = models.CharField(max_length=100, choices=COUNTRIES, blank=True, null=True)
-    current_position = models.CharField(max_length=100, blank=True, default='')  # Updated
-    skills = models.TextField(blank=True, default='')                 # Added default
-    experience = models.TextField(blank=True, default='')             # Added default
-    education = models.TextField(blank=True, default='')              # Updated
-    portfolio_url = models.URLField(blank=True, default='')           # Added default
-    linkedin_url = models.URLField(blank=True, default='')            # Updated
+    current_position = models.CharField(max_length=100, blank=True, default='')
+    skills = models.TextField(blank=True, default='')
+    experience = models.TextField(blank=True, default='')
+    education = models.TextField(blank=True, default='')
+    portfolio_url = models.URLField(blank=True, default='')
+    linkedin_url = models.URLField(blank=True, default='')
     custom_cv = models.FileField(upload_to='applications/cvs/', blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)

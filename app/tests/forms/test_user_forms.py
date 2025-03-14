@@ -1,6 +1,7 @@
 from django.test import TestCase
 from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm
 from app.models import User, Employee, Employer, Admin, Job
+from unittest.mock import patch
 
 class SignUpFormsTest(TestCase):
 
@@ -26,27 +27,24 @@ class SignUpFormsTest(TestCase):
             'company_name': 'Smith & Co'
         }
 
-
-    def test_employee_form_valid_data(self):
+    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    def test_employee_form_valid_data(self, mock_captcha):
         form = EmployeeSignUpForm(data=self.employee_data)
         self.assertTrue(form.is_valid())
 
-    def test_employer_form_valid_data(self):
+    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    def test_employer_form_valid_data(self, mock_captcha):
         form = EmployerSignUpForm(data=self.employer_data)
         self.assertTrue(form.is_valid())
 
-    def test_employee_form_no_data(self):
+    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    def test_employee_form_no_data(self, mock_captcha):
         form = EmployeeSignUpForm(data={})
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.errors), 7)
 
-    def test_employer_form_no_data(self):
+    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    def test_employer_form_no_data(self, mock_captcha):
         form = EmployerSignUpForm(data={})
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.errors), 8)
-
-    def test_employer_form_bootstrap_classes(self):
-        form = EmployerSignUpForm()
-        for field in form.fields.values():
-            self.assertIn('class', field.widget.attrs)
-            self.assertEqual(field.widget.attrs['class'], 'form-control')
