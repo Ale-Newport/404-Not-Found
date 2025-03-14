@@ -141,89 +141,184 @@
                         <a class="nav-link {% if active_tab == 'suitable' %}active{% endif %}" 
                            href="?tab=suitable{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                             Most Suitable Jobs
-                            <span class="badge badge-primary ml-1">Coming Soon</span>
+                            <span class="badge badge-primary ml-1">Powered by Machine Learning!</span>
                         </a>
                     </li>
                 </ul>
 
                 {% if active_tab == 'suitable' %}
-                    <div class="alert alert-info">
-                        <h4 class="alert-heading">Coming Soon!</h4>
-                        <p>We're working on an intelligent job matching system that will analyze your skills, experience, and preferences to suggest the most suitable jobs for you.</p>
-                        <hr>
-                        <p class="mb-0">To get the best matches when this feature launches:</p>
-                        <ul class="mt-2">
-                            <li>Keep your skills list up to date</li>
-                            <li>Add your interests and preferred job types</li>
-                            <li>Upload your latest CV</li>
-                        </ul>
+                {% if job_matches %}
+                    <!-- Header for matches section -->
+                    <div class="alert alert-info mb-3">
+                        <p class="mb-0">These jobs are matched to your skills profile. Higher scores indicate better matches for your skillset.</p>
                     </div>
-                {% else %}
-                    {% for job in jobs %}
+                    
+                    <!-- Job matches sorted by score -->
+                    {% for match in job_matches %}
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <h5 class="card-title">{{ job.name }}</h5>
-                                        <h6 class="card-subtitle mb-2 text-muted">{{ job.department }}</h6>
-                                        <p class="card-text">{{ job.description|truncatechars:200 }}</p>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h5 class="card-title mb-0">{{ match.job.name }}</h5>
+                                            <div class="ml-auto">
+                                                <div class="match-score-badge">
+                                                    <span class="match-score {% if match.score >= 80 %}high-match{% elif match.score >= 50 %}medium-match{% else %}low-match{% endif %}">
+                                                        {{ match.score }}% match
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{ match.job.department }}</h6>
+                                        <p class="card-text">{{ match.job.description|truncatechars:200 }}</p>
                                         
-                                        <h6 class="mt-3">Required Skills:</h6>
-                                        <p class="mb-2">{{ job.skills_needed }}</p>
+                                        {% if match.matching_skills %}
+                                            <h6 class="mt-3">Your Matching Skills:</h6>
+                                            <p class="mb-2">
+                                                {% for skill in match.matching_skills %}
+                                                    <span class="badge badge-success mr-1">{{ skill }}</span>
+                                                {% endfor %}
+                                            </p>
+                                        {% endif %}
                                         
-                                        {% if job.skills_wanted %}
-                                            <h6>Preferred Skills:</h6>
-                                            <p>{{ job.skills_wanted }}</p>
+                                        {% if match.missing_skills %}
+                                            <h6>Skills You Could Develop:</h6>
+                                            <p>
+                                                {% for skill in match.missing_skills %}
+                                                    <span class="badge badge-secondary mr-1">{{ skill }}</span>
+                                                {% endfor %}
+                                            </p>
                                         {% endif %}
                                         
                                         <div class="mb-2">
-                                            <span class="badge badge-primary">{{ job.get_job_type_display }}</span>
-                                            <span class="badge badge-secondary ml-2">${{ job.salary }}</span>
-                                            {% if job.bonus %}
-                                                <span class="badge badge-success ml-2">Bonus: ${{ job.bonus }}</span>
+                                            <span class="badge badge-primary">{{ match.job.get_job_type_display }}</span>
+                                            <span class="badge badge-secondary ml-2">${{ match.job.salary }}</span>
+                                            {% if match.job.bonus %}
+                                                <span class="badge badge-success ml-2">Bonus: ${{ match.job.bonus }}</span>
+                                            {% endif %}
+                                            {% if match.contract_match %}
+                                                <span class="badge badge-info ml-2">Preferred Contract ✓</span>
                                             {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-4 text-right">
-                                        <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-primary mb-2">View Details</a>
+                                        <a href="{% url 'job_detail' match.job.id %}" class="btn btn-outline-primary mb-2">View Details</a>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer bg-white">
-                                <small class="text-muted">Posted {{ job.created_at|date:"M d, Y" }} by {{ job.created_by.company_name }}</small>
+                                <small class="text-muted">Posted {{ match.job.created_at|date:"M d, Y" }} by {{ match.job.created_by.company_name }}</small>
                             </div>
                         </div>
                     {% empty %}
                         <div class="alert alert-info">
-                            <p class="mb-0">No jobs found matching your criteria. Try adjusting your filters.</p>
+                            <p class="mb-0">We couldn't find any suitable matches based on your skills. Try updating your skills profile.</p>
                         </div>
                     {% endfor %}
-
-                    <!-- Pagination -->
-                    {% if jobs.has_other_pages %}
-                        <nav aria-label="Job listings pagination">
+            
+                    <!-- Pagination for matches -->
+                    {% if job_matches.has_other_pages %}
+                        <nav aria-label="Job matches pagination">
                             <ul class="pagination justify-content-center">
-                                {% if jobs.has_previous %}
+                                {% if job_matches.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ jobs.previous_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Previous</a>
+                                        <a class="page-link" href="?tab=suitable&page={{ job_matches.previous_page_number }}{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
                                     </li>
                                 {% endif %}
-
-                                {% for i in jobs.paginator.page_range %}
-                                    <li class="page-item {% if jobs.number == i %}active{% endif %}">
-                                        <a class="page-link" href="?page={{ i }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">{{ i }}</a>
+            
+                                {% for i in job_matches.paginator.page_range %}
+                                    <li class="page-item {% if job_matches.number == i %}active{% endif %}">
+                                        <a class="page-link" href="?tab=suitable&page={{ i }}{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
                                     </li>
                                 {% endfor %}
-
-                                {% if jobs.has_next %}
+            
+                                {% if job_matches.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ jobs.next_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Next</a>
+                                        <a class="page-link" href="?tab=suitable&page={{ job_matches.next_page_number }}{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
                                     </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <h4 class="alert-heading">Let's find you some matches!</h4>
+                        <p>We need more information about your skills to suggest the most suitable jobs for you.</p>
+                        <hr>
+                        <p class="mb-0">To get the best matches:</p>
+                        <ul class="mt-2">
+                            <li>Update your skills list in <a href="{% url 'employee_update' %}">Account Settings</a></li>
+                            <li>Add your interests and preferred job types</li>
+                            <li>Make sure your location preferences are set</li>
+                        </ul>
+                    </div>
                 {% endif %}
+            {% else %}
+                {% for job in jobs %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="card-title">{{ job.name }}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ job.department }}</h6>
+                                    <p class="card-text">{{ job.description|truncatechars:200 }}</p>
+                                    
+                                    <h6 class="mt-3">Required Skills:</h6>
+                                    <p class="mb-2">{{ job.skills_needed }}</p>
+                                    
+                                    {% if job.skills_wanted %}
+                                        <h6>Preferred Skills:</h6>
+                                        <p>{{ job.skills_wanted }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge badge-primary">{{ job.get_job_type_display }}</span>
+                                        <span class="badge badge-secondary ml-2">${{ job.salary }}</span>
+                                        {% if job.bonus %}
+                                            <span class="badge badge-success ml-2">Bonus: ${{ job.bonus }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-primary mb-2">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <small class="text-muted">Posted {{ job.created_at|date:"M d, Y" }} by {{ job.created_by.company_name }}</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">No jobs found matching your criteria. Try adjusting your filters.</p>
+                    </div>
+                {% endfor %}
+            
+                <!-- Pagination -->
+                {% if jobs.has_other_pages %}
+                    <nav aria-label="Job listings pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if jobs.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ jobs.previous_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Previous</a>
+                                </li>
+                            {% endif %}
+            
+                            {% for i in jobs.paginator.page_range %}
+                                <li class="page-item {% if jobs.number == i %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ i }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+            
+                            {% if jobs.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ jobs.next_page_number }}{% for key, value in filters.items %}&{{ key }}={{ value }}{% endfor %}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% endif %}
             </div>
         </div>
     </div>

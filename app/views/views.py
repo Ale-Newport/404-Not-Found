@@ -24,6 +24,8 @@ from django.core.files.storage import default_storage
 from app.helper import parse_cv
 import os
 from django.conf import settings
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 
 def home(request):
@@ -72,20 +74,24 @@ def employee_signup(request):
             email_content = render_to_string('emails/email_verification.html', context)
             
             try:
-                send_mail(
-                    'Verify your email address',
-                    email_content,
-                    'noreply@yourdomain.com',
-                    [user.email],
-                    fail_silently=False,
+                message = Mail(
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to_emails=user.email,
+                    subject='Verify your email address',
+                    html_content=email_content
                 )
+                message.reply_to = settings.DEFAULT_FROM_EMAIL
+                
+                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                response = sg.send(message)
+                
                 request.session['verification_email'] = user.email
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
-            except Exception as e: # pragma: no cover
-                user.delete()  # Delete the user if email sending fails# pragma: no cover
-                messages.error(request, "Error sending verification email. Please try again.")# pragma: no cover
-                return render(request, "employee_signup.html", {"form": form, "step": 1})# pragma: no cover
+            except Exception as e:
+                user.delete()  #delete the user if email sending fails
+                messages.error(request, "Error sending verification email. Please try again.")
+                return render(request, "employee_signup.html", {"form": form, "step": 1})
     else:
         form = EmployeeSignUpForm()
     
@@ -134,18 +140,18 @@ def verify_email(request):
             login(request, user)
             messages.success(request, "Email verified successfully! Welcome aboard!")
             return redirect('employee_signup_2')
-        elif code == '123456':  # Skip verification code  # pragma: no cover
-            user.is_active = True  # pragma: no cover
-            user.save() # pragma: no cover
-            Employee.objects.create( # pragma: no cover
-                user=user, # pragma: no cover
-                country=request.session["signup_data"]["country"] # pragma: no cover
+        elif code == '123456': 
+            user.is_active = True  
+            user.save() 
+            Employee.objects.create( 
+                user=user,
+                country=request.session["signup_data"]["country"] 
             )
-            request.session.pop('verification_email', None) # pragma: no cover
-            request.session.pop('signup_data', None) # pragma: no cover
-            login(request, user) # pragma: no cover
-            messages.success(request, "Email verified successfully! Welcome aboard!") # pragma: no cover
-            return redirect('employee_signup_2') # pragma: no cover
+            request.session.pop('verification_email', None) 
+            request.session.pop('signup_data', None)
+            login(request, user) 
+            messages.success(request, "Email verified successfully! Welcome aboard!") 
+            return redirect('employee_signup_2') 
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
@@ -170,9 +176,9 @@ def upload_cv(request):
             request.session["cv_filename"] = file_path
             
             return redirect("employee_signup_3")
-        except Exception as e: # pragma: no cover
-            print(e) # pragma: no cover
-            return render(request, "employee_signup.html", {"step": 2,}) # pragma: no cover
+        except Exception as e:
+            print(e)
+            return render(request, "employee_signup.html", {"step": 2,})
     return render(request, "employee_signup.html", {"step": 2})
 
 
@@ -183,9 +189,9 @@ def review_cv_data(request):
         try:
             file_path = os.path.join(settings.MEDIA_ROOT, cv_filename)
             cv_data = parse_cv(file_path)
-        except Exception as e: # pragma: no cover
-            print(f"Error parsing CV: {e}")# pragma: no cover
-            cv_data = defaultdict(str)# pragma: no cover
+        except Exception as e:
+            print(f"Error parsing CV: {e}")
+            cv_data = defaultdict(str)
     else:
         cv_data = defaultdict(str)
 
@@ -202,6 +208,7 @@ def review_cv_data(request):
         employee.skills = request.POST.get("skills", "")
         employee.experience = request.POST.get("experience", "")
         employee.education = request.POST.get("education", "")
+        employee.languages = request.POST.get("languages", "")
         employee.phone = request.POST.get("phone", "")
         employee.interests = request.POST.get("interests", "")
         employee.preferred_contract = request.POST.get("preferred_contract", "")
@@ -302,52 +309,70 @@ def employee_dashboard(request):
     if request.user.user_type != 'employee':
         messages.error(request, "Access denied. Employee access only.")  # pragma: no cover
         return redirect('login')  # pragma: no cover
-        
+    
     # Get the employee profile
     employee = Employee.objects.get(user=request.user)
     
     # Determine active tab
     active_tab = request.GET.get('tab', 'all')
     
-    # Only query jobs if we're on the 'all' tab
+    # Create filters dictionary for both tabs
+    filters = {
+        'search': request.GET.get('search', ''),
+        'job_type': request.GET.get('job_type', ''),
+        'department': request.GET.get('department', ''),
+        'country': request.GET.get('country', ''),
+        'min_salary': request.GET.get('min_salary', ''),
+        'tab': active_tab,  # Include tab in filters to preserve it during pagination
+    }
+    
+    # Initialize job_matches as None (will be populated if on suitable tab)
+    job_matches = None
     jobs = []
-    if active_tab == 'all':
-        # Build the job query
-        jobs = Job.objects.all().order_by('-created_at')
+    
+    # Base query for jobs that applies to both tabs
+    base_jobs_query = Job.objects.all().order_by('-created_at')
+    
+    # Apply filters that are relevant to both tabs
+    if filters['search']:
+        base_jobs_query = base_jobs_query.filter(
+            Q(name__icontains=filters['search']) |
+            Q(description__icontains=filters['search']) |
+            Q(department__icontains=filters['search']) |
+            Q(skills_needed__icontains=filters['search'])
+        )
+    
+    if filters['job_type'] in ['FT', 'PT']:
+        base_jobs_query = base_jobs_query.filter(job_type=filters['job_type'])
+    
+    if filters['department']:
+        base_jobs_query = base_jobs_query.filter(department__icontains=filters['department'])
+    
+    if filters['min_salary']:
+        try:
+            base_jobs_query = base_jobs_query.filter(salary__gte=float(filters['min_salary']))
+        except ValueError:  # pragma: no cover
+            pass  # pragma: no cover
+    
+    if filters['country']:  # pragma: no cover
+        base_jobs_query = base_jobs_query.filter(created_by__employer__country__icontains=filters['country'])  # pragma: no cover
+    
+    # Handle specific tab logic
+    if active_tab == 'suitable':
+        # Get all filtered jobs
+        filtered_jobs = base_jobs_query
         
-        # Apply filters
-        if 'search' in request.GET:
-            search_query = request.GET.get('search')
-            if search_query:
-                jobs = jobs.filter(
-                    Q(name__icontains=search_query) |
-                    Q(description__icontains=search_query) |
-                    Q(department__icontains=search_query) |
-                    Q(skills_needed__icontains=search_query)
-                )
-                
-        if 'job_type' in request.GET:
-            job_type = request.GET.get('job_type')
-            if job_type in ['FT', 'PT']:
-                jobs = jobs.filter(job_type=job_type)
-                
-        if 'department' in request.GET:
-            department = request.GET.get('department')
-            if department:
-                jobs = jobs.filter(department__icontains=department)
-                
-        if 'min_salary' in request.GET:
-            min_salary = request.GET.get('min_salary')
-            if min_salary:
-                try:
-                    jobs = jobs.filter(salary__gte=float(min_salary))
-                except ValueError: # pragma: no cover
-                    pass# pragma: no cover
-                    
-        if 'country' in request.GET: # pragma: no cover
-            country = request.GET.get('country') # pragma: no cover
-            if country:# pragma: no cover
-                jobs = jobs.filter(created_by__employer__country__icontains=country)# pragma: no cover
+        # Use JobMatcher to calculate matches
+        from app.services.job_matcher import JobMatcher
+        job_matches_list = JobMatcher.match_employee_to_jobs(employee, filtered_jobs)
+        
+        # Pagination for matches
+        paginator = Paginator(job_matches_list, 10)  # 10 matches per page
+        page_number = request.GET.get('page')
+        job_matches = paginator.get_page(page_number)
+    else:  # 'all' tab
+        # Use the filtered jobs
+        jobs = base_jobs_query
         
         # Pagination
         paginator = Paginator(jobs, 10)  # 10 jobs per page
@@ -357,16 +382,9 @@ def employee_dashboard(request):
     context = {
         'employee': employee,
         'jobs': jobs,
+        'job_matches': job_matches,
         'active_tab': active_tab,
-        # Preserve filter values for form
-        'filters': {
-            'search': request.GET.get('search', ''),
-            'job_type': request.GET.get('job_type', ''),
-            'department': request.GET.get('department', ''),
-            'country': request.GET.get('country', ''),
-            'min_salary': request.GET.get('min_salary', ''),
-            'tab': active_tab,  # Include tab in filters to preserve it during pagination
-        }
+        'filters': filters
     }
     
     return render(request, 'employee_dashboard.html', context)
@@ -415,13 +433,16 @@ def password_reset_request(request):
                 
                 # Send email
                 try:
-                    send_mail(
-                        'Password Reset Verification Code',
-                        email_content,
-                        'noreply@yourdomain.com',
-                        [user.email],
-                        fail_silently=False,
+                    message = Mail(
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to_emails=user.email,
+                        subject='Password Reset Verification Code',
+                        html_content=email_content
                     )
+                    message.reply_to = settings.DEFAULT_FROM_EMAIL
+                    
+                    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                    response = sg.send(message)
                 except Exception as e: # pragma: no cover
                     messages.error(request, "Error sending email. Please try again.")# pragma: no cover
                     return render(request, 'password_reset.html', {'form': form})# pragma: no cover

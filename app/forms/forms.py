@@ -22,7 +22,7 @@ class LogInForm(forms.Form):
 
 class EmployeeSignUpForm(UserCreationForm):
     country = forms.ChoiceField(choices=COUNTRIES)
-    #captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
     
     class Meta:
         model = User
@@ -129,7 +129,7 @@ class EmployeeAccountUpdateForm(forms.ModelForm):
 class EmployerSignUpForm(UserCreationForm):
     country = forms.ChoiceField(choices=COUNTRIES)
     company_name = forms.CharField(max_length=255)
-    #captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
 
     class Meta:
         model = User

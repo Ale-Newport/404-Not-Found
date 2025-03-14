@@ -148,11 +148,11 @@ class EmployerManager(Manager):
 # MODELS
 # ------------------------------------------------------------------------------
 class User(AbstractUser):
-    USER_TYPES = {
+    USER_TYPES = [
         ('admin', 'Admin'),
         ('employee', 'Employee'),
         ('employer', 'Employer')
-    }
+    ]
     user_type = models.CharField(max_length=10, choices=USER_TYPES)
 
     username = models.CharField(max_length=50, unique=True,
@@ -212,6 +212,7 @@ class Employee(UserDelegationMixin, models.Model):
         blank=True
     )
     cv_filename = models.CharField(max_length=255, blank=True)
+    experience = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username} (Employee)"
