@@ -35,7 +35,7 @@ def employee_signup(request):
     if request.method == "POST":
         form = EmployeeSignUpForm(request.POST)
         if form.is_valid():
-            # Store all form data in session
+            
             session_data = {
                 'username': form.cleaned_data['username'],
                 'email': form.cleaned_data['email'],
@@ -45,7 +45,6 @@ def employee_signup(request):
                 'country': form.cleaned_data['country'],
             }
             
-            # Create user but set as inactive
             user = User.objects.create_user(
                 username=session_data["username"],
                 email=session_data["email"],
@@ -53,10 +52,9 @@ def employee_signup(request):
                 first_name=session_data["first_name"],
                 last_name=session_data["last_name"],
                 user_type='employee',
-                is_active=False  # Set as inactive until email is verified
+                is_active=False
             )
 
-            # Generate and send verification code
             code = VerificationCode.generate_code()
             VerificationCode.objects.create(
                 user=user,
@@ -64,7 +62,6 @@ def employee_signup(request):
                 code_type='email_verification'
             )
 
-            # Send verification email
             current_site = get_current_site(request)
             context = {
                 'user': user,
@@ -89,7 +86,7 @@ def employee_signup(request):
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
             except Exception as e:
-                user.delete()  #delete the user if email sending fails
+                user.delete()
                 messages.error(request, "Error sending verification email. Please try again.")
                 return render(request, "employee_signup.html", {"form": form, "step": 1})
     else:
@@ -162,17 +159,10 @@ def upload_cv(request):
     if request.method == "POST":
         cv_file = request.FILES["cv"]
         try:
-            # Create the uploads directory if it doesn't exist
             upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
             os.makedirs(upload_dir, exist_ok=True)
-            
-            # Construct the relative file path
             cv_filename = f"uploads/{cv_file.name}"
-            
-            # Save the file using Django's storage API
             file_path = default_storage.save(cv_filename, cv_file)
-            
-            # Save the filename in the session
             request.session["cv_filename"] = file_path
             
             return redirect("employee_signup_3")
@@ -196,7 +186,7 @@ def review_cv_data(request):
         cv_data = defaultdict(str)
 
     if request.method == "POST":
-        # Check if user is authenticated
+        
         if not request.user.is_authenticated:
             messages.error(request, "You must be logged in to complete this action.")
             return redirect("login")
@@ -241,7 +231,7 @@ def employee_update(request):
             
             messages.success(request, 'Your account details have been updated successfully.')
         else:
-            messages.error(request, 'Please correct the errors below.')  # pragma: no cover
+            messages.error(request, 'Please correct the errors below.')
     else:
         initial_data = {}
         if hasattr(request.user, 'employee'):
@@ -261,12 +251,11 @@ def employer_signup(request):
     if request.method == 'POST':
         form = EmployerSignUpForm(request.POST)
         if form.is_valid():
-            #create user
+            
             user = form.save(commit=False)
             user.user_type = 'employer'
             user.save()
 
-            #link to employer
             Employer.objects.create(
                 user=user,
                 country=form.cleaned_data.get('country', ''),
@@ -301,39 +290,30 @@ def get_redirect(user):
         return reverse('employee_dashboard')
     elif user.user_type == 'admin':
         return reverse('admin_dashboard')
-    return reverse('login') # pragma: no cover
+    return reverse('login')
 
 
 @user_type_required('employee')
 def employee_dashboard(request):
     if request.user.user_type != 'employee':
-        messages.error(request, "Access denied. Employee access only.")  # pragma: no cover
-        return redirect('login')  # pragma: no cover
+        messages.error(request, "Access denied. Employee access only.")
+        return redirect('login')
     
-    # Get the employee profile
     employee = Employee.objects.get(user=request.user)
-    
-    # Determine active tab
     active_tab = request.GET.get('tab', 'all')
-    
-    # Create filters dictionary for both tabs
     filters = {
         'search': request.GET.get('search', ''),
         'job_type': request.GET.get('job_type', ''),
         'department': request.GET.get('department', ''),
         'country': request.GET.get('country', ''),
         'min_salary': request.GET.get('min_salary', ''),
-        'tab': active_tab,  # Include tab in filters to preserve it during pagination
+        'tab': active_tab,
     }
     
-    # Initialize job_matches as None (will be populated if on suitable tab)
     job_matches = None
     jobs = []
-    
-    # Base query for jobs that applies to both tabs
     base_jobs_query = Job.objects.all().order_by('-created_at')
     
-    # Apply filters that are relevant to both tabs
     if filters['search']:
         base_jobs_query = base_jobs_query.filter(
             Q(name__icontains=filters['search']) |
@@ -351,31 +331,24 @@ def employee_dashboard(request):
     if filters['min_salary']:
         try:
             base_jobs_query = base_jobs_query.filter(salary__gte=float(filters['min_salary']))
-        except ValueError:  # pragma: no cover
-            pass  # pragma: no cover
+        except ValueError:
+            pass
     
-    if filters['country']:  # pragma: no cover
-        base_jobs_query = base_jobs_query.filter(created_by__employer__country__icontains=filters['country'])  # pragma: no cover
+    if filters['country']:
+        base_jobs_query = base_jobs_query.filter(created_by__employer__country__icontains=filters['country'])
     
-    # Handle specific tab logic
     if active_tab == 'suitable':
-        # Get all filtered jobs
         filtered_jobs = base_jobs_query
         
-        # Use JobMatcher to calculate matches
         from app.services.job_matcher import JobMatcher
         job_matches_list = JobMatcher.match_employee_to_jobs(employee, filtered_jobs)
         
-        # Pagination for matches
-        paginator = Paginator(job_matches_list, 10)  # 10 matches per page
+        paginator = Paginator(job_matches_list, 10)
         page_number = request.GET.get('page')
         job_matches = paginator.get_page(page_number)
-    else:  # 'all' tab
-        # Use the filtered jobs
+    else:
         jobs = base_jobs_query
-        
-        # Pagination
-        paginator = Paginator(jobs, 10)  # 10 jobs per page
+        paginator = Paginator(jobs, 10)
         page_number = request.GET.get('page')
         jobs = paginator.get_page(page_number)
     
@@ -392,9 +365,9 @@ def employee_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-    if request.user.user_type != 'admin':# pragma: no cover
-        messages.error(request, "Access denied. Admin access only.")# pragma: no cover
-        return redirect('login')# pragma: no cover
+    if request.user.user_type != 'admin':
+        messages.error(request, "Access denied. Admin access only.")
+        return redirect('login')
     return render(request, 'admin_dashboard.html')
 
 def log_out(request):
@@ -471,7 +444,7 @@ def verify_reset_code(request):
             request.session['reset_code_verified'] = True
             return redirect('set_new_password')
         else:
-            messages.error(request, "Invalid or expired code. Please try again.") # pragma: no cover
+            messages.error(request, "Invalid or expired code. Please try again.")
     
     return render(request, 'verify_reset_code.html')
 
@@ -487,7 +460,6 @@ def set_new_password(request):
             user.set_password(form.cleaned_data['password1'])
             user.save()
             
-            # Clear session data
             del request.session['reset_email']
             del request.session['reset_code_verified']
             
@@ -507,13 +479,11 @@ def apply_to_job(request, job_id):
         
     job = get_object_or_404(Job, id=job_id)
     
-    # Check if already applied
     if JobApplication.objects.filter(job=job, applicant=request.user.employee).exists():
         messages.warning(request, "You have already applied for this position.")
         return redirect('job_detail', job_id=job_id)
     
     if request.method == 'POST':
-        # Make sure to provide default empty string or None appropriately
         application = JobApplication(
             job=job,
             applicant=request.user.employee,
@@ -537,17 +507,16 @@ def apply_to_job(request, job_id):
         messages.success(request, "Your application has been submitted successfully!")
         return redirect('employee_dashboard')
         
-    return redirect('job_detail', job_id=job_id) # pragma: no cover
+    return redirect('job_detail', job_id=job_id)
 
 @user_type_required('employer')
 def update_application_status(request, application_id):
     if not hasattr(request.user, 'employer'):
-        messages.error(request, "Access denied.") # pragma: no cover
-        return redirect('login')# pragma: no cover
+        messages.error(request, "Access denied.")
+        return redirect('login')
         
     application = get_object_or_404(JobApplication, id=application_id)
     
-    # Ensure the employer owns the job
     if application.job.created_by != request.user.employer:
         messages.error(request, "Access denied.")
         return redirect('employer_dashboard')
@@ -564,8 +533,8 @@ def update_application_status(request, application_id):
 @user_type_required('employee')
 def my_applications(request):
     if not hasattr(request.user, 'employee'):
-        messages.error(request, "Access denied. Employee access only.") # pragma: no cover
-        return redirect('login')# pragma: no cover
+        messages.error(request, "Access denied. Employee access only.")
+        return redirect('login')
     
     applications = JobApplication.objects.filter(applicant=request.user.employee).order_by('-created_at')
     

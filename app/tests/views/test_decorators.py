@@ -242,3 +242,24 @@ class UserTypeRequiredDecoratorTests(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content.decode(), "Employee view")
+
+    def test_invalid_user_access(self):
+        """Test handling users with invalid user_type"""
+        invalid_user = User.objects.create_user(
+            username="@invalidtype",
+            email="invalid@example.com",
+            password="testpass123",
+            user_type="invalid_type"
+        )
+        
+        @user_type_required('admin')
+        def admin_view(request):
+            return HttpResponse("Admin view")
+        
+        request = self.factory.get('/admin-view/')
+        request.user = invalid_user
+        request = self.add_middleware(request)
+        
+        response = admin_view(request)
+        
+        self.assertEqual(response.status_code, 302)
