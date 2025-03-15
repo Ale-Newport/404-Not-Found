@@ -44,10 +44,27 @@ class EmployeeSignUpForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:
-            if User.objects.filter(email=email).exists():
-                raise forms.ValidationError("This email is already registered.")
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user:
+                if not existing_user.is_active:
+                    #delete the inactive user
+                    existing_user.delete()
+                else:
+                    raise forms.ValidationError("A user with this email already exists.")
         return email
-
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            existing_user = User.objects.filter(username=username).first()
+            if existing_user:
+                if not existing_user.is_active:
+                    #delete the inactive user
+                    existing_user.delete()
+                else:
+                    raise forms.ValidationError("A user with this username already exists.")
+        return username
+    
     def clean(self):
         cleaned_data = super().clean()
         return cleaned_data
@@ -155,6 +172,34 @@ class EmployerSignUpForm(UserCreationForm):
                 company_name=self.cleaned_data['company_name']
             )
         return user
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user:
+                if not existing_user.is_active:
+                    #delete the inactive user
+                    existing_user.delete()
+                else:
+                    raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            existing_user = User.objects.filter(username=username).first()
+            if existing_user:
+                if not existing_user.is_active:
+                    #delete the inactive user
+                    existing_user.delete()
+                else:
+                    raise forms.ValidationError("A user with this username already exists.")
+        return username
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data
 
 class JobForm(forms.ModelForm):
     class Meta:
