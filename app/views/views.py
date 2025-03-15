@@ -125,21 +125,32 @@ def verify_email(request):
             # Mark code as used
             verification.is_used = True
             verification.save()
-            
-            # Create employee profile
-            Employee.objects.create(
-                user=user,
-                country=request.session["signup_data"]["country"]
-            )
-            
-            # Clear session data
+
+            signup_data = request.session.get("signup_data", {})
+
+            if user.user_type == 'employee':
+                Employee.objects.create(
+                    user=user,
+                    country = signup_data.get("country", "")
+                )
+                redirect_url = 'employee_signup_2'
+            elif user.user_type == 'employer':
+                Employer.objects.create(
+                    user=user,
+                    country=signup_data.get("country", ""),
+                    company_name=signup_data.get("company_name", "")
+                )
+                redirect_url = 'employer_dashboard'
+            else:
+                #fallback in case usertype unrecognised for some reason
+                redirect_url = 'home'
+
             request.session.pop('verification_email', None)
             request.session.pop('signup_data', None)
-            
-            # Log the user in
+
             login(request, user)
-            messages.success(request, "Email verified successfully! Welcome aboard!")
-            return redirect('employee_signup_2')
+            messages.success(request, "Email verified successfully! Welcome abord!")
+            return redirect(redirect_url)
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
