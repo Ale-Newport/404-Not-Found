@@ -1,15 +1,17 @@
 from django.core.management.base import BaseCommand
-from app.models import Admin, Employee, Employer, User, Job
-from random import choices
+from app.models import Admin, Employee, Employer, User, Job, JobApplication
+from random import choices, randint, sample
 from faker import Faker
 from datetime import datetime, timedelta
 import pytz
+from project.constants import COUNTRIES
 
 class Command(BaseCommand):
     help = "Seed the database with initial data"
 
     USER_COUNT = 100
     JOB_COUNT = 100
+    APPLICATION_COUNT = 200
     DEFAULT_PASSWORD = 'Password123'
 
     def __init__(self):
@@ -21,6 +23,7 @@ class Command(BaseCommand):
         self.employees = Employee.objects.all()
         self.employers = Employer.objects.all()
         self.create_jobs()
+        self.create_applications()
 
     # User seeding
     def create_users(self):
@@ -67,7 +70,10 @@ class Command(BaseCommand):
                 user.is_staff = True
                 user.is_superuser = True
             elif data['user_type'] == 'employee':
-                Employee.objects.create(user=user)
+                skills = self.generate_employee_skills()
+                experience = self.generate_employee_experience()
+                education = self.generate_employee_education()
+                Employee.objects.create(user=user, skills=skills, education=education, experience=experience)
             elif data['user_type'] == 'employer':
                 company_name = data.get('company_name', self.generate_company_name())
                 Employer.objects.create(user=user, company_name = company_name,)
@@ -75,8 +81,109 @@ class Command(BaseCommand):
         except Exception as e: 
             print(f"Error creating user: {data} - {e}")
     
-
+    #Employees
+    def generate_employee_skills(self):
+        technical_skills = [
+            'Python', 'JavaScript', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Go',
+            'React', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Flask', 'Laravel', 'Spring Boot',
+            'Express.js', 'ASP.NET', 'REST API', 'GraphQL', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL',
+            'MySQL', 'Redis', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'Jenkins',
+            'Git', 'CI/CD', 'Machine Learning', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Pandas'
+        ]
+        
+        soft_skills = [
+            'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking', 'Time Management',
+            'Leadership', 'Adaptability', 'Creativity', 'Attention to Detail', 'Project Management',
+            'Collaboration', 'Presentation Skills', 'Analytical Skills', 'Customer Service'
+        ]
+        
+        skill_count = randint(4, 10)
+        technical_count = randint(2, min(skill_count - 1, len(technical_skills)))
+        soft_count = min(skill_count - technical_count, len(soft_skills))
+        
+        selected_skills = sample(technical_skills, technical_count) + sample(soft_skills, soft_count)
+        return ', '.join(selected_skills)
     
+    def generate_employee_experience(self):
+        experience_count = randint(1, 3)
+        experiences = []
+        
+        current_year = datetime.now().year
+        end_year = current_year
+        
+        for i in range(experience_count):
+            duration = randint(1, 4)
+            start_year = end_year - duration
+            
+            job_title = self.faker.job()
+            company = self.generate_company_name()
+            
+            responsibilities = []
+            for _ in range(randint(2, 4)):
+                responsibility_type = self.faker.random_element([
+                    f"Developed {self.faker.bs()}",
+                    f"Led a team of {randint(2, 10)} in {self.faker.bs()}",
+                    f"Improved {self.faker.bs()} by {randint(10, 50)}%",
+                    f"Managed {self.faker.bs()} with a budget of £{randint(10, 100)}k",
+                    f"Created {self.faker.bs()} resulting in {self.faker.bs()}"
+                ])
+                responsibilities.append(f"• {responsibility_type}")
+            
+            experience = f"{job_title} at {company} ({start_year} - {end_year if i == 0 else 'Present' if i == 0 else end_year})\n"
+            experience += "\n".join(responsibilities)
+            experiences.append(experience)
+            
+            end_year = start_year - 1 
+        
+        return "\n\n".join(experiences)
+    
+    def generate_employee_education(self):
+        education_count = randint(1, 2)
+        educations = []
+        
+        degree_types = [
+            'BSc', 'BA', 'BEng', 'MSc', 'MA', 'MEng', 'PhD', 
+            'Diploma', 'Certificate', 'Associate Degree'
+        ]
+        
+        fields = [
+            'Computer Science', 'Information Technology', 'Software Engineering', 
+            'Data Science', 'Business Administration', 'Marketing', 'Economics',
+            'Mathematics', 'Statistics', 'Engineering', 'Physics', 'Design',
+            'Communications', 'Psychology', 'Finance', 'Accounting'
+        ]
+        
+        current_year = datetime.now().year
+        end_year = current_year - randint(0, 5)
+        
+        for i in range(education_count):
+            degree = self.faker.random_element(degree_types)
+            field = self.faker.random_element(fields)
+            university = f"{self.faker.city()} University" if self.faker.boolean(70) else f"University of {self.faker.city()}"
+            
+            duration = 3 if degree in ['BSc', 'BA', 'BEng'] else 2 if degree in ['MSc', 'MA', 'MEng'] else 4 if degree == 'PhD' else 1
+            start_year = end_year - duration
+            
+            highlights = []
+            for _ in range(randint(1, 3)):
+                highlight_type = self.faker.random_element([
+                    f"Graduated with {self.faker.random_element(['First Class Honours', 'Upper Second Class Honours', 'Distinction', 'Merit'])}",
+                    f"Specialized in {self.faker.bs()}",
+                    f"Completed dissertation on {self.faker.bs()}",
+                    f"Received scholarship for {self.faker.bs()}",
+                    f"Participated in {self.faker.bs()}"
+                ])
+                highlights.append(f"• {highlight_type}")
+            
+            education = f"{degree} in {field} from {university} ({start_year} - {end_year})\n"
+            education += "\n".join(highlights)
+            educations.append(education)
+            
+            end_year = start_year - randint(1, 3)
+        
+        return "\n\n".join(educations)
+    
+    #Employers
     def generate_company_name(self):
         """Generate a realistic company name using various patterns"""
         patterns = [
@@ -203,6 +310,116 @@ class Command(BaseCommand):
             )
         except Exception as e:
             print(f"Error creating job: {data} - {e}")
+
+    #Application seeding
+
+    def create_applications(self):
+        self.generate_fixture_application()
+        self.generate_random_applications()
+
+    def create_application(self, data):
+        try:
+            #check if an application already exists for this job-applicant pair
+            if JobApplication.objects.filter(job=data['job'], applicant=data['applicant']).exists():
+                return
+                
+            application = JobApplication.objects.create(
+                job=data['job'],
+                applicant=data['applicant'],
+                status=data['status'],
+                cover_letter=data['cover_letter'],
+                full_name=data['full_name'],
+                email=data['email'],
+                phone=data['phone'],
+                country=data['country'],
+                current_position=data['current_position'],
+                skills=data['skills'],
+                experience=data['experience'],
+                education=data['education'],
+                portfolio_url=data['portfolio_url'],
+                linkedin_url=data['linkedin_url']
+            )
+            return application
+        except Exception as e:
+            print(f"Error creating application: {e}")
+
+    def generate_fixture_application(self):
+        employer_jobs = Job.objects.filter(created_by__user__username='@employer')
+        employer_job = employer_jobs.first() if employer_jobs.exists() else Job.objects.first()
+        
+        application_fixtures = [
+            {
+                'job': employer_job,
+                'applicant': Employee.objects.get(user__username='@employee'),
+                'status': 'pending',
+                'cover_letter': 'I am very interested in this position and believe my skills match your requirements.',
+                'full_name': 'Employee User',
+                'email': 'employee@user.com',
+                'phone': '+44 1234 567890',
+                'country': 'GB',
+                'current_position': 'Junior Developer',
+                'skills': 'Python, Django, JavaScript',
+                'experience': '2 years of web development experience',
+                'education': 'BSc Computer Science from King\'s College London',
+                'portfolio_url': 'https://portfolio.employeeuser.com',
+                'linkedin_url': 'https://linkedin.com/in/employeeuser'
+            }
+        ]
+
+        for data in application_fixtures:
+            self.create_application(data)
+
+    def generate_random_applications(self):
+        application_count = JobApplication.objects.count()
+        jobs = list(Job.objects.all())
+        employees = list(Employee.objects.all())
+        
+        possible_combinations = min(len(jobs) * len(employees), self.APPLICATION_COUNT)
+        
+        while application_count < possible_combinations:
+            print(f"Seeding application {application_count}/{possible_combinations}", end='\r')
+            self.generate_applications()
+            application_count = JobApplication.objects.count()
+        print("Application seeding complete.      ")
+        
+    def generate_applications(self):
+        existing_applications = set(JobApplication.objects.values_list('job_id', 'applicant_id'))
+        
+        available_jobs = Job.objects.all()
+        available_employees = Employee.objects.all()
+
+        #try a few times to find a unique job-applicant pair
+        for _ in range(10):
+            job = self.faker.random_element(available_jobs)
+            employee = self.faker.random_element(available_employees)
+            
+            if (job.id, employee.user_id) not in existing_applications:
+                break
+        else:
+            #if we couldn't find a unique pair after 10 tries, just return
+            return
+
+        status = choices(['pending', 'reviewing', 'rejected'], 
+                        weights=[60, 20, 10], k=1)[0]
+        
+        application_data = {
+            'job': job,
+            'applicant': employee,
+            'status': status,
+            'cover_letter': self.faker.paragraph(nb_sentences=3),
+            'full_name': f"{employee.first_name} {employee.last_name}",
+            'email': employee.email,
+            'phone': self.faker.phone_number(),
+            'country': self.faker.random_element([c[0] for c in COUNTRIES]),
+            'current_position': self.faker.job(),
+            'skills': employee.skills,
+            'experience': employee.experience,
+            'education': employee.education,
+            'portfolio_url': self.faker.boolean(chance_of_getting_true=30) and f"https://{self.faker.domain_name()}/portfolio" or "",
+            'linkedin_url': self.faker.boolean(chance_of_getting_true=70) and f"https://linkedin.com/in/{employee.user.username.replace('@', '')}" or ""
+        }
+
+        self.create_application(application_data)
 
     def printAll(self):
         print("Admins:")
