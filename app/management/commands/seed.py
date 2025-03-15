@@ -23,6 +23,7 @@ class Command(BaseCommand):
         self.employees = Employee.objects.all()
         self.employers = Employer.objects.all()
         self.create_jobs()
+        self.create_applications()
 
     # User seeding
     def create_users(self):
@@ -69,7 +70,10 @@ class Command(BaseCommand):
                 user.is_staff = True
                 user.is_superuser = True
             elif data['user_type'] == 'employee':
-                Employee.objects.create(user=user)
+                skills = self.generate_employee_skills()
+                experience = self.generate_employee_experience()
+                education = self.generate_employee_education()
+                Employee.objects.create(user=user, skills=skills, education=education, experience=experience)
             elif data['user_type'] == 'employer':
                 company_name = data.get('company_name', self.generate_company_name())
                 Employer.objects.create(user=user, company_name = company_name,)
@@ -310,7 +314,7 @@ class Command(BaseCommand):
     #Application seeding
 
     def create_applications(self):
-        self.generate_fixtures_applications()
+        self.generate_fixture_application()
         self.generate_random_applications()
 
     def create_application(self, data):
@@ -356,7 +360,7 @@ class Command(BaseCommand):
                 'current_position': 'Junior Developer',
                 'skills': 'Python, Django, JavaScript',
                 'experience': '2 years of web development experience',
-                'education': 'BSc Computer Science from King's College London',
+                'education': 'BSc Computer Science from King\'s College London',
                 'portfolio_url': 'https://portfolio.employeeuser.com',
                 'linkedin_url': 'https://linkedin.com/in/employeeuser'
             }
@@ -374,7 +378,7 @@ class Command(BaseCommand):
         
         while application_count < possible_combinations:
             print(f"Seeding application {application_count}/{possible_combinations}", end='\r')
-            self.generate_application()
+            self.generate_applications()
             application_count = JobApplication.objects.count()
         print("Application seeding complete.      ")
         
