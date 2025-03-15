@@ -140,18 +140,6 @@ def verify_email(request):
             login(request, user)
             messages.success(request, "Email verified successfully! Welcome aboard!")
             return redirect('employee_signup_2')
-        elif code == '123456': 
-            user.is_active = True  
-            user.save() 
-            Employee.objects.create( 
-                user=user,
-                country=request.session["signup_data"]["country"] 
-            )
-            request.session.pop('verification_email', None) 
-            request.session.pop('signup_data', None)
-            login(request, user) 
-            messages.success(request, "Email verified successfully! Welcome aboard!") 
-            return redirect('employee_signup_2') 
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
