@@ -75,11 +75,12 @@
 <div class="mt-4">
     <h4>Applications ({{ applications|length }})</h4>
     
-    {% if applications %}
+    {% if applications_with_scores %}
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Match Score</th>
                         <th>Applicant</th>
                         <th>Status</th>
                         <th>Applied On</th>
@@ -87,8 +88,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for app in applications %}
+                    {% for app_data in applications_with_scores %}
+                        {% with app=app_data.application %}
                         <tr>
+                            <td>
+                                <div class="progress position-relative" style="height: 20px;">
+                                    <div class="progress-bar
+                                        {% if app_data.score >= 80 %}bg-success{% elif app_data.score >= 60 %}bg-info{% elif app_data.score >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                        role="progressbar"
+                                        style="width: {{ app_data.score }}%;"
+                                        aria-valuenow="{{ app_data.score }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100">
+                                    </div>
+                                    <div class="position-absolute w-100 text-center" style="top: 0; left: 0; right: 0; bottom: 0; line-height: 20px;">
+                                        {{ app_data.score }}%
+                                    </div>
+                                </div>
+                            </td>
                             <td>{{ app.full_name|default:app.applicant.user.get_full_name }}</td>
                             <td>
                                 <span class="badge 
@@ -186,6 +203,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endwith %}
                     {% endfor %}
                 </tbody>
             </table>
