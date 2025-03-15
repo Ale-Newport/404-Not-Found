@@ -4,6 +4,7 @@ from random import choices
 from faker import Faker
 from datetime import datetime, timedelta
 import pytz
+from project.constants import COUNTRIES
 
 class Command(BaseCommand):
     help = "Seed the database with initial data"
@@ -209,6 +210,7 @@ class Command(BaseCommand):
 
     def create_applications(self):
         self.generate_fixtures_applications()
+        self.generate_random_applications()
 
     def create_application(self, data):
         try:
@@ -274,6 +276,45 @@ class Command(BaseCommand):
             self.generate_application()
             application_count = JobApplication.objects.count()
         print("Application seeding complete.      ")
+        
+    def generate_applications(self):
+        existing_applications = set(JobApplication.objects.values_list('job_id', 'applicant_id'))
+        
+        available_jobs = Job.objects.all()
+        available_employees = Employee.objects.all()
+
+        #try a few times to find a unique job-applicant pair
+        for _ in range(10):
+            job = self.faker.random_element(available_jobs)
+            employee = self.faker.random_element(available_employees)
+            
+            if (job.id, employee.user_id) not in existing_applications:
+                break
+        else:
+            #if we couldn't find a unique pair after 10 tries, just return
+            return
+
+        status = choices(['pending', 'reviewing', 'rejected'], 
+                        weights=[60, 20, 10], k=1)[0]
+        
+        application_data = {
+            'job': job,
+            'applicant': employee,
+            'status': status,
+            'cover_letter': self.faker.paragraph(nb_sentences=3),
+            'full_name': f"{employee.first_name} {employee.last_name}",
+            'email': employee.email,
+            'phone': self.faker.phone_number(),
+            'country': self.faker.random_element([c[0] for c in COUNTRIES]),
+            'current_position': self.faker.job(),
+            'skills': employee.skills,
+            'experience': employee.experience,
+            'education': employee.education,
+            'portfolio_url': self.faker.boolean(chance_of_getting_true=30) and f"https://{self.faker.domain_name()}/portfolio" or "",
+            'linkedin_url': self.faker.boolean(chance_of_getting_true=70) and f"https://linkedin.com/in/{employee.user.username.replace('@', '')}" or ""
+        }
+
+        self.create_application(application_data)
 
     def printAll(self):
         print("Admins:")
