@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from app.models import Admin, Employee, Employer, User, Job, JobApplication
-from random import choices
+from random import choices, randint, sample
 from faker import Faker
 from datetime import datetime, timedelta
 import pytz
@@ -77,7 +77,27 @@ class Command(BaseCommand):
         except Exception as e: 
             print(f"Error creating user: {data} - {e}")
     
-
+    def generate_employee_skills(self):
+        technical_skills = [
+            'Python', 'JavaScript', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Go',
+            'React', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Flask', 'Laravel', 'Spring Boot',
+            'Express.js', 'ASP.NET', 'REST API', 'GraphQL', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL',
+            'MySQL', 'Redis', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'Jenkins',
+            'Git', 'CI/CD', 'Machine Learning', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Pandas'
+        ]
+        
+        soft_skills = [
+            'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking', 'Time Management',
+            'Leadership', 'Adaptability', 'Creativity', 'Attention to Detail', 'Project Management',
+            'Collaboration', 'Presentation Skills', 'Analytical Skills', 'Customer Service'
+        ]
+        
+        skill_count = randint(4, 10)
+        technical_count = randint(2, min(skill_count - 1, len(technical_skills)))
+        soft_count = min(skill_count - technical_count, len(soft_skills))
+        
+        selected_skills = sample(technical_skills, technical_count) + sample(soft_skills, soft_count)
+        return ', '.join(selected_skills)
     
     def generate_company_name(self):
         """Generate a realistic company name using various patterns"""
