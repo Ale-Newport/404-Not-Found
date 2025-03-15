@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app.models import Admin, Employee, Employer, User, Job
+from app.models import Admin, Employee, Employer, User, Job, JobApplication
 from random import choices
 from faker import Faker
 from datetime import datetime, timedelta
@@ -10,6 +10,7 @@ class Command(BaseCommand):
 
     USER_COUNT = 100
     JOB_COUNT = 100
+    APPLICATION_COUNT = 200
     DEFAULT_PASSWORD = 'Password123'
 
     def __init__(self):
@@ -203,6 +204,76 @@ class Command(BaseCommand):
             )
         except Exception as e:
             print(f"Error creating job: {data} - {e}")
+
+    #Application seeding
+
+    def create_applications(self):
+        self.generate_fixtures_applications()
+
+    def create_application(self, data):
+        try:
+            #check if an application already exists for this job-applicant pair
+            if JobApplication.objects.filter(job=data['job'], applicant=data['applicant']).exists():
+                return
+                
+            application = JobApplication.objects.create(
+                job=data['job'],
+                applicant=data['applicant'],
+                status=data['status'],
+                cover_letter=data['cover_letter'],
+                full_name=data['full_name'],
+                email=data['email'],
+                phone=data['phone'],
+                country=data['country'],
+                current_position=data['current_position'],
+                skills=data['skills'],
+                experience=data['experience'],
+                education=data['education'],
+                portfolio_url=data['portfolio_url'],
+                linkedin_url=data['linkedin_url']
+            )
+            return application
+        except Exception as e:
+            print(f"Error creating application: {e}")
+
+    def generate_fixture_application(self):
+        employer_jobs = Job.objects.filter(created_by__user__username='@employer')
+        employer_job = employer_jobs.first() if employer_jobs.exists() else Job.objects.first()
+        
+        application_fixtures = [
+            {
+                'job': employer_job,
+                'applicant': Employee.objects.get(user__username='@employee'),
+                'status': 'pending',
+                'cover_letter': 'I am very interested in this position and believe my skills match your requirements.',
+                'full_name': 'Employee User',
+                'email': 'employee@user.com',
+                'phone': '+44 1234 567890',
+                'country': 'GB',
+                'current_position': 'Junior Developer',
+                'skills': 'Python, Django, JavaScript',
+                'experience': '2 years of web development experience',
+                'education': 'BSc Computer Science',
+                'portfolio_url': 'https://portfolio.employeeuser.com',
+                'linkedin_url': 'https://linkedin.com/in/employeeuser'
+            }
+        ]
+
+        for data in application_fixtures:
+            self.create_application(data)
+
+    def generate_random_applications(self):
+        application_count = JobApplication.objects.count()
+        jobs = list(Job.objects.all())
+        employees = list(Employee.objects.all())
+        
+        possible_combinations = min(len(jobs) * len(employees), self.APPLICATION_COUNT)
+        
+        while application_count < possible_combinations:
+            print(f"Seeding application {application_count}/{possible_combinations}", end='\r')
+            self.generate_application()
+            application_count = JobApplication.objects.count()
+        print("Application seeding complete.      ")
 
     def printAll(self):
         print("Admins:")
