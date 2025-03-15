@@ -96,7 +96,7 @@ def employee_signup(request):
 
 def verify_email(request):
     if 'verification_email' not in request.session:
-        return redirect('employee_signup')
+        return redirect('login') # redirect to log-in if no verification in progress
         
     if request.method == 'POST':
         code = request.POST.get('code')
@@ -105,7 +105,7 @@ def verify_email(request):
         user = User.objects.filter(email=email, is_active=False).first()
         if not user:
             messages.error(request, "Invalid verification attempt.")
-            return redirect('employee_signup')
+            return redirect('login')
             
         verification = VerificationCode.objects.filter(
             user=user,
@@ -122,33 +122,32 @@ def verify_email(request):
             # Mark code as used
             verification.is_used = True
             verification.save()
-            
-            # Create employee profile
-            Employee.objects.create(
-                user=user,
-                country=request.session["signup_data"]["country"]
-            )
-            
-            # Clear session data
+
+            signup_data = request.session.get("signup_data", {})
+
+            if user.user_type == 'employee':
+                Employee.objects.create(
+                    user=user,
+                    country = signup_data.get("country", "")
+                )
+                redirect_url = 'employee_signup_2'
+            elif user.user_type == 'employer':
+                Employer.objects.create(
+                    user=user,
+                    country=signup_data.get("country", ""),
+                    company_name=signup_data.get("company_name", "")
+                )
+                redirect_url = 'employer_dashboard'
+            else:
+                #fallback in case usertype unrecognised for some reason
+                redirect_url = 'home'
+
             request.session.pop('verification_email', None)
             request.session.pop('signup_data', None)
-            
-            # Log the user in
+
             login(request, user)
-            messages.success(request, "Email verified successfully! Welcome aboard!")
-            return redirect('employee_signup_2')
-        elif code == '123456': 
-            user.is_active = True  
-            user.save() 
-            Employee.objects.create( 
-                user=user,
-                country=request.session["signup_data"]["country"] 
-            )
-            request.session.pop('verification_email', None) 
-            request.session.pop('signup_data', None)
-            login(request, user) 
-            messages.success(request, "Email verified successfully! Welcome aboard!") 
-            return redirect('employee_signup_2') 
+            messages.success(request, "Email verified successfully! Welcome abord!")
+            return redirect(redirect_url)
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
@@ -251,18 +250,59 @@ def employer_signup(request):
     if request.method == 'POST':
         form = EmployerSignUpForm(request.POST)
         if form.is_valid():
-            
-            user = form.save(commit=False)
-            user.user_type = 'employer'
-            user.save()
+            #store form data in session
+            session_data = {
+                'username': form.cleaned_data['username'],
+                'email': form.cleaned_data['email'],
+                'password1': form.cleaned_data['password1'],
+                'company_name': form.cleaned_data.get('company_name', ''),
+                'country': form.cleaned_data.get('country', ''),
+            }
 
-            Employer.objects.create(
-                user=user,
-                country=form.cleaned_data.get('country', ''),
-                company_name=form.cleaned_data.get('company_name', '')
+            #create user but set as inactive
+            user = User.objects.create_user(
+                username=session_data["username"],
+                email=session_data["email"],
+                password=session_data["password1"],
+                user_type='employer',
+                is_active=False  
             )
 
-            return redirect('login')
+            code = VerificationCode.generate_code()
+            VerificationCode.objects.create(
+                user=user,
+                code=code,
+                code_type='email_verification'
+            )
+
+            current_site = get_current_site(request)
+            context = {
+                'user': user,
+                'code': code,
+                'site_name': current_site.name,
+            }
+            email_content = render_to_string('emails/email_verification.html', context)
+
+            try:
+                message = Mail(
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to_emails=user.email,
+                    subject='Verify your email address',
+                    html_content=email_content
+                )
+                message.reply_to = settings.DEFAULT_FROM_EMAIL
+                
+                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                response = sg.send(message)
+                
+                request.session['verification_email'] = user.email
+                request.session["signup_data"] = session_data
+                return redirect('verify_email')
+            except Exception as e:
+                user.delete()  #delete the user if email sending fails
+                messages.error(request, "Error sending verification email. Please try again.")
+                return render(request, "employer_signup.html", {"form": form,})
+
     else:
         form = EmployerSignUpForm()
     return render(request, 'employer_signup.html', {'form': form})
