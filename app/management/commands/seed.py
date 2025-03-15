@@ -133,6 +133,52 @@ class Command(BaseCommand):
         
         return "\n\n".join(experiences)
     
+    def generate_employee_education(self):
+        education_count = randint(1, 2)
+        educations = []
+        
+        degree_types = [
+            'BSc', 'BA', 'BEng', 'MSc', 'MA', 'MEng', 'PhD', 
+            'Diploma', 'Certificate', 'Associate Degree'
+        ]
+        
+        fields = [
+            'Computer Science', 'Information Technology', 'Software Engineering', 
+            'Data Science', 'Business Administration', 'Marketing', 'Economics',
+            'Mathematics', 'Statistics', 'Engineering', 'Physics', 'Design',
+            'Communications', 'Psychology', 'Finance', 'Accounting'
+        ]
+        
+        current_year = datetime.now().year
+        end_year = current_year - randint(0, 5)
+        
+        for i in range(education_count):
+            degree = self.faker.random_element(degree_types)
+            field = self.faker.random_element(fields)
+            university = f"{self.faker.city()} University" if self.faker.boolean(70) else f"University of {self.faker.city()}"
+            
+            duration = 3 if degree in ['BSc', 'BA', 'BEng'] else 2 if degree in ['MSc', 'MA', 'MEng'] else 4 if degree == 'PhD' else 1
+            start_year = end_year - duration
+            
+            highlights = []
+            for _ in range(randint(1, 3)):
+                highlight_type = self.faker.random_element([
+                    f"Graduated with {self.faker.random_element(['First Class Honours', 'Upper Second Class Honours', 'Distinction', 'Merit'])}",
+                    f"Specialized in {self.faker.bs()}",
+                    f"Completed dissertation on {self.faker.bs()}",
+                    f"Received scholarship for {self.faker.bs()}",
+                    f"Participated in {self.faker.bs()}"
+                ])
+                highlights.append(f"• {highlight_type}")
+            
+            education = f"{degree} in {field} from {university} ({start_year} - {end_year})\n"
+            education += "\n".join(highlights)
+            educations.append(education)
+            
+            end_year = start_year - randint(1, 3)
+        
+        return "\n\n".join(educations)
+    
     #Employers
     def generate_company_name(self):
         """Generate a realistic company name using various patterns"""
@@ -310,7 +356,7 @@ class Command(BaseCommand):
                 'current_position': 'Junior Developer',
                 'skills': 'Python, Django, JavaScript',
                 'experience': '2 years of web development experience',
-                'education': 'BSc Computer Science',
+                'education': 'BSc Computer Science from King's College London',
                 'portfolio_url': 'https://portfolio.employeeuser.com',
                 'linkedin_url': 'https://linkedin.com/in/employeeuser'
             }
