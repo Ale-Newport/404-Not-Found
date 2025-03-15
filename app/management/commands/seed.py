@@ -5,7 +5,8 @@ from faker import Faker
 from datetime import datetime, timedelta
 import pytz
 from project.constants import COUNTRIES
-
+from app.services.job_matcher import JobMatcher
+ 
 class Command(BaseCommand):
     help = "Seed the database with initial data"
 
@@ -402,6 +403,34 @@ class Command(BaseCommand):
         status = choices(['pending', 'reviewing', 'rejected'], 
                         weights=[60, 20, 10], k=1)[0]
         
+        original_skills = employee.skills or ""
+    
+        job_required_skills = JobMatcher._parse_skills(job.skills_needed)
+        job_preferred_skills = JobMatcher._parse_skills(job.skills_wanted)
+        all_job_skills = job_required_skills + job_preferred_skills
+        
+        enhance_skills = self.faker.boolean(chance_of_getting_true=70)
+
+        if enhance_skills and all_job_skills:
+            max_skills_to_add = max(1, int(len(all_job_skills) * 0.7))
+            num_skills_to_add = self.faker.random_int(min=1, max=max_skills_to_add)
+            
+            skills_to_add = self.faker.random_elements(
+                elements=all_job_skills,
+                length=min(num_skills_to_add, len(all_job_skills)),
+                unique=True
+            )
+            
+            employee_skills_list = JobMatcher._parse_skills(original_skills)
+            
+            for skill in skills_to_add:
+                if skill not in employee_skills_list:
+                    employee_skills_list.append(skill)
+            
+            enhanced_skills = ", ".join(employee_skills_list)
+        else:
+            enhanced_skills = original_skills
+
         application_data = {
             'job': job,
             'applicant': employee,
@@ -412,7 +441,7 @@ class Command(BaseCommand):
             'phone': self.faker.phone_number(),
             'country': self.faker.random_element([c[0] for c in COUNTRIES]),
             'current_position': self.faker.job(),
-            'skills': employee.skills,
+            'skills': enhanced_skills,
             'experience': employee.experience,
             'education': employee.education,
             'portfolio_url': self.faker.boolean(chance_of_getting_true=30) and f"https://{self.faker.domain_name()}/portfolio" or "",
