@@ -77,6 +77,7 @@ class Command(BaseCommand):
         except Exception as e: 
             print(f"Error creating user: {data} - {e}")
     
+    #Employees
     def generate_employee_skills(self):
         technical_skills = [
             'Python', 'JavaScript', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Go',
@@ -99,6 +100,40 @@ class Command(BaseCommand):
         selected_skills = sample(technical_skills, technical_count) + sample(soft_skills, soft_count)
         return ', '.join(selected_skills)
     
+    def generate_employee_experience(self):
+        experience_count = randint(1, 3)
+        experiences = []
+        
+        current_year = datetime.now().year
+        end_year = current_year
+        
+        for i in range(experience_count):
+            duration = randint(1, 4)
+            start_year = end_year - duration
+            
+            job_title = self.faker.job()
+            company = self.generate_company_name()
+            
+            responsibilities = []
+            for _ in range(randint(2, 4)):
+                responsibility_type = self.faker.random_element([
+                    f"Developed {self.faker.bs()}",
+                    f"Led a team of {randint(2, 10)} in {self.faker.bs()}",
+                    f"Improved {self.faker.bs()} by {randint(10, 50)}%",
+                    f"Managed {self.faker.bs()} with a budget of £{randint(10, 100)}k",
+                    f"Created {self.faker.bs()} resulting in {self.faker.bs()}"
+                ])
+                responsibilities.append(f"• {responsibility_type}")
+            
+            experience = f"{job_title} at {company} ({start_year} - {end_year if i == 0 else 'Present' if i == 0 else end_year})\n"
+            experience += "\n".join(responsibilities)
+            experiences.append(experience)
+            
+            end_year = start_year - 1 
+        
+        return "\n\n".join(experiences)
+    
+    #Employers
     def generate_company_name(self):
         """Generate a realistic company name using various patterns"""
         patterns = [
