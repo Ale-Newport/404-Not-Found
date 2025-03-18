@@ -3,6 +3,7 @@ from app.models import Job, JobApplication
 from app.forms.forms import JobForm
 from django.contrib import messages
 from app.decorators import user_type_required
+from app.services.job_matcher import JobMatcher
 
 @user_type_required('employer')
 def add_job(request):
@@ -36,10 +37,30 @@ def job_detail(request, job_id):
     
     job = get_object_or_404(Job, id=job_id, created_by=request.user.employer)
     applications = JobApplication.objects.filter(job=job)
+
+    applications_with_scores = []
+    for app in applications:
+        score, matching_skills, missing_skills = JobMatcher.calculate_match_score(
+            app.skills,
+            job.skills_needed,
+            job.skills_wanted,
+            app.applicant.preferred_contract if hasattr(app, 'applicant') and app.applicant else None,
+            job.job_type
+        )
+        
+        app_data = {
+            'application': app,
+            'score': score,
+            'matching_skills': matching_skills,
+            'missing_skills': missing_skills
+        }
+        applications_with_scores.append(app_data)
+    
+    applications_with_scores.sort(key=lambda x: x['score'], reverse=True)
     
     return render(request, 'job_detail.html', {
         'job': job,
-        'applications': applications,
+        'applications_with_scores': applications_with_scores,
         'is_employee': False
     })
 
