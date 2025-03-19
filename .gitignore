@@ -353,4 +353,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+### Docker ###
+# Docker image archives
+*.tar
+*.tar.gz
 # End of https://www.toptal.com/developers/gitignore/api/python,django,venv,virtualenv,linux,windows,macos
