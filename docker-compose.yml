@@ -3,14 +3,14 @@ version: '3'
 services:
   web:
     build: .
-    command: gunicorn your_project_name.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn project.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/app
-      - sqlite_data:/app/db 
+      - sqlite_data:/app/db
     ports:
       - "8000:8000"
-    env_file:
-      - ./.env
+    environment:
+      - DEBUG=True
 
 volumes:
-  sqlite_data: 
+  sqlite_data:
