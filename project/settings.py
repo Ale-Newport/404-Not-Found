@@ -145,8 +145,8 @@ AUTH_USER_MODEL = 'app.User'
 LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
-RECAPTCHA_PUBLIC_KEY = '6LcLsvoqAAAAAAQLJ9qTI4eHEkDA0gYL-veQfk23'
-RECAPTCHA_PRIVATE_KEY = '6LcLsvoqAAAAAOTZtA_s7f7ZQSZRn6FG6rsgv7Kh'
+RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY', '') 
+RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY', '') 
 
 # SendGrid Email Settings
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
