@@ -15,6 +15,61 @@ class Command(BaseCommand):
     APPLICATION_COUNT = 200
     DEFAULT_PASSWORD = 'Password123'
 
+    SKILL_CATEGORIES = {
+        'Software Engineering': [
+            'Python', 'Java', 'JavaScript', 'React', 'Django', 'Node.js', 'SQL', 'NoSQL', 
+            'Docker', 'Kubernetes', 'AWS', 'Git', 'CI/CD', 'Microservices', 'REST API'
+        ],
+        'Data Science': [
+            'Python', 'R', 'SQL', 'Machine Learning', 'Deep Learning', 'TensorFlow', 
+            'PyTorch', 'Pandas', 'NumPy', 'Data Visualization', 'Statistics', 'Big Data'
+        ],
+        'Web Development': [
+            'HTML', 'CSS', 'JavaScript', 'React', 'Vue', 'Angular', 'Node.js', 'PHP',
+            'WordPress', 'Responsive Design', 'UI/UX', 'Bootstrap', 'SASS'
+        ],
+        'Product Management': [
+            'Agile', 'Scrum', 'Jira', 'Product Development', 'User Research', 'Roadmap Planning',
+            'Stakeholder Management', 'Market Analysis', 'A/B Testing', 'Analytics'
+        ],
+        'Marketing': [
+            'SEO', 'SEM', 'Social Media', 'Content Marketing', 'Analytics', 'Email Marketing',
+            'Google Ads', 'Copywriting', 'Brand Strategy', 'Market Research'
+        ],
+        'UX Design': [
+            'Figma', 'Sketch', 'Adobe XD', 'User Research', 'Wireframing', 'Prototyping',
+            'Usability Testing', 'Interaction Design', 'Information Architecture'
+        ],
+        'DevOps': [
+            'Linux', 'AWS', 'Azure', 'GCP', 'Terraform', 'Docker', 'Kubernetes', 
+            'Jenkins', 'GitLab CI', 'Monitoring', 'Automation', 'Scripting'
+        ],
+        'Project Management': [
+            'Agile', 'Scrum', 'Kanban', 'Jira', 'MS Project', 'Risk Management',
+            'Budgeting', 'Stakeholder Management', 'Reporting', 'Leadership'
+        ],
+        'Sales': [
+            'CRM', 'Salesforce', 'Negotiation', 'Prospecting', 'Account Management',
+            'Sales Funnel', 'Cold Calling', 'Relationship Building', 'Presentations'
+        ],
+        'Finance': [
+            'QuickBooks', 'Excel', 'Financial Reporting', 'Tax Preparation', 'GAAP',
+            'Accounts Payable', 'Accounts Receivable', 'Auditing', 'Bookkeeping'
+        ]
+    }
+
+    SOFT_SKILLS = [
+        'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking', 'Time Management',
+        'Leadership', 'Adaptability', 'Creativity', 'Attention to Detail', 'Project Management',
+        'Collaboration', 'Presentation Skills', 'Analytical Skills', 'Customer Service'
+    ]
+
+    ALL_TECHNICAL_SKILLS = []
+    for category_skills in SKILL_CATEGORIES.values():
+        ALL_TECHNICAL_SKILLS.extend(category_skills)
+    ALL_TECHNICAL_SKILLS = list(set(ALL_TECHNICAL_SKILLS))  
+
+
     def __init__(self):
         self.faker = Faker('en_GB')
 
