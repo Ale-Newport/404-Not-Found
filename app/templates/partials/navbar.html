@@ -1,17 +1,49 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container">
-    <a class="navbar-brand" href="/">TappedIn</a>
+    {% if request.user.is_authenticated %}
+      {% if request.user.user_type == 'admin' %}
+        <a class="navbar-brand" href="{% url 'admin_dashboard' %}">Admin Dashboard</a>
+      {% elif request.user.user_type == 'employee' %}
+        <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Employee Dashboard</a>
+      {% elif request.user.user_type == 'employer' %}
+        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">Employer Dashboard</a>
+      {% endif %}
+    {% else %}
+      <a class="navbar-brand" href="/">TappedIn</a>
+    {% endif %}
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'employee_signup' %}">Employee Signup</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'employer_signup' %}">Employer Signup</a>
-        </li>
+        {% if request.user.is_authenticated %}
+          {% if request.user.user_type == 'admin' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+            </li>
+          {% elif request.user.user_type == 'employee' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'my_applications' %}">My Applications</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            </li>
+          {% elif request.user.user_type == 'employer' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'employer_dashboard' %}">Dashboard</a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'employee_signup' %}">Employee Signup</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'employer_signup' %}">Employer Signup</a>
+          </li>
+        {% endif %}
       </ul>
     </div>
   </div>

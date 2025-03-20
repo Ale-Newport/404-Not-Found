@@ -56,6 +56,7 @@ def employee_signup(request):
             )
 
             code = VerificationCode.generate_code()
+            print(f"Generated verification code: {code}")  # Debugging statement
             VerificationCode.objects.create(
                 user=user,
                 code=code,
@@ -96,7 +97,7 @@ def employee_signup(request):
 
 def verify_email(request):
     if 'verification_email' not in request.session:
-        return redirect('login') # redirect to log-in if no verification in progress
+        return redirect('login')
         
     if request.method == 'POST':
         code = request.POST.get('code')

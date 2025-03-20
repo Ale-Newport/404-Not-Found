@@ -1,32 +1,6 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Employee Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'custom.css' %}">
-</head>
-<body>
-
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Job Hiring App</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ml-auto">
-                {% if is_employee or request.user.user_type == 'employee' %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'my_applications' %}">My Applications</a>
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                </li>
-                
-            </ul>
-        </div>
-    </nav>
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container my-5">
 
     {% if messages %}
     <div class="container mt-3">
@@ -325,5 +299,4 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
