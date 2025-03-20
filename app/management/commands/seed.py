@@ -15,6 +15,61 @@ class Command(BaseCommand):
     APPLICATION_COUNT = 200
     DEFAULT_PASSWORD = 'Password123'
 
+    SKILL_CATEGORIES = {
+        'Software Engineering': [
+            'Python', 'Java', 'JavaScript', 'React', 'Django', 'Node.js', 'SQL', 'NoSQL', 
+            'Docker', 'Kubernetes', 'AWS', 'Git', 'CI/CD', 'Microservices', 'REST API'
+        ],
+        'Data Science': [
+            'Python', 'R', 'SQL', 'Machine Learning', 'Deep Learning', 'TensorFlow', 
+            'PyTorch', 'Pandas', 'NumPy', 'Data Visualization', 'Statistics', 'Big Data'
+        ],
+        'Web Development': [
+            'HTML', 'CSS', 'JavaScript', 'React', 'Vue', 'Angular', 'Node.js', 'PHP',
+            'WordPress', 'Responsive Design', 'UI/UX', 'Bootstrap', 'SASS'
+        ],
+        'Product Management': [
+            'Agile', 'Scrum', 'Jira', 'Product Development', 'User Research', 'Roadmap Planning',
+            'Stakeholder Management', 'Market Analysis', 'A/B Testing', 'Analytics'
+        ],
+        'Marketing': [
+            'SEO', 'SEM', 'Social Media', 'Content Marketing', 'Analytics', 'Email Marketing',
+            'Google Ads', 'Copywriting', 'Brand Strategy', 'Market Research'
+        ],
+        'UX Design': [
+            'Figma', 'Sketch', 'Adobe XD', 'User Research', 'Wireframing', 'Prototyping',
+            'Usability Testing', 'Interaction Design', 'Information Architecture'
+        ],
+        'DevOps': [
+            'Linux', 'AWS', 'Azure', 'GCP', 'Terraform', 'Docker', 'Kubernetes', 
+            'Jenkins', 'GitLab CI', 'Monitoring', 'Automation', 'Scripting'
+        ],
+        'Project Management': [
+            'Agile', 'Scrum', 'Kanban', 'Jira', 'MS Project', 'Risk Management',
+            'Budgeting', 'Stakeholder Management', 'Reporting', 'Leadership'
+        ],
+        'Sales': [
+            'CRM', 'Salesforce', 'Negotiation', 'Prospecting', 'Account Management',
+            'Sales Funnel', 'Cold Calling', 'Relationship Building', 'Presentations'
+        ],
+        'Finance': [
+            'QuickBooks', 'Excel', 'Financial Reporting', 'Tax Preparation', 'GAAP',
+            'Accounts Payable', 'Accounts Receivable', 'Auditing', 'Bookkeeping'
+        ]
+    }
+
+    SOFT_SKILLS = [
+        'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking', 'Time Management',
+        'Leadership', 'Adaptability', 'Creativity', 'Attention to Detail', 'Project Management',
+        'Collaboration', 'Presentation Skills', 'Analytical Skills', 'Customer Service'
+    ]
+
+    ALL_TECHNICAL_SKILLS = []
+    for category_skills in SKILL_CATEGORIES.values():
+        ALL_TECHNICAL_SKILLS.extend(category_skills)
+    ALL_TECHNICAL_SKILLS = list(set(ALL_TECHNICAL_SKILLS))  
+
+
     def __init__(self):
         self.faker = Faker('en_GB')
 
@@ -84,25 +139,27 @@ class Command(BaseCommand):
     
     #Employees
     def generate_employee_skills(self):
-        technical_skills = [
-            'Python', 'JavaScript', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Go',
-            'React', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Flask', 'Laravel', 'Spring Boot',
-            'Express.js', 'ASP.NET', 'REST API', 'GraphQL', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL',
-            'MySQL', 'Redis', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'Jenkins',
-            'Git', 'CI/CD', 'Machine Learning', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Pandas'
-        ]
+        primary_category = self.faker.random_element(list(self.SKILL_CATEGORIES.keys()))
+        primary_skills = self.SKILL_CATEGORIES[primary_category]
         
-        soft_skills = [
-            'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking', 'Time Management',
-            'Leadership', 'Adaptability', 'Creativity', 'Attention to Detail', 'Project Management',
-            'Collaboration', 'Presentation Skills', 'Analytical Skills', 'Customer Service'
-        ]
-        
+        other_skills = []
+        if self.faker.boolean(chance_of_getting_true=60):
+            secondary_category = self.faker.random_element([c for c in self.SKILL_CATEGORIES.keys() if c != primary_category])
+            other_skills = self.SKILL_CATEGORIES[secondary_category]
+
         skill_count = randint(4, 10)
-        technical_count = randint(2, min(skill_count - 1, len(technical_skills)))
-        soft_count = min(skill_count - technical_count, len(soft_skills))
+        technical_count = randint(2, min(skill_count - 2, len(primary_skills)))
+
+        selected_technical = sample(primary_skills, min(technical_count, len(primary_skills)))
         
-        selected_skills = sample(technical_skills, technical_count) + sample(soft_skills, soft_count)
+        if other_skills and len(selected_technical) < technical_count:
+            additional_count = min(technical_count - len(selected_technical), len(other_skills))
+            selected_technical.extend(sample(other_skills, additional_count))
+        
+        soft_count = min(skill_count - len(selected_technical), len(self.SOFT_SKILLS))
+        selected_soft = sample(self.SOFT_SKILLS, soft_count)
+        
+        selected_skills = selected_technical + selected_soft
         return ', '.join(selected_skills)
     
     def generate_employee_experience(self):
@@ -226,75 +283,55 @@ class Command(BaseCommand):
         print("Job seeding complete.      ")
 
     def generate_job(self):
-        # Dictionary of job roles and associated skills
-        job_skills = {
-            'Software Engineer': [
-                'python', 'java', 'javascript', 'react', 'django', 'node.js', 'sql', 'nosql', 
-                'docker', 'kubernetes', 'aws', 'git', 'ci/cd', 'microservices', 'rest api'
-            ],
-            'Data Scientist': [
-                'python', 'r', 'sql', 'machine learning', 'deep learning', 'tensorflow', 
-                'pytorch', 'pandas', 'numpy', 'data visualization', 'statistics', 'big data'
-            ],
-            'Web Developer': [
-                'html', 'css', 'javascript', 'react', 'vue', 'angular', 'node.js', 'php',
-                'wordpress', 'responsive design', 'ui/ux', 'bootstrap', 'sass'
-            ],
-            'Product Manager': [
-                'agile', 'scrum', 'jira', 'product development', 'user research', 'roadmap planning',
-                'stakeholder management', 'market analysis', 'a/b testing', 'analytics'
-            ],
-            'Marketing Specialist': [
-                'seo', 'sem', 'social media', 'content marketing', 'analytics', 'email marketing',
-                'google ads', 'copywriting', 'brand strategy', 'market research'
-            ],
-            'UX Designer': [
-                'figma', 'sketch', 'adobe xd', 'user research', 'wireframing', 'prototyping',
-                'usability testing', 'interaction design', 'information architecture'
-            ],
-            'DevOps Engineer': [
-                'linux', 'aws', 'azure', 'gcp', 'terraform', 'docker', 'kubernetes', 
-                'jenkins', 'gitlab ci', 'monitoring', 'automation', 'scripting'
-            ],
-            'Project Manager': [
-                'agile', 'scrum', 'kanban', 'jira', 'ms project', 'risk management',
-                'budgeting', 'stakeholder management', 'reporting', 'leadership'
-            ],
-            'Sales Representative': [
-                'crm', 'salesforce', 'negotiation', 'prospecting', 'account management',
-                'sales funnel', 'cold calling', 'relationship building', 'presentations'
-            ],
-            'Accountant': [
-                'quickbooks', 'excel', 'financial reporting', 'tax preparation', 'gaap',
-                'accounts payable', 'accounts receivable', 'auditing', 'bookkeeping'
-            ]
-        }
-
-        job_category = self.faker.random_element(list(job_skills.keys()))
-        name = f"{job_category} - {self.faker.job()}"
-
+        job_category = self.faker.random_element(list(self.SKILL_CATEGORIES.keys()))
+        job_title = job_category.replace(' ', ' - ') 
+        
+        name = f"{job_title} {self.faker.job()}"
         department = self.faker.bs()
         description = self.faker.text()
         salary = self.faker.random_int(20000, 100000)
         job_type = choices(['FT', 'PT'], weights=[85, 15], k=1)[0]
         bonus = self.faker.random_int(0, 20000)
-        all_skills = job_skills[job_category].copy()
+        
+        all_skills = self.SKILL_CATEGORIES[job_category].copy()
+        
         required_count = self.faker.random_int(3, 5)
-        required_skills = self.faker.random_elements(all_skills, length=min(required_count, len(all_skills)), unique=True)
+        required_skills = self.faker.random_elements(
+            elements=all_skills,
+            length=min(required_count, len(all_skills)),
+            unique=True
+        )
         
         for skill in required_skills:
             if skill in all_skills:
                 all_skills.remove(skill)
         
+        all_skills.extend(sample(self.SOFT_SKILLS, min(3, len(self.SOFT_SKILLS))))
+        
         preferred_count = self.faker.random_int(2, 4)
-        preferred_skills = self.faker.random_elements(all_skills, length=min(preferred_count, len(all_skills)), unique=True)
+        preferred_skills = self.faker.random_elements(
+            elements=all_skills,
+            length=min(preferred_count, len(all_skills)),
+            unique=True
+        )
         
         skills_needed = ', '.join(required_skills)
         skills_wanted = ', '.join(preferred_skills)
         created_at = self.faker.date_time_this_year()
         created_by = choices(Employer.objects.all(), k=1)[0]
-        self.create_job({'name': name, 'department': department, 'description': description, 'salary': salary, 'job_type': job_type, 'bonus': bonus, 'skills_needed': skills_needed, 'skills_wanted': skills_wanted, 'created_at': created_at, 'created_by': created_by})
-
+        
+        self.create_job({
+            'name': name, 
+            'department': department, 
+            'description': description, 
+            'salary': salary, 
+            'job_type': job_type, 
+            'bonus': bonus, 
+            'skills_needed': skills_needed, 
+            'skills_wanted': skills_wanted, 
+            'created_at': created_at, 
+            'created_by': created_by
+        })
     def create_job(self, data):
         try:
             job = Job.objects.create(
