@@ -275,7 +275,7 @@ class JobApplicationForm(forms.ModelForm):
             self.fields['skills'].initial = employee.skills
 
 
-class AdminUserCreationForm(UserCreationForm):
+class UserForm(UserCreationForm):
     user_type = forms.ChoiceField(
         choices=[('admin', 'Admin'), ('employee', 'Employee'), ('employer', 'Employer')],
         initial='employee'

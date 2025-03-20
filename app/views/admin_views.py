@@ -1,12 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from app.models import Admin, Employee, Employer, Job, User
 from django.core.paginator import Paginator
 from django.db.models import Q
-from itertools import chain
-from django.apps import apps
 from app.decorators import user_type_required
 from django.contrib import messages
-from app.forms.forms import AdminUserCreationForm
+from app.forms.forms import UserForm
 
 @user_type_required('admin')
 def admin_dashboard(request):
@@ -103,7 +101,7 @@ def create_user(request):
     (Admin, Employee, or Employer).
     """
     if request.method == 'POST':
-        form = AdminUserCreationForm(request.POST)
+        form = UserForm(request.POST)
         if form.is_valid():
             user = form.save()
             user_type = form.cleaned_data.get('user_type')
@@ -115,9 +113,40 @@ def create_user(request):
             )
             return redirect('list_users')
     else:
-        form = AdminUserCreationForm()
+        form = UserForm()
     
     return render(request, 'admin/create_user.html', {
         'form': form,
         'title': 'Create New User'
     })
+
+@user_type_required('admin')
+def delete_user(request, user_id):
+    """
+    View for administrators to delete users.
+    """
+    user = get_object_or_404(User, id=user_id)
+    
+    # Prevent self-deletion
+    if request.user.id == user_id:
+        messages.error(
+            request,
+            'You cannot delete your own account.'
+        )
+        return redirect('list_users')
+    
+    if request.method == 'POST':
+        # Confirm the user wants to delete
+        username = user.username
+        full_name = user.get_full_name()
+        user_type_display = dict(User.USER_TYPES)[user.user_type]
+        
+        user.delete()
+        
+        messages.success(
+            request, 
+            f'Successfully deleted {user_type_display} account for {full_name} ({username})'
+        )
+        return redirect('list_users')
+    
+    return render(request, 'admin/delete_user.html', {'user': user_id})

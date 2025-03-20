@@ -37,12 +37,7 @@ urlpatterns = [
     path('administrator/list-users/', admin_views.list_users, name='list_users'),
     path('administrator/list-jobs/', admin_views.list_jobs, name='list_jobs'),
     path('administrator/create-user/', admin_views.create_user, name='create_user'),
-    
-    #path('administrator/create-job/', admin_views.create_job, name='create_job'),
-    #path('administrator/user/<int:user_id>/', admin_views.update_user, name='update_user'),
-    #path('administrator/job/<int:job_id>/', admin_views.update_job, name='update_job'),
-    #path('administrator/user/<int:user_id>/delete/', admin_views.delete_user, name='delete_user'),
-    #path('administrator/job/<int:job_id>/delete/', admin_views.delete_job, name='delete_job'),"
+    path('administrator/delete-user/<int:user_id>/', admin_views.delete_user, name='delete_user'),
 
     path('job/<int:job_id>/apply/', views.apply_to_job, name='apply_job'),
     path('application/<int:application_id>/update/', views.update_application_status, name='update_application_status'),

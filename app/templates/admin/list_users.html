@@ -99,9 +99,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href=""><i class="bi bi-pen-fill"></i></a>
-                    &nbsp;&nbsp;
-                    <a href="" class="text-danger"><i class="bi bi-trash-fill"></i></a>
+                    <a href="{% url 'delete_user' user.pk %}" class="text-danger"><i class="bi bi-trash-fill"></i></a>
                 </td>
             </tr>
             {% endfor %}
