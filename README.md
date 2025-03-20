@@ -13,7 +13,7 @@ The members of the team are:
 The project is called ` `.  It currently consists of a single app ` `.
 
 ## Deployed version of the application
-The deployed version of the application can be found at [p01--tappedin--cxq4qwzlt8ty.code.run].
+The deployed version of the application can be found at [this URL](https://p01--tappedin--cxq4qwzlt8ty.code.run).
 
 ## Installation instructions
 To install the software and use it in your local development environment, you must first set up and activate a local development environment.  From the root of the project:
