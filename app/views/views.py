@@ -1,21 +1,13 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, JobApplicationForm, LogInForm, EmployeeAccountUpdateForm, PasswordResetRequestForm, SetNewPasswordForm
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.contrib.auth import login, logout
+from django.contrib.auth import update_session_auth_hash, login, logout
 from django.contrib import messages
 from app.models import JobApplication, User, Employee, Employer, Admin, Job, VerificationCode
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_protect
-from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render, redirect, get_object_or_404
 from app.decorators import user_type_required
@@ -404,13 +396,6 @@ def employee_dashboard(request):
     return render(request, 'employee_dashboard.html', context)
 
 
-@login_required
-def admin_dashboard(request):
-    if request.user.user_type != 'admin':
-        messages.error(request, "Access denied. Admin access only.")
-        return redirect('login')
-    return render(request, 'admin_dashboard.html')
-
 def log_out(request):
     """Log out the current user"""
     logout(request)
@@ -512,7 +497,7 @@ def set_new_password(request):
     return render(request, 'set_new_password.html', {'form': form})
 
 
-@login_required
+@user_type_required('employee')
 def apply_to_job(request, job_id):
     if not hasattr(request.user, 'employee'):
         messages.error(request, "Only employees can apply for jobs.")

@@ -1,12 +1,8 @@
 from django.contrib import admin
 from django.urls import path
-from django.contrib.auth import views as auth_views
 from app.views import views, employer_views, admin_views
-from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
-
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -37,7 +33,7 @@ urlpatterns = [
     path('add-job/', employer_views.add_job, name='add_job'),
     path('job/<int:job_id>/', employer_views.job_detail, name='job_detail'),
     # Admin routes
-    path('administrator/dashboard/', admin_views.dashboard, name='admin_dashboard'),
+    path('administrator/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('administrator/list-users/', admin_views.list_users, name='list_users'),
     path('administrator/list-jobs/', admin_views.list_jobs, name='list_jobs'),
 

@@ -7,7 +7,7 @@ from django.apps import apps
 from app.decorators import user_type_required
 
 @user_type_required('admin')
-def dashboard(request):
+def admin_dashboard(request):
     """Display the admin dashboard"""
     total_users = Admin.objects.count() + Employee.objects.count() + Employer.objects.count()
     employee_users = Employee.objects.count()
