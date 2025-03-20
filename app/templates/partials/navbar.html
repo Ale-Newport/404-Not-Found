@@ -2,11 +2,11 @@
   <div class="container">
     {% if request.user.is_authenticated %}
       {% if request.user.user_type == 'admin' %}
-        <a class="navbar-brand" href="{% url 'admin_dashboard' %}">Admin Dashboard</a>
+        <a class="navbar-brand" href="{% url 'admin_dashboard' %}">TappedIn</a>
       {% elif request.user.user_type == 'employee' %}
-        <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Employee Dashboard</a>
+        <a class="navbar-brand" href="{% url 'employee_dashboard' %}">TappedIn</a>
       {% elif request.user.user_type == 'employer' %}
-        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">Employer Dashboard</a>
+        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">TappedIn</a>
       {% endif %}
     {% else %}
       <a class="navbar-brand" href="/">TappedIn</a>
@@ -19,7 +19,10 @@
         {% if request.user.is_authenticated %}
           {% if request.user.user_type == 'admin' %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+              <a class="nav-link" href="{% url 'list_users' %}">Users</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'list_jobs' %}">Jobs</a>
             </li>
           {% elif request.user.user_type == 'employee' %}
             <li class="nav-item">
@@ -28,14 +31,17 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-            </li>
           {% elif request.user.user_type == 'employer' %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'employer_dashboard' %}">Dashboard</a>
+              <a class="nav-link" href="{% url 'account_page' %}">Account</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
             </li>
           {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          </li>
         {% else %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'employee_signup' %}">Employee Signup</a>
