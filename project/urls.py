@@ -5,33 +5,33 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    # Django Admin routes
     path('admin/', admin.site.urls),
     # Home page
     path('', views.home, name='home'),
     # Authentication routes
     path('login/', views.user_login, name='login'),
     path('logout/', views.log_out, name='logout'),
-
     # Password reset routes
     path('password-reset/', views.password_reset_request, name='password_reset'),
     path('password-reset/verify/', views.verify_reset_code, name='verify_reset_code'),
     path('password-reset/set-password/', views.set_new_password, name='set_new_password'),
-
     # Sign-up routes
     path('employer/signup/', views.employer_signup, name='employer_signup'),
-    path('employee/signup/', views.employee_signup, name='employee_signup'),
     path('verify-email/', views.verify_email, name='verify_email'),
     path("employee-signup/CV/", views.upload_cv, name="employee_signup_2"),
     path("employee-signup/CV/parse/", views.review_cv_data, name="employee_signup_3"),
-    
     # Employee routes
     path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
     path('employee/update/', views.employee_update, name='employee_update'),
+    path('employee/job/<int:job_id>/apply/', views.apply_to_job, name='apply_job'),
+    path('employee/applications/', views.my_applications, name='my_applications'),
+    path('employee/update-application/<int:application_id>/', views.update_application_status, name='update_application_status'),
     # Employer routes
     path('employer/dashboard/', employer_views.employer_dashboard, name='employer_dashboard'),
-    path('account/', employer_views.account_page, name='account_page'),
-    path('add-job/', employer_views.add_job, name='add_job'),
-    path('job/<int:job_id>/', employer_views.job_detail, name='job_detail'),
+    path('employer/account/', employer_views.account_page, name='account_page'),
+    path('employer/add-job/', employer_views.add_job, name='add_job'),
+    path('employer/job/<int:job_id>/', employer_views.job_detail, name='job_detail'),
     # Admin routes
     path('administrator/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('administrator/list-users/', admin_views.list_users, name='list_users'),
@@ -41,10 +41,6 @@ urlpatterns = [
     path('administrator/create-job/', admin_views.create_job, name='create_job'),
     path('administrator/delete-job/<int:job_id>/', admin_views.delete_job, name='delete_job'),
 
-
-    path('job/<int:job_id>/apply/', views.apply_to_job, name='apply_job'),
-    path('application/<int:application_id>/update/', views.update_application_status, name='update_application_status'),
-    path('employee/applications/', views.my_applications, name='my_applications'),
 
 ]
 
