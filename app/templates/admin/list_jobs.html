@@ -98,7 +98,7 @@
                     </a>
                 </th>
                 <th>
-                    <a href="{% url 'create_job' %}" class="text-decoration-none">Create</a>
+                    <a href="{% url 'create_job' %}" class="text-decoration-none fs-4">+</a>
                 </th>
             </tr>
         </thead>
@@ -112,7 +112,7 @@
                 <td>{{ job.job_type }}</td>
                 <td>{{ job.created_at }}</td>
                 <td>
-                    <a href="{% url 'delete_job' job.id %}" class="text-decoration-none">D</a>
+                    <a href="{% url 'delete_job' job.id %}" class="text-danger"><i class="bi bi-trash-fill"></i></a>
                 </td>
             </tr>
             {% endfor %}
