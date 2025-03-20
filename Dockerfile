@@ -11,8 +11,4 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-COPY entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
-
-# Use entrypoint.sh instead of direct command
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi:application"]
