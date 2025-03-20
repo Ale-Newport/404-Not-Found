@@ -1,18 +1,22 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from app.models import Admin, Employee, Employer, Job, User
 from django.core.paginator import Paginator
 from django.db.models import Q
 from itertools import chain
 from django.apps import apps
 from app.decorators import user_type_required
+from django.contrib import messages
+from app.forms.forms import AdminUserCreationForm
 
 @user_type_required('admin')
 def admin_dashboard(request):
     """Display the admin dashboard"""
-    total_users = Admin.objects.count() + Employee.objects.count() + Employer.objects.count()
     employee_users = Employee.objects.count()
     employer_users = Employer.objects.count()
     admin_users = Admin.objects.count()
+    total_users = employee_users + employer_users + admin_users
+    ft_jobs = Job.objects.filter(job_type='FT').count()
+    pt_jobs = Job.objects.filter(job_type='PT').count()
     total_jobs = Job.objects.count()
 
     context = {
@@ -20,6 +24,8 @@ def admin_dashboard(request):
         'employee_users': employee_users,
         'employer_users': employer_users,
         'admin_users': admin_users,
+        'ft_jobs': ft_jobs,
+        'pt_jobs': pt_jobs,
         'total_jobs': total_jobs,
     }
     return render(request, 'admin/admin_dashboard.html', context)
@@ -88,3 +94,30 @@ def list_jobs(request):
     context = {'jobs': jobs, 'order_by': order_by, 'employers_with_jobs': employers_with_jobs, 'job_types': job_types, 'departments': departments}
 
     return render(request, 'admin/list_jobs.html', context)
+
+
+@user_type_required('admin')
+def create_user(request):
+    """
+    View for administrators to create new users of any type
+    (Admin, Employee, or Employer).
+    """
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user_type = form.cleaned_data.get('user_type')
+            user_type_display = dict(form.fields['user_type'].choices)[user_type]
+            
+            messages.success(
+                request, 
+                f'Successfully created {user_type_display} account for {user.get_full_name()} ({user.username})'
+            )
+            return redirect('list_users')
+    else:
+        form = AdminUserCreationForm()
+    
+    return render(request, 'admin/create_user.html', {
+        'form': form,
+        'title': 'Create New User'
+    })

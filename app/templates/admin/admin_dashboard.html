@@ -4,7 +4,7 @@
   <!-- Page Header -->
   <div class="row mb-4">
     <div class="col-12">
-      <h1 class="display-4 fw-bold text-primary">Dashboard <small class="text-muted fs-5">Overview</small></h1>
+      <h1 class="display-5 fw-bold text-primary">Administration <small class="text-muted fs-5">Overview</small></h1>
       <hr class="my-3">
     </div>
   </div>
@@ -18,11 +18,6 @@
           <div class="d-flex justify-content-between mb-3">
             <h3 class="card-title fw-bold text-primary"><i class="fas fa-users me-2"></i> Users</h3>
             <span class="badge bg-primary rounded-pill fs-6">{{ total_users }}</span>
-          </div>
-          <div class="progress mb-4" style="height: 8px;">
-            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ employee_users|divisibleby:total_users|default:0 }}%"></div>
-            <div class="progress-bar bg-success" role="progressbar" style="width: {{ employer_users|divisibleby:total_users|default:0 }}%"></div>
-            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ admin_users|divisibleby:total_users|default:0 }}%"></div>
           </div>
           <div class="d-flex justify-content-between mb-2">
             <span class="text-muted"><i class="fas fa-user-tie me-1"></i> Employees</span>
@@ -48,20 +43,20 @@
       <div class="card shadow-sm h-100 border-0 hover-elevation" onclick="location.href='{% url 'list_jobs' %}'" style="cursor: pointer; transition: all 0.3s ease;">
         <div class="card-body">
           <div class="d-flex justify-content-between mb-3">
-            <h3 class="card-title fw-bold text-success"><i class="fas fa-briefcase me-2"></i> Jobs</h3>
-            <span class="badge bg-success rounded-pill fs-6">{{ total_jobs }}</span>
+            <h3 class="card-title fw-bold text-primary"><i class="fas fa-briefcase me-2"></i> Jobs</h3>
+            <span class="badge bg-primary rounded-pill fs-6">{{ total_jobs }}</span>
           </div>
-          <div class="text-center my-4">
-            <div class="display-3 text-success fw-bold">{{ total_jobs }}</div>
-            <p class="text-muted mt-2">Total available positions</p>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-user-tie me-1"></i> Full Time Jobs</span>
+            <span class="fw-bold">{{ ft_jobs }}</span>
           </div>
-          <div class="d-flex justify-content-center">
-            <button class="btn btn-sm btn-outline-success me-2"><i class="fas fa-plus me-1"></i> Add New</button>
-            <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-filter me-1"></i> Filter</button>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-building me-1"></i> Part Time Jobs</span>
+            <span class="fw-bold">{{ pt_jobs }}</span>
           </div>
         </div>
         <div class="card-footer bg-transparent border-0 text-end">
-          <small class="text-success">Click to view details <i class="fas fa-arrow-right ms-1"></i></small>
+          <small class="text-primary">Click to view details <i class="fas fa-arrow-right ms-1"></i></small>
         </div>
       </div>
     </div>
@@ -74,113 +69,8 @@
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <button class="btn btn-primary text-start"><i class="fas fa-user-plus me-2"></i> Add New User</button>
-            <button class="btn btn-success text-start"><i class="fas fa-plus-circle me-2"></i> Create New Job</button>
-            <button class="btn btn-info text-start text-white"><i class="fas fa-chart-line me-2"></i> View Reports</button>
-            <button class="btn btn-secondary text-start"><i class="fas fa-cog me-2"></i> Settings</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Additional Stats Row -->
-  <div class="row">
-    <!-- Recent Activity Card -->
-    <div class="col-lg-8 mb-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-transparent border-0">
-          <div class="d-flex justify-content-between align-items-center">
-            <h3 class="card-title fw-bold text-primary mb-0"><i class="fas fa-history me-2"></i> Recent Activity</h3>
-            <div class="dropdown">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                Filter
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="#">All Activity</a></li>
-                <li><a class="dropdown-item" href="#">Users</a></li>
-                <li><a class="dropdown-item" href="#">Jobs</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 d-flex align-items-center px-0">
-              <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
-                <i class="fas fa-user-plus text-primary"></i>
-              </div>
-              <div>
-                <h6 class="mb-1">New user registered</h6>
-                <small class="text-muted">Jane Doe joined as Employee</small>
-              </div>
-              <small class="text-muted ms-auto">2m ago</small>
-            </div>
-            <div class="list-group-item border-0 d-flex align-items-center px-0">
-              <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3">
-                <i class="fas fa-briefcase text-success"></i>
-              </div>
-              <div>
-                <h6 class="mb-1">New job posted</h6>
-                <small class="text-muted">Senior Developer position added</small>
-              </div>
-              <small class="text-muted ms-auto">1h ago</small>
-            </div>
-            <div class="list-group-item border-0 d-flex align-items-center px-0">
-              <div class="rounded-circle bg-info bg-opacity-10 p-2 me-3">
-                <i class="fas fa-edit text-info"></i>
-              </div>
-              <div>
-                <h6 class="mb-1">Job updated</h6>
-                <small class="text-muted">Marketing Specialist requirements updated</small>
-              </div>
-              <small class="text-muted ms-auto">3h ago</small>
-            </div>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-0 text-end">
-          <a href="#" class="text-primary">View all activity <i class="fas fa-arrow-right ms-1"></i></a>
-        </div>
-      </div>
-    </div>
-
-    <!-- System Status Card -->
-    <div class="col-lg-4 mb-4">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-transparent border-0">
-          <h3 class="card-title fw-bold text-primary mb-0"><i class="fas fa-server me-2"></i> System Status</h3>
-        </div>
-        <div class="card-body">
-          <div class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span>Server Load</span>
-              <span class="text-success">Normal</span>
-            </div>
-            <div class="progress" style="height: 6px;">
-              <div class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span>Database</span>
-              <span class="text-success">Operational</span>
-            </div>
-            <div class="progress" style="height: 6px;">
-              <div class="progress-bar bg-success" role="progressbar" style="width: 60%"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span>Storage</span>
-              <span class="text-warning">68% Full</span>
-            </div>
-            <div class="progress" style="height: 6px;">
-              <div class="progress-bar bg-warning" role="progressbar" style="width: 68%"></div>
-            </div>
-          </div>
-          <div class="alert alert-success mt-3 mb-0 d-flex align-items-center" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <div>All systems operational</div>
+            <button class="btn btn-outline-primary text-start" onclick="location.href='{% url 'create_user' %}'"><i class="fas fa-user-plus me-2"></i> Add New User</button>
+            <button class="btn btn-outline-primary text-start" onclick="location.href='{% url 'list_jobs' %}'"><i class="fas fa-plus-circle me-2"></i> Create New Job</button>
           </div>
         </div>
       </div>

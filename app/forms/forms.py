@@ -5,6 +5,8 @@ from project.constants import COUNTRIES
 from django.contrib.auth import authenticate, password_validation
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
+from django.contrib.auth.forms import UserCreationForm
+from django.core.validators import RegexValidator
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -271,3 +273,116 @@ class JobApplicationForm(forms.ModelForm):
             self.fields['email'].initial = employee.user.email
             self.fields['country'].initial = employee.country
             self.fields['skills'].initial = employee.skills
+
+
+class AdminUserCreationForm(UserCreationForm):
+    user_type = forms.ChoiceField(
+        choices=[('admin', 'Admin'), ('employee', 'Employee'), ('employer', 'Employer')],
+        initial='employee'
+    )
+    
+    # Common fields for all user types
+    username = forms.CharField(
+        max_length=50,
+        validators=[
+            RegexValidator(
+                regex=r'^@\w{3,}$',
+                message='Username must consist of @ followed by at least three alphanumericals'
+            )
+        ],
+        help_text='Required. Format: @username'
+    )
+    email = forms.EmailField(max_length=255)
+    first_name = forms.CharField(max_length=50)
+    last_name = forms.CharField(max_length=50)
+    
+    # Fields specific to Employee
+    country = forms.ChoiceField(choices=COUNTRIES, required=False)
+    skills = forms.CharField(widget=forms.Textarea, required=False)
+    experience = forms.CharField(widget=forms.Textarea, required=False)
+    education = forms.CharField(widget=forms.Textarea, required=False)
+    languages = forms.CharField(widget=forms.Textarea, required=False)
+    phone = forms.CharField(max_length=20, required=False)
+    interests = forms.CharField(widget=forms.Textarea, required=False)
+    preferred_contract = forms.ChoiceField(
+        choices=[('FT', 'Full Time'), ('PT', 'Part Time')],
+        required=False
+    )
+    
+    # Fields specific to Employer
+    company_name = forms.CharField(max_length=255, required=False)
+    
+    # Fields specific to Admin
+    is_staff = forms.ChoiceField(
+        choices=[(True, 'True'), (False, 'False')],
+        initial=False
+    )
+    is_superuser = forms.ChoiceField(
+        choices=[(True, 'True'), (False, 'False')],
+        initial=False
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'user_type', 'username', 'email', 'first_name', 'last_name', 
+            'password1', 'password2', 'is_staff', 'is_superuser', 'country',
+            'skills', 'experience', 'education', 'languages', 'phone',
+            'interests', 'preferred_contract', 'company_name'
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].help_text = 'Your password must contain at least 8 characters.'
+        self.fields['password2'].help_text = 'Enter the same password as before, for verification.'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        user_type = cleaned_data.get('user_type')
+        
+        # Handle required fields based on user_type
+        if user_type == 'employer' and not cleaned_data.get('company_name'):
+            self.add_error('company_name', 'Company name is required for Employer accounts')
+        
+        if user_type == 'admin':
+            cleaned_data['is_staff'] = True
+            cleaned_data['is_superuser'] = True
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        # Don't save the user yet
+        user = super().save(commit=False)
+        user_type = self.cleaned_data.get('user_type')
+        user.user_type = user_type
+        
+        if user_type == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        
+        if commit:
+            user.save()
+            
+            # Create the appropriate profile based on user_type
+            if user_type == 'admin':
+                Admin.objects.create(user=user)
+            elif user_type == 'employee':
+                Employee.objects.create(
+                    user=user,
+                    country=self.cleaned_data.get('country', ''),
+                    skills=self.cleaned_data.get('skills', ''),
+                    experience=self.cleaned_data.get('experience', ''),
+                    education=self.cleaned_data.get('education', ''),
+                    languages=self.cleaned_data.get('languages', ''),
+                    phone=self.cleaned_data.get('phone', ''),
+                    interests=self.cleaned_data.get('interests', ''),
+                    preferred_contract=self.cleaned_data.get('preferred_contract', '')
+                )
+            elif user_type == 'employer':
+                Employer.objects.create(
+                    user=user,
+                    company_name=self.cleaned_data.get('company_name', ''),
+                    country=self.cleaned_data.get('country', '')
+                )
+        
+        return user
