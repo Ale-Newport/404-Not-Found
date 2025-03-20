@@ -8,10 +8,10 @@
     <form method="get" class="mb-3">
         <div class="row">
             <div class="col-md-2">
-                <select name="employer" class="form-control">
+                <select name="created_by" class="form-control">
                     <option value="">All Employers</option>
-                    {% for employer in employers_with_jobs %}
-                    <option value="{{ employer.id }}" {% if request.GET.employer == employer.id|stringformat:"s" %}selected{% endif %}>{{ employer }}</option>
+                    {% for created_by in employers_with_jobs %}
+                    <option value="{{ created_by.username }}" {% if request.GET.created_by == created_by.id|stringformat:"s" %}selected{% endif %}>{{ created_by }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -20,14 +20,6 @@
                     <option value="">All Job Types</option>
                     {% for job_type in job_types %}
                     <option value="{{ job_type }}" {% if request.GET.job_type == job_type|stringformat:"s" %}selected{% endif %}>{{ job_type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select name="department" class="form-control">
-                    <option value="">All Departments</option>
-                    {% for departments in department %}
-                    <option value="{{ department }}" {% if request.GET.department == department|stringformat:"s" %}selected{% endif %}>{{ department }}</option>
                     {% endfor %}
                 </select>
             </div>

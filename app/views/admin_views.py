@@ -46,7 +46,7 @@ def list_users(request):
         )
     
     order_by = request.GET.get('order_by', 'username')
-    users = User.objects.all().order_by(order_by)
+    users = users.order_by(order_by)
     paginator = Paginator(users, 25)
     page_number = request.GET.get('page')
     users_page = paginator.get_page(page_number)
@@ -64,11 +64,9 @@ def list_users(request):
 def list_jobs(request):
     jobs = Job.objects.all()
 
-    department_filter = request.GET.get('department')
     job_type_filter = request.GET.get('job_type')
     created_by_filter = request.GET.get('created_by')
 
-    if department_filter: jobs = jobs.filter(department=department_filter)
     if job_type_filter: jobs = jobs.filter(job_type=job_type_filter)
     if created_by_filter: jobs = jobs.filter(created_by__id=created_by_filter)
 
@@ -87,9 +85,8 @@ def list_jobs(request):
 
     employers_with_jobs = Employer.objects.filter(user_id__in=Job.objects.all().values_list('created_by', flat=True).distinct()).order_by('company_name')
     job_types = Job.objects.all().values_list('job_type', flat=True).distinct()
-    departments = Job.objects.all().values_list('department', flat=True).distinct()
     
-    context = {'jobs': jobs, 'order_by': order_by, 'employers_with_jobs': employers_with_jobs, 'job_types': job_types, 'departments': departments}
+    context = {'jobs': jobs, 'order_by': order_by, 'employers_with_jobs': employers_with_jobs, 'job_types': job_types}
 
     return render(request, 'admin/list_jobs.html', context)
 
@@ -140,7 +137,7 @@ def delete_user(request, user_id):
         username = user.username
         full_name = user.get_full_name()
         user_type_display = dict(User.USER_TYPES)[user.user_type]
-        
+
         user.delete()
         
         messages.success(
