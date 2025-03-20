@@ -139,25 +139,27 @@ class Command(BaseCommand):
     
     #Employees
     def generate_employee_skills(self):
-        technical_skills = [
-            'Python', 'JavaScript', 'Java', 'C#', 'C++', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Go',
-            'React', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Flask', 'Laravel', 'Spring Boot',
-            'Express.js', 'ASP.NET', 'REST API', 'GraphQL', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL',
-            'MySQL', 'Redis', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'Jenkins',
-            'Git', 'CI/CD', 'Machine Learning', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Pandas'
-        ]
+        primary_category = self.faker.random_element(list(self.SKILL_CATEGORIES.keys()))
+        primary_skills = self.SKILL_CATEGORIES[primary_category]
         
-        soft_skills = [
-            'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking', 'Time Management',
-            'Leadership', 'Adaptability', 'Creativity', 'Attention to Detail', 'Project Management',
-            'Collaboration', 'Presentation Skills', 'Analytical Skills', 'Customer Service'
-        ]
-        
+        other_skills = []
+        if self.faker.boolean(chance_of_getting_true=60):
+            secondary_category = self.faker.random_element([c for c in self.SKILL_CATEGORIES.keys() if c != primary_category])
+            other_skills = self.SKILL_CATEGORIES[secondary_category]
+
         skill_count = randint(4, 10)
-        technical_count = randint(2, min(skill_count - 1, len(technical_skills)))
-        soft_count = min(skill_count - technical_count, len(soft_skills))
+        technical_count = randint(2, min(skill_count - 2, len(primary_skills)))
+
+        selected_technical = sample(primary_skills, min(technical_count, len(primary_skills)))
         
-        selected_skills = sample(technical_skills, technical_count) + sample(soft_skills, soft_count)
+        if other_skills and len(selected_technical) < technical_count:
+            additional_count = min(technical_count - len(selected_technical), len(other_skills))
+            selected_technical.extend(sample(other_skills, additional_count))
+        
+        soft_count = min(skill_count - len(selected_technical), len(self.SOFT_SKILLS))
+        selected_soft = sample(self.SOFT_SKILLS, soft_count)
+        
+        selected_skills = selected_technical + selected_soft
         return ', '.join(selected_skills)
     
     def generate_employee_experience(self):
