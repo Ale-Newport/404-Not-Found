@@ -31,6 +31,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = [    'p01--tappedin--cxq4qwzlt8ty.code.run']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://p01--tappedin--cxq4qwzlt8ty.code.run',
+    'http://p01--tappedin--cxq4qwzlt8ty.code.run'
+]
+
 
 # Application definition
 
