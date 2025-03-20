@@ -203,23 +203,7 @@ class EmployerSignUpForm(UserCreationForm):
         cleaned_data = super().clean()
         return cleaned_data
 
-class JobForm(forms.ModelForm):
-    class Meta:
-        model = Job
-        fields = ['name', 'department', 'description', 'salary', 'job_type', 'bonus', 'skills_needed', 'skills_wanted']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'skills_needed': forms.Textarea(attrs={'rows': 3}),
-            'skills_wanted': forms.Textarea(attrs={'rows': 3}),
-        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control',
-                'placeholder': f'Enter {field.replace("_", " ").title()}'
-            })
 
 class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(
@@ -386,3 +370,66 @@ class UserForm(UserCreationForm):
                 )
         
         return user
+
+class JobForm(forms.ModelForm):
+    """Form for administrators to create a new job listing."""
+    
+    skills_needed = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4}),
+        help_text='Enter required skills, separated by commas.'
+    )
+    
+    skills_wanted = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4}),
+        required=False,
+        help_text='Enter preferred skills, separated by commas.'
+    )
+    
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 6}),
+        help_text='Enter a detailed job description.'
+    )
+    
+    # Add field to select the employer who posted the job
+    created_by = forms.ModelChoiceField(
+        queryset=Employer.objects.all(),
+        label="Employer",
+        help_text="Select the employer who is posting this job."
+    )
+    
+    class Meta:
+        model = Job
+        fields = [
+            'name', 'department', 'description', 'salary', 
+            'job_type', 'bonus', 'skills_needed', 'skills_wanted', 'created_by'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Job title'}),
+            'department': forms.TextInput(attrs={'placeholder': 'Department name'}),
+            'salary': forms.NumberInput(attrs={'min': 0, 'step': '0.01'}),
+            'bonus': forms.NumberInput(attrs={'min': 0, 'step': '0.01', 'placeholder': 'Optional'}),
+        }
+        help_texts = {
+            'job_type': 'Select the type of employment.',
+            'salary': 'Annual salary in $',
+            'bonus': 'Annual bonus in $ (if applicable)',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Format employer choices to show more information
+        self.fields['created_by'].label_from_instance = lambda obj: f"{obj.company_name} ({obj.user.get_full_name()} - {obj.user.email})"
+    
+    def clean_salary(self):
+        """Validate salary is a positive number."""
+        salary = self.cleaned_data.get('salary')
+        if salary <= 0:
+            raise forms.ValidationError("Salary must be a positive number.")
+        return salary
+    
+    def clean_bonus(self):
+        """Validate bonus is a positive number if provided."""
+        bonus = self.cleaned_data.get('bonus')
+        if bonus is not None and bonus < 0:
+            raise forms.ValidationError("Bonus cannot be negative.")
+        return bonus

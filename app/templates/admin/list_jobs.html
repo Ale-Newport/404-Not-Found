@@ -97,6 +97,9 @@
                         {% endif %}
                     </a>
                 </th>
+                <th>
+                    <a href="{% url 'create_job' %}" class="text-decoration-none">Create</a>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -108,6 +111,9 @@
                 <td>{{ job.salary }}</td>
                 <td>{{ job.job_type }}</td>
                 <td>{{ job.created_at }}</td>
+                <td>
+                    <a href="{% url 'delete_job' job.id %}" class="text-decoration-none">D</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

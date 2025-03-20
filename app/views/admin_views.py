@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from app.decorators import user_type_required
 from django.contrib import messages
-from app.forms.forms import UserForm
+from app.forms.forms import UserForm, JobForm
 
 @user_type_required('admin')
 def admin_dashboard(request):
@@ -112,10 +112,7 @@ def create_user(request):
     else:
         form = UserForm()
     
-    return render(request, 'admin/create_user.html', {
-        'form': form,
-        'title': 'Create New User'
-    })
+    return render(request, 'admin/create_user.html', {'form': form,})
 
 @user_type_required('admin')
 def delete_user(request, user_id):
@@ -133,7 +130,6 @@ def delete_user(request, user_id):
         return redirect('list_users')
     
     if request.method == 'POST':
-        # Confirm the user wants to delete
         username = user.username
         full_name = user.get_full_name()
         user_type_display = dict(User.USER_TYPES)[user.user_type]
@@ -147,3 +143,44 @@ def delete_user(request, user_id):
         return redirect('list_users')
     
     return render(request, 'admin/delete_user.html', {'user': user_id})
+
+@user_type_required('admin')
+def create_job(request):
+    """
+    View for administrators to create new jobs
+    """
+    if request.method == 'POST':
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save()
+            
+            messages.success(
+                request, 
+                f'Successfully created {job} job by {job.created_by}'
+            )
+            return redirect('list_jobs')
+    else:
+        form = JobForm()
+    
+    return render(request, 'admin/create_job.html', {'form': form,})
+
+@user_type_required('admin')
+def delete_job(request, job_id):
+    """
+    View for administrators to delete jobs.
+    """
+    job = get_object_or_404(Job, id=job_id)
+    
+    if request.method == 'POST':
+        name = job.name
+        employer = job.created_by
+
+        job.delete()
+        
+        messages.success(
+            request, 
+            f'Successfully deleted {name} job by {employer}'
+        )
+        return redirect('list_jobs')
+    
+    return render(request, 'admin/delete_job.html', {'job': job_id})

@@ -38,6 +38,9 @@ urlpatterns = [
     path('administrator/list-jobs/', admin_views.list_jobs, name='list_jobs'),
     path('administrator/create-user/', admin_views.create_user, name='create_user'),
     path('administrator/delete-user/<int:user_id>/', admin_views.delete_user, name='delete_user'),
+    path('administrator/create-job/', admin_views.create_job, name='create_job'),
+    path('administrator/delete-job/<int:job_id>/', admin_views.delete_job, name='delete_job'),
+
 
     path('job/<int:job_id>/apply/', views.apply_to_job, name='apply_job'),
     path('application/<int:application_id>/update/', views.update_application_status, name='update_application_status'),
