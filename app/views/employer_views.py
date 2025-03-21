@@ -16,7 +16,7 @@ def add_job(request):
             return redirect('employer_dashboard')
     else:
         form = JobForm()
-    return render(request, 'add_job.html', {'form': form})
+    return render(request, 'job/add_job.html', {'form': form})
 
 @user_type_required(['employer', 'employee', 'admin'])
 def job_detail(request, job_id):
@@ -28,7 +28,7 @@ def job_detail(request, job_id):
                 job=job, 
                 applicant=request.user.employee
             ).exists()
-        return render(request, 'job_detail.html', {
+        return render(request, 'job/job_detail.html', {
             'job': job,
             'has_applied': has_applied,
             'is_employee': True,
@@ -58,7 +58,7 @@ def job_detail(request, job_id):
     
     applications_with_scores.sort(key=lambda x: x['score'], reverse=True)
     
-    return render(request, 'job_detail.html', {
+    return render(request, 'job/job_detail.html', {
         'job': job,
         'applications_with_scores': applications_with_scores,
         'is_employee': False
@@ -67,13 +67,13 @@ def job_detail(request, job_id):
 @user_type_required('employer')
 def employer_dashboard(request):
     jobs = Job.objects.filter(created_by=request.user.employer)
-    return render(request, 'employer_dashboard.html', {
+    return render(request, 'employer/employer_dashboard.html', {
         'jobs': jobs,
         'username': request.user.email
     })
 
 @user_type_required('employer')
 def account_page(request):
-    return render(request, 'account_page.html', {
+    return render(request, 'account/account_page.html', {
         'user': request.user
     })

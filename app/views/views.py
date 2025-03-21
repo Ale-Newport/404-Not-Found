@@ -22,7 +22,7 @@ from project.constants import COUNTRIES
 
 
 def home(request):
-    return render(request, 'home.html')
+    return render(request, 'account/home.html')
 
 def employee_signup(request):
     if request.method == "POST":
@@ -62,7 +62,7 @@ def employee_signup(request):
                 'code': code,
                 'site_name': current_site.name,
             }
-            email_content = render_to_string('emails/email_verification.html', context)
+            email_content = render_to_string('account/email_verification.html', context)
             
             try:
                 message = Mail(
@@ -82,11 +82,11 @@ def employee_signup(request):
             except Exception as e:
                 user.delete()
                 messages.error(request, "Error sending verification email. Please try again.")
-                return render(request, "employee_signup.html", {"form": form, "step": 1})
+                return render(request, "employee/employee_signup.html", {"form": form, "step": 1})
     else:
         form = EmployeeSignUpForm()
     
-    return render(request, "employee_signup.html", {"form": form, "step": 1})
+    return render(request, "employee/employee_signup.html", {"form": form, "step": 1})
 
 def verify_email(request):
     if 'verification_email' not in request.session:
@@ -145,7 +145,7 @@ def verify_email(request):
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
-    return render(request, 'verify_email.html')
+    return render(request, 'account/verify_email.html')
 
 
 def upload_cv(request):
@@ -161,8 +161,8 @@ def upload_cv(request):
             return redirect("employee_signup_3")
         except Exception as e:
             print(e)
-            return render(request, "employee_signup.html", {"step": 2,})
-    return render(request, "employee_signup.html", {"step": 2})
+            return render(request, "employee/employee_signup.html", {"step": 2,})
+    return render(request, "employee/employee_signup.html", {"step": 2})
 
 
 def review_cv_data(request):
@@ -201,7 +201,7 @@ def review_cv_data(request):
         messages.success(request, "Profile completed")
         return redirect("employee_dashboard")
 
-    return render(request, "employee_signup.html", {"step": 3, "cv_data": cv_data})
+    return render(request, "employee/employee_signup.html", {"step": 3, "cv_data": cv_data})
 
 
 @user_type_required('employee')
@@ -238,7 +238,7 @@ def employee_update(request):
         'username': request.user.username
     }
     
-    return render(request, 'employee_update_details.html', context)
+    return render(request, 'employee/employee_update_details.html', context)
 
 
 def employer_signup(request):
@@ -276,7 +276,7 @@ def employer_signup(request):
                 'code': code,
                 'site_name': current_site.name,
             }
-            email_content = render_to_string('emails/email_verification.html', context)
+            email_content = render_to_string('account/email_verification.html', context)
 
             try:
                 message = Mail(
@@ -296,11 +296,11 @@ def employer_signup(request):
             except Exception as e:
                 user.delete()  #delete the user if email sending fails
                 messages.error(request, "Error sending verification email. Please try again.")
-                return render(request, "employer_signup.html", {"form": form,})
+                return render(request, "employer/employer_signup.html", {"form": form,})
 
     else:
         form = EmployerSignUpForm()
-    return render(request, 'employer_signup.html', {'form': form})
+    return render(request, 'employer/employer_signup.html', {'form': form})
 
 def user_login(request):
     if request.method == 'POST':
@@ -316,7 +316,7 @@ def user_login(request):
             messages.error(request, 'There was an error with your submission. Please check the form for details.') # pragma: no cover
     else:
         form = LogInForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'account/login.html', {'form': form})
 
 def get_redirect(user):
     if user.user_type == 'employer':
@@ -398,7 +398,7 @@ def employee_dashboard(request):
         'countries': COUNTRIES
     }
     
-    return render(request, 'employee_dashboard.html', context)
+    return render(request, 'employee/employee_dashboard.html', context)
 
 
 def log_out(request):
@@ -430,7 +430,7 @@ def password_reset_request(request):
                     'site_name': current_site.name,
                 }
                 
-                email_content = render_to_string('emails/password_reset_email.html', context)
+                email_content = render_to_string('account/password_reset_email.html', context)
                 
                 try:
                     message = Mail(
@@ -445,14 +445,14 @@ def password_reset_request(request):
                     response = sg.send(message)
                 except Exception as e:
                     messages.error(request, "Error sending email. Please try again.")
-                    return render(request, 'password_reset.html', {'form': form})
+                    return render(request, 'account/password_reset.html', {'form': form})
             
             request.session['reset_email'] = email
             return redirect('verify_reset_code')
     else:
         form = PasswordResetRequestForm()
     
-    return render(request, 'password_reset.html', {'form': form})
+    return render(request, 'account/password_reset.html', {'form': form})
 
 def verify_reset_code(request):
     if 'reset_email' not in request.session:
@@ -477,7 +477,7 @@ def verify_reset_code(request):
         else:
             messages.error(request, "Invalid or expired code. Please try again.")
     
-    return render(request, 'verify_reset_code.html')
+    return render(request, 'account/verify_reset_code.html')
 
 def set_new_password(request):
     if not request.session.get('reset_code_verified'):
@@ -499,7 +499,7 @@ def set_new_password(request):
     else:
         form = SetNewPasswordForm()
     
-    return render(request, 'set_new_password.html', {'form': form})
+    return render(request, 'account/set_new_password.html', {'form': form})
 
 
 @user_type_required('employee')
@@ -569,6 +569,6 @@ def my_applications(request):
     
     applications = JobApplication.objects.filter(applicant=request.user.employee).order_by('-created_at')
     
-    return render(request, 'my_applications.html', {
+    return render(request, 'job/my_applications.html', {
         'applications': applications
     })
