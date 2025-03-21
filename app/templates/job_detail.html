@@ -1,35 +1,5 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ job.name }} - Details</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'custom.css' %}">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% if is_employee %}{% url 'employee_dashboard' %}{% else %}{% url 'employer_dashboard' %}{% endif %}">Job Hiring App</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ml-auto">
-                {% if is_employee %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'account_page' %}">Account</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
+{% extends 'base_content.html' %}
+{% block content %}
     <div class="container mt-4">
         <div class="card shadow mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -70,7 +40,6 @@
                         </div>
                         {% endif %}
 
-                        <!-- Add this section to job_detail.html after the job details and before the closing div -->
 {% if not is_employee %}
 <div class="mt-4">
     <h4>Applications ({{ applications|length }})</h4>
@@ -374,9 +343,6 @@
         </div>
     </div>
 </div>
-    {% endif %}
+{% endif %}
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

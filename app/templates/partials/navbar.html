@@ -29,14 +29,14 @@
               <a class="nav-link" href="{% url 'my_applications' %}">My Applications</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'employee_update' %}">Account Settings</a>
+              <a class="nav-link" href="{% url 'employee_update' %}">Account</a>
             </li>
           {% elif request.user.user_type == 'employer' %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'account_page' %}">Account</a>
+              <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
+              <a class="nav-link" href="{% url 'account_page' %}">Account</a>
             </li>
           {% endif %}
           <li class="nav-item">

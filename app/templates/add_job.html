@@ -1,92 +1,67 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Job</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'custom.css' %}">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">Job Hiring App</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'account_page' %}">Account</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                </li>
-            </ul>
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header">
+            <h2>Post a New Job</h2>
         </div>
-    </nav>
-
-    <div class="container mt-4">
-        <div class="card shadow">
-            <div class="card-header">
-                <h2>Post a New Job</h2>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label>Job Title</label>
-                            {{ form.name }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label>Department</label>
-                            {{ form.department }}
-                        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Job Title</label>
+                        {{ form.name }}
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label>Job Type</label>
-                            {{ form.job_type }}
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label>Salary</label>
-                            {{ form.salary }}
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label>Bonus (Optional)</label>
-                            {{ form.bonus }}
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Department</label>
+                        {{ form.department }}
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label>Job Description</label>
-                        {{ form.description }}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Job Type</label>
+                        {{ form.job_type }}
                     </div>
-
-                    <div class="mb-3">
-                        <label>Required Skills</label>
-                        {{ form.skills_needed }}
-                        <small class="form-text text-muted">Enter skills separated by commas</small>
+                    <div class="col-md-4 mb-3">
+                        <label>Salary</label>
+                        {{ form.salary }}
                     </div>
-
-                    <div class="mb-3">
-                        <label>Preferred Skills (Optional)</label>
-                        {{ form.skills_wanted }}
-                        <small class="form-text text-muted">Enter skills separated by commas</small>
+                    <div class="col-md-4 mb-3">
+                        <label>Bonus (Optional)</label>
+                        {{ form.bonus }}
                     </div>
+                </div>
 
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            Please correct the errors below.
-                            {{ form.errors }}
-                        </div>
-                    {% endif %}
+                <div class="mb-3">
+                    <label>Job Description</label>
+                    {{ form.description }}
+                </div>
 
-                    <button type="submit" class="btn btn-primary">Publish Job</button>
-                </form>
-            </div>
+                <div class="mb-3">
+                    <label>Required Skills</label>
+                    {{ form.skills_needed }}
+                    <small class="form-text text-muted">Enter skills separated by commas</small>
+                </div>
+
+                <div class="mb-3">
+                    <label>Preferred Skills (Optional)</label>
+                    {{ form.skills_wanted }}
+                    <small class="form-text text-muted">Enter skills separated by commas</small>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Please correct the errors below.
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary">Publish Job</button>
+            </form>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

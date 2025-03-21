@@ -18,6 +18,7 @@ urlpatterns = [
     path('password-reset/set-password/', views.set_new_password, name='set_new_password'),
     # Sign-up routes
     path('employer/signup/', views.employer_signup, name='employer_signup'),
+    path('employee/signup/', views.employee_signup, name='employee_signup'),
     path('verify-email/', views.verify_email, name='verify_email'),
     path("employee-signup/CV/", views.upload_cv, name="employee_signup_2"),
     path("employee-signup/CV/parse/", views.review_cv_data, name="employee_signup_3"),
