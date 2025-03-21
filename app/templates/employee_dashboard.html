@@ -87,7 +87,12 @@
                             </div>
                             <div class="form-group">
                                 <label>Location</label>
-                                <input type="text" class="form-control" name="country" placeholder="Enter country" value="{{ filters.country }}">
+                                <select class="form-control" name="country">
+                                    <option value="">All Countries</option>
+                                    {% for code, name in countries %}
+                                        <option value="{{ code }}" {% if filters.country == code %}selected{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Minimum Salary</label>

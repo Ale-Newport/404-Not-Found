@@ -197,7 +197,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Company Information</h5>
                                 <p><strong>Company:</strong> {{ job.created_by.company_name }}</p>
-                                <p><strong>Location:</strong> {{ job.created_by.country }}</p>
+                                <p><strong>Location:</strong> {{ job.country }}</p>
                                 <p><strong>Posted on:</strong> {{ job.created_at|date:"M d, Y" }}</p>
                             </div>
                         </div>
@@ -207,9 +207,8 @@
         </div>
     </div>
 
-    <!-- Apply Modal -->
-    {% if is_employee and not has_applied %}
-    <!-- Apply Modal -->
+<!-- Apply Modal -->
+{% if is_employee and not has_applied %}
 <div class="modal fade" id="applyModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">

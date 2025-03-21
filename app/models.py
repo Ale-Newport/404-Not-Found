@@ -296,6 +296,7 @@ class Job(models.Model):
     skills_wanted = models.TextField(help_text='Comma separated preferred skills.', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name='jobs')
+    country = models.CharField(max_length=100, choices=COUNTRIES, blank=True)
 
 class VerificationCode(models.Model):
     CODE_TYPES = [

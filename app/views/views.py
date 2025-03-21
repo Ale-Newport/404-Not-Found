@@ -18,6 +18,7 @@ import os
 from django.conf import settings
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from project.constants import COUNTRIES
 
 
 def home(request):
@@ -222,6 +223,7 @@ def employee_update(request):
                 user.employee.save()
             
             messages.success(request, 'Your account details have been updated successfully.')
+            return redirect('employee_dashboard')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -368,7 +370,9 @@ def employee_dashboard(request):
             pass
     
     if filters['country']:
-        base_jobs_query = base_jobs_query.filter(created_by__employer__country__icontains=filters['country'])
+        country_code = filters['country'].strip()
+        if country_code:
+            base_jobs_query = base_jobs_query.filter(country=country_code)
     
     if active_tab == 'suitable':
         filtered_jobs = base_jobs_query
@@ -390,7 +394,8 @@ def employee_dashboard(request):
         'jobs': jobs,
         'job_matches': job_matches,
         'active_tab': active_tab,
-        'filters': filters
+        'filters': filters,
+        'countries': COUNTRIES
     }
     
     return render(request, 'employee_dashboard.html', context)
