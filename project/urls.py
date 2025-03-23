@@ -35,12 +35,12 @@ urlpatterns = [
     path('employee/update/', employee_views.employee_update, name='employee_update'),
     path('employee/job/<int:job_id>/apply/', employee_views.apply_to_job, name='apply_job'),
     path('employee/applications/', employee_views.my_applications, name='my_applications'),
-    path('employee/update-application/<int:application_id>/', employee_views.update_application_status, name='update_application_status'),
     # Employer routes
     path('employer/dashboard/', employer_views.employer_dashboard, name='employer_dashboard'),
     path('employer/account/', employer_views.account_page, name='account_page'),
     path('employer/add-job/', employer_views.add_job, name='add_job'),
     path('employer/job/<int:job_id>/', employer_views.job_detail, name='job_detail'),
+    path('employer/update-application/<int:application_id>/', employer_views.update_application_status, name='update_application_status'),
     # Admin routes
     path('administrator/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('administrator/list-users/', admin_views.list_users, name='list_users'),
