@@ -495,7 +495,7 @@ from django.template.loader import render_to_string
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from django.conf import settings
-from app.models import VerificationCode
+from app.models import VerificationCode, User
 
 def create_and_send_code_email(user, request, code_type, template, subject):
     try:
@@ -533,3 +533,24 @@ def create_and_send_code_email(user, request, code_type, template, subject):
         return True
     except Exception as e:
         return False
+    
+def validate_verification_code(code, email, code_type):
+    user_filter = {'email': email}
+    if code_type == 'email_verification':
+        user_filter['is_active'] = False
+        
+    user = User.objects.filter(**user_filter).first()
+    if not user:
+        return False, None, None
+        
+    verification = VerificationCode.objects.filter(
+        user=user,
+        code=code,
+        code_type=code_type,
+        is_used=False
+    ).order_by('-created_at').first()
+
+    if verification and verification.is_valid():
+        return True, user, verification
+    else:
+        return False, user, None

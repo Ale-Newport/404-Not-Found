@@ -6,18 +6,13 @@ from django.contrib import messages
 from app.models import JobApplication, User, Employee, Employer, Admin, Job, VerificationCode
 from django.db.models import Q
 from django.core.paginator import Paginator
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render, redirect, get_object_or_404
 from app.decorators import user_type_required
 from collections import defaultdict
 from django.core.files.storage import default_storage
-from app.helper import parse_cv, create_and_send_code_email
+from app.helper import parse_cv, create_and_send_code_email, validate_verification_code
 import os
 from django.conf import settings
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from project.constants import COUNTRIES
 
 
@@ -73,19 +68,13 @@ def verify_email(request):
         code = request.POST.get('code')
         email = request.session['verification_email']
         
-        user = User.objects.filter(email=email, is_active=False).first()
-        if not user:
-            messages.error(request, "Invalid verification attempt.")
-            return redirect('login')
-            
-        verification = VerificationCode.objects.filter(
-            user=user,
-            code=code,
-            code_type='email_verification',
-            is_used=False
-        ).order_by('-created_at').first()
+        is_valid, user, verification = validate_verification_code(
+            code, 
+            email, 
+            'email_verification'
+        )
         
-        if verification and verification.is_valid():
+        if is_valid:
             # Activate user
             user.is_active = True
             user.save()
@@ -397,16 +386,15 @@ def verify_reset_code(request):
         code = request.POST.get('code')
         email = request.session['reset_email']
         
-        reset_code = VerificationCode.objects.filter(
-            user__email=email,
-            code=code,
-            code_type='password_reset',
-            is_used=False
-        ).order_by('-created_at').first()
+        is_valid, user, verification = validate_verification_code(
+            code, 
+            email, 
+            'password_reset'
+        )
         
-        if reset_code and reset_code.is_valid():
-            reset_code.is_used = True
-            reset_code.save()
+        if is_valid:
+            verification.is_used = True
+            verification.save()
             request.session['reset_code_verified'] = True
             return redirect('set_new_password')
         else:
