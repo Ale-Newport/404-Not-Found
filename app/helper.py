@@ -510,7 +510,7 @@ def create_and_send_code_email(user, request, code_type, template, subject):
         context = {
             'user': user,
             'code': code,
-            'site_name': current_site.name,
+            'site_name': current_site,
         }
         email_content = render_to_string(template, context)
         
