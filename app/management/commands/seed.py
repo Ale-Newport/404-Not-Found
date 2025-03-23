@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import pytz
 from project.constants import COUNTRIES
 from app.services.job_matcher import JobMatcher
+import random
  
 class Command(BaseCommand):
     help = "Seed the database with initial data"
@@ -319,6 +320,8 @@ class Command(BaseCommand):
         skills_wanted = ', '.join(preferred_skills)
         created_at = self.faker.date_time_this_year()
         created_by = choices(Employer.objects.all(), k=1)[0]
+
+        country_code = random.choice([code for code, name in COUNTRIES])
         
         self.create_job({
             'name': name, 
@@ -330,8 +333,10 @@ class Command(BaseCommand):
             'skills_needed': skills_needed, 
             'skills_wanted': skills_wanted, 
             'created_at': created_at, 
-            'created_by': created_by
+            'created_by': created_by,
+            'country' : country_code
         })
+
     def create_job(self, data):
         try:
             job = Job.objects.create(
