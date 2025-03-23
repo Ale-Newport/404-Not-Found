@@ -1,19 +1,11 @@
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect
 from django.urls import reverse
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm, JobApplicationForm, LogInForm, EmployeeAccountUpdateForm, PasswordResetRequestForm, SetNewPasswordForm
-from django.contrib.auth import update_session_auth_hash, login, logout
+from app.forms.forms import LogInForm, PasswordResetRequestForm, SetNewPasswordForm
+from django.contrib.auth import login, logout
 from django.contrib import messages
-from app.models import JobApplication, User, Employee, Employer, Admin, Job, VerificationCode
-from django.db.models import Q
-from django.core.paginator import Paginator
-from django.shortcuts import render, redirect, get_object_or_404
-from app.decorators import user_type_required
-from collections import defaultdict
-from django.core.files.storage import default_storage
-from app.helper import parse_cv, create_and_send_code_email, validate_verification_code
-import os
-from django.conf import settings
-from project.constants import COUNTRIES
+from app.models import User, Employee, Employer
+from django.shortcuts import render, redirect
+from app.helper import create_and_send_code_email, validate_verification_code
 
 
 def home(request):
@@ -72,46 +64,6 @@ def verify_email(request):
             messages.error(request, "Invalid or expired code. Please try again.")
     
     return render(request, 'account/verify_email.html')
-
-def employer_signup(request):
-    if request.method == 'POST':
-        form = EmployerSignUpForm(request.POST)
-        if form.is_valid():
-            #store form data in session
-            session_data = {
-                'username': form.cleaned_data['username'],
-                'email': form.cleaned_data['email'],
-                'password1': form.cleaned_data['password1'],
-                'company_name': form.cleaned_data.get('company_name', ''),
-                'country': form.cleaned_data.get('country', ''),
-            }
-
-            #create user but set as inactive
-            user = User.objects.create_user(
-                username=session_data["username"],
-                email=session_data["email"],
-                password=session_data["password1"],
-                user_type='employer',
-                is_active=False  
-            )
-
-            if create_and_send_code_email(
-                user, 
-                request, 
-                'email_verification', 
-                'account/email_verification.html', 
-                'Verify your email address'
-            ):
-                request.session["signup_data"] = session_data
-                return redirect('verify_email')
-            else:
-                user.delete()
-                messages.error(request, "Error sending verification email. Please try again.")
-                return render(request, "employer/employer_signup.html", {"form": form})
-
-    else:
-        form = EmployerSignUpForm()
-    return render(request, 'employer/employer_signup.html', {'form': form})
 
 def user_login(request):
     if request.method == 'POST':
@@ -214,24 +166,3 @@ def set_new_password(request):
         form = SetNewPasswordForm()
     
     return render(request, 'account/set_new_password.html', {'form': form})
-
-@user_type_required('employer')
-def update_application_status(request, application_id):
-    if not hasattr(request.user, 'employer'):
-        messages.error(request, "Access denied.")
-        return redirect('login')
-        
-    application = get_object_or_404(JobApplication, id=application_id)
-    
-    if application.job.created_by != request.user.employer:
-        messages.error(request, "Access denied.")
-        return redirect('employer_dashboard')
-    
-    if request.method == 'POST':
-        new_status = request.POST.get('status')
-        if new_status in dict(JobApplication.STATUS_CHOICES):
-            application.status = new_status
-            application.save()
-            messages.success(request, f"Application status updated to {new_status}.")
-            
-    return redirect('job_detail', job_id=application.job.id)
