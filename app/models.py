@@ -106,10 +106,7 @@ class AdminManager(Manager):
         for field in ['username', 'email', 'first_name', 'last_name', 'password', 'is_staff', 'is_superuser']:
             if field in kwargs:
                 user_fields[field] = kwargs.pop(field)
-        if not user_fields.get('email'):
-            raise ValueError("Users must have an email address")
-        if not user_fields.get('username'):
-            raise ValueError("Users must have a username")
+        User.validate_user_fields(user_fields.get('email'), user_fields.get('username'))
         user_fields['user_type'] = 'admin'
         user_fields.setdefault('is_staff', True)
         user_fields.setdefault('is_superuser', True)
@@ -137,10 +134,7 @@ class EmployeeManager(Manager):
         for field in ['username', 'email', 'first_name', 'last_name', 'password']:
             if field in kwargs:
                 user_fields[field] = kwargs.pop(field)
-        if not user_fields.get('email'):
-            raise ValueError("Users must have an email address")
-        if not user_fields.get('username'):
-            raise ValueError("Users must have a username")
+        User.validate_user_fields(user_fields.get('email'), user_fields.get('username'))
         user_fields['user_type'] = 'employee'
         user = User.objects.create_user(**user_fields)
         return super().create(user=user, **kwargs)
@@ -160,10 +154,7 @@ class EmployerManager(Manager):
         for field in ['username', 'email', 'first_name', 'last_name', 'password']:
             if field in kwargs:
                 user_fields[field] = kwargs.pop(field)
-        if not user_fields.get('email'):
-            raise ValueError("Users must have an email address")
-        if not user_fields.get('username'):
-            raise ValueError("Users must have a username")
+        User.validate_user_fields(user_fields.get('email'), user_fields.get('username'))
         user_fields['user_type'] = 'employer'
         user = User.objects.create_user(**user_fields)
         return super().create(user=user, **kwargs)
@@ -202,6 +193,13 @@ class User(AbstractUser):
     )
 
     USERNAME_FIELD = 'username'
+
+    @staticmethod
+    def validate_user_fields(email, username):
+        if not email:
+            raise ValueError("Users must have an email address")
+        if not username:
+            raise ValueError("Users must have a username")
 
 class Admin(UserDelegationMixin, UserProfileMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
