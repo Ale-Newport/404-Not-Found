@@ -1,33 +1,41 @@
 from django.contrib import admin
 from django.urls import path
-from app.views import views, employer_views, admin_views
 from django.conf import settings
 from django.conf.urls.static import static
+from app.views import (
+    base_views,
+    auth_views,
+    password_views,
+    employee_views,
+    employer_views,
+    admin_views,
+    verification_views,
+)
 
 urlpatterns = [
     # Django Admin routes
     path('admin/', admin.site.urls),
     # Home page
-    path('', views.home, name='home'),
+    path('', base_views.home, name='home'),
     # Authentication routes
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.log_out, name='logout'),
+    path('login/', auth_views.user_login, name='login'),
+    path('logout/', auth_views.log_out, name='logout'),
     # Password reset routes
-    path('password-reset/', views.password_reset_request, name='password_reset'),
-    path('password-reset/verify/', views.verify_reset_code, name='verify_reset_code'),
-    path('password-reset/set-password/', views.set_new_password, name='set_new_password'),
+    path('password-reset/', password_views.password_reset_request, name='password_reset'),
+    path('password-reset/verify/', password_views.verify_reset_code, name='verify_reset_code'),
+    path('password-reset/set-password/', password_views.set_new_password, name='set_new_password'),
     # Sign-up routes
-    path('employer/signup/', views.employer_signup, name='employer_signup'),
-    path('employee/signup/', views.employee_signup, name='employee_signup'),
-    path('verify-email/', views.verify_email, name='verify_email'),
-    path("employee-signup/CV/", views.upload_cv, name="employee_signup_2"),
-    path("employee-signup/CV/parse/", views.review_cv_data, name="employee_signup_3"),
+    path('employer/signup/', employer_views.employer_signup, name='employer_signup'),
+    path('employee/signup/', employee_views.employee_signup, name='employee_signup'),
+    path('verify-email/', verification_views.verify_email, name='verify_email'),
+    path("employee-signup/CV/", employee_views.upload_cv, name="employee_signup_2"),
+    path("employee-signup/CV/parse/", employee_views.review_cv_data, name="employee_signup_3"),
     # Employee routes
-    path('employee/dashboard/', views.employee_dashboard, name='employee_dashboard'),
-    path('employee/update/', views.employee_update, name='employee_update'),
-    path('employee/job/<int:job_id>/apply/', views.apply_to_job, name='apply_job'),
-    path('employee/applications/', views.my_applications, name='my_applications'),
-    path('employee/update-application/<int:application_id>/', views.update_application_status, name='update_application_status'),
+    path('employee/dashboard/', employee_views.employee_dashboard, name='employee_dashboard'),
+    path('employee/update/', employee_views.employee_update, name='employee_update'),
+    path('employee/job/<int:job_id>/apply/', employee_views.apply_to_job, name='apply_job'),
+    path('employee/applications/', employee_views.my_applications, name='my_applications'),
+    path('employee/update-application/<int:application_id>/', employee_views.update_application_status, name='update_application_status'),
     # Employer routes
     path('employer/dashboard/', employer_views.employer_dashboard, name='employer_dashboard'),
     path('employer/account/', employer_views.account_page, name='account_page'),
