@@ -1,6 +1,6 @@
 # app/tests/forms/test_auth_forms.py
 from django.test import TestCase
-from app.forms.forms import LogInForm, PasswordResetRequestForm, SetNewPasswordForm
+from app.forms import LogInForm, PasswordResetRequestForm, SetNewPasswordForm
 from app.models import User, Employee
 from django.contrib.auth import authenticate
 
@@ -60,7 +60,7 @@ class AuthFormsTest(TestCase):
     def test_password_reset_request_form_valid(self):
         """Test password reset request form with valid email"""
         from unittest.mock import patch
-        from app.forms.forms import PasswordResetRequestForm
+        from app.forms import PasswordResetRequestForm
         
         # Completely skip the ReCaptcha validation
         with patch('app.forms.forms.ReCaptchaField.clean', return_value=True):

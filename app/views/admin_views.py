@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from app.decorators import user_type_required
 from django.contrib import messages
-from app.forms.forms import UserForm, JobForm
+from app.forms import UserForm, JobForm
 
 @user_type_required('admin')
 def admin_dashboard(request):

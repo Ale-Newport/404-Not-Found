@@ -30,7 +30,7 @@ class PasswordResetTests(TestCase):
     def test_password_reset_request_submission(self):
         """Test submitting a password reset request"""
         from unittest.mock import patch, Mock
-        from app.forms.forms import PasswordResetRequestForm
+        from app.forms import PasswordResetRequestForm
         
         mock_form = Mock(spec=PasswordResetRequestForm)
         mock_form.is_valid.return_value = True

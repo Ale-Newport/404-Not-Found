@@ -1,4 +1,4 @@
-from app.forms.forms import LogInForm
+from app.forms import LogInForm
 from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages

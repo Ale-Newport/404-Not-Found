@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from app.models import Job, JobApplication, User
-from app.forms.forms import JobForm, EmployerSignUpForm
+from app.forms import JobForm, EmployerSignUpForm
 from django.contrib import messages
 from app.decorators import user_type_required
 from app.services.job_matcher import JobMatcher

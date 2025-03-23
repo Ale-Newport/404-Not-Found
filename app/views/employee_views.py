@@ -1,4 +1,4 @@
-from app.forms.forms import EmployeeSignUpForm, EmployeeAccountUpdateForm
+from app.forms import EmployeeSignUpForm, EmployeeAccountUpdateForm
 from app.models import User, Employee, Job, JobApplication
 from helper import create_and_send_code_email, parse_cv
 from django.contrib import messages

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from app.forms.forms import EmployeeSignUpForm, EmployerSignUpForm
+from app.forms import EmployeeSignUpForm, EmployerSignUpForm
 from app.models import User, Employee, Employer, Admin, Job
 from unittest.mock import patch
 
