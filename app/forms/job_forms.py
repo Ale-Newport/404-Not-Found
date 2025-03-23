@@ -47,7 +47,8 @@ class JobForm(forms.ModelForm):
     created_by = forms.ModelChoiceField(
         queryset=Employer.objects.all(),
         label="Employer",
-        help_text="Select the employer who is posting this job."
+        help_text="Select the employer who is posting this job.",
+        required=False
     )
     
     class Meta:
