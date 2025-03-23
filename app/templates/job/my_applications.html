@@ -34,7 +34,7 @@
                                     </td>
                                     <td>
                                         <a href="{% url 'job_detail' app.job.id %}" class="btn btn-sm btn-outline-primary">View Job</a>
-                                        <button class="btn btn-sm btn-outline-info" data-toggle="modal" data-target="#applicationDetails{{ app.id }}">View Application</button>
+                                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#applicationDetails{{ app.id }}">View Application</button>
                                     </td>
                                 </tr>
                                 
@@ -44,7 +44,7 @@
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title">Application for {{ app.job.name }}</h5>
-                                                <button type="button" class="close" data-dismiss="modal">
+                                                <button type="button" class="close" data-bs-dismiss="modal">
                                                     <span>&times;</span>
                                                 </button>
                                             </div>
@@ -136,7 +136,7 @@
                                                 {% endif %}
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                                 <a href="{% url 'job_detail' app.job.id %}" class="btn btn-primary">View Job</a>
                                             </div>
                                         </div>
