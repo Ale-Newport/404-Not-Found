@@ -489,3 +489,41 @@ def parse_cv(pdf_path):
         "Interests": extract_interests(text)
     }
     return extracted_data
+
+### EMAIL ###
+from django.template.loader import render_to_string
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from django.conf import settings
+from app.models import VerificationCode
+def create_and_send_verification_email(user, request):
+    try:
+        code = VerificationCode.generate_code()
+        VerificationCode.objects.create(
+            user=user,
+            code=code,
+            code_type='email_verification'
+        )
+        context = {
+            'user': user,
+            'code': code,
+            'site_name': "TappedIn",
+        }
+        email_content = render_to_string('account/email_verification.html', context)
+
+        message = Mail(
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to_emails=user.email,
+            subject='Verify your email address',
+            html_content=email_content
+        )
+        message.reply_to = settings.DEFAULT_FROM_EMAIL
+        
+        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+        response = sg.send(message)
+        
+        request.session['verification_email'] = user.email
+        
+        return True
+    except Exception as e:
+        return False

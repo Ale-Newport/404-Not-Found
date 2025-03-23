@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from app.decorators import user_type_required
 from collections import defaultdict
 from django.core.files.storage import default_storage
-from app.helper import parse_cv
+from app.helper import parse_cv, create_and_send_verification_email
 import os
 from django.conf import settings
 from sendgrid import SendGridAPIClient
@@ -47,39 +47,10 @@ def employee_signup(request):
                 user_type='employee',
                 is_active=False
             )
-
-            code = VerificationCode.generate_code()
-            print(f"Generated verification code: {code}")  # Debugging statement
-            VerificationCode.objects.create(
-                user=user,
-                code=code,
-                code_type='email_verification'
-            )
-
-            current_site = get_current_site(request)
-            context = {
-                'user': user,
-                'code': code,
-                'site_name': current_site.name,
-            }
-            email_content = render_to_string('account/email_verification.html', context)
-            
-            try:
-                message = Mail(
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to_emails=user.email,
-                    subject='Verify your email address',
-                    html_content=email_content
-                )
-                message.reply_to = settings.DEFAULT_FROM_EMAIL
-                
-                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-                response = sg.send(message)
-                
-                request.session['verification_email'] = user.email
+            if create_and_send_verification_email(user, request):
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
-            except Exception as e:
+            else:
                 user.delete()
                 messages.error(request, "Error sending verification email. Please try again.")
                 return render(request, "employee/employee_signup.html", {"form": form, "step": 1})
@@ -262,41 +233,14 @@ def employer_signup(request):
                 user_type='employer',
                 is_active=False  
             )
-
-            code = VerificationCode.generate_code()
-            VerificationCode.objects.create(
-                user=user,
-                code=code,
-                code_type='email_verification'
-            )
-
-            current_site = get_current_site(request)
-            context = {
-                'user': user,
-                'code': code,
-                'site_name': current_site.name,
-            }
-            email_content = render_to_string('account/email_verification.html', context)
-
-            try:
-                message = Mail(
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to_emails=user.email,
-                    subject='Verify your email address',
-                    html_content=email_content
-                )
-                message.reply_to = settings.DEFAULT_FROM_EMAIL
-                
-                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-                response = sg.send(message)
-                
-                request.session['verification_email'] = user.email
+            
+            if create_and_send_verification_email(user, request):
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
-            except Exception as e:
-                user.delete()  #delete the user if email sending fails
+            else:
+                user.delete()
                 messages.error(request, "Error sending verification email. Please try again.")
-                return render(request, "employer/employer_signup.html", {"form": form,})
+                return render(request, "employer/employer_signup.html", {"form": form})
 
     else:
         form = EmployerSignUpForm()
