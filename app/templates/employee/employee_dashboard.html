@@ -120,7 +120,7 @@
                         <a class="nav-link {% if active_tab == 'suitable' %}active{% endif %}" 
                            href="?tab=suitable{% for key, value in filters.items %}{% if key != 'tab' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                             Most Suitable Jobs
-                            <span class="badge badge-primary ml-1">Powered by Machine Learning!</span>
+                            <span class="badge bg-primary ms-1">Powered by Machine Learning!</span>
                         </a>
                     </li>
                 </ul>
@@ -140,7 +140,7 @@
                                     <div class="col-md-8">
                                         <div class="d-flex align-items-center mb-2">
                                             <h5 class="card-title mb-0">{{ match.job.name }}</h5>
-                                            <div class="ml-auto">
+                                            <div class="ms-auto">
                                                 <div class="match-score-badge">
                                                     <span class="match-score {% if match.score >= 80 %}high-match{% elif match.score >= 50 %}medium-match{% else %}low-match{% endif %}">
                                                         {{ match.score }}% match
@@ -155,7 +155,7 @@
                                             <h6 class="mt-3">Your Matching Skills:</h6>
                                             <p class="mb-2">
                                                 {% for skill in match.matching_skills %}
-                                                    <span class="badge badge-success mr-1">{{ skill }}</span>
+                                                    <span class="badge bg-success me-1">{{ skill }}</span>
                                                 {% endfor %}
                                             </p>
                                         {% endif %}
@@ -164,19 +164,19 @@
                                             <h6>Skills You Could Develop:</h6>
                                             <p>
                                                 {% for skill in match.missing_skills %}
-                                                    <span class="badge badge-secondary mr-1">{{ skill }}</span>
+                                                    <span class="badge bg-secondary me-1">{{ skill }}</span>
                                                 {% endfor %}
                                             </p>
                                         {% endif %}
                                         
                                         <div class="mb-2">
-                                            <span class="badge badge-primary">{{ match.job.get_job_type_display }}</span>
-                                            <span class="badge badge-secondary ml-2">${{ match.job.salary }}</span>
+                                            <span class="badge bg-primary">{{ match.job.get_job_type_display }}</span>
+                                            <span class="badge bg-secondary ms-2">${{ match.job.salary }}</span>
                                             {% if match.job.bonus %}
-                                                <span class="badge badge-success ml-2">Bonus: ${{ match.job.bonus }}</span>
+                                                <span class="badge bg-success ms-2">Bonus: ${{ match.job.bonus }}</span>
                                             {% endif %}
                                             {% if match.contract_match %}
-                                                <span class="badge badge-info ml-2">Preferred Contract ✓</span>
+                                                <span class="badge bg-info ms-2">Preferred Contract ✓</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -251,10 +251,10 @@
                                     {% endif %}
                                     
                                     <div class="mb-2">
-                                        <span class="badge badge-primary">{{ job.get_job_type_display }}</span>
-                                        <span class="badge badge-secondary ml-2">${{ job.salary }}</span>
+                                        <span class="badge bg-primary">{{ job.get_job_type_display }}</span>
+                                        <span class="badge bg-secondary ms-2">${{ job.salary }}</span>
                                         {% if job.bonus %}
-                                            <span class="badge badge-success ml-2">Bonus: ${{ job.bonus }}</span>
+                                            <span class="badge bg-success ms-2">Bonus: ${{ job.bonus }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
