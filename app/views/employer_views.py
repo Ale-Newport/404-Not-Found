@@ -4,7 +4,7 @@ from app.forms import JobForm, EmployerSignUpForm
 from django.contrib import messages
 from app.decorators import user_type_required
 from app.services.job_matcher import JobMatcher
-from helper import create_and_send_code_email
+from app.helper import create_and_send_code_email
 
 @user_type_required('employer')
 def add_job(request):

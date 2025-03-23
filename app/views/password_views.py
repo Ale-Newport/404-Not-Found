@@ -1,6 +1,6 @@
 from app.forms import PasswordResetRequestForm, SetNewPasswordForm
-from models import User
-from helper import create_and_send_code_email, validate_verification_code
+from app.models import User
+from app.helper import create_and_send_code_email, validate_verification_code
 from django.shortcuts import render, redirect
 from django.contrib import messages
 

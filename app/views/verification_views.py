@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
-from models import Employee, Employer
-from helper import validate_verification_code
+from app.models import Employee, Employer
+from app.helper import validate_verification_code
 from django.contrib.auth import login
 from django.contrib import messages
 
