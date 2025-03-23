@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import pytz
 from project.constants import COUNTRIES
 from app.services.job_matcher import JobMatcher
+import random
  
 class Command(BaseCommand):
     help = "Seed the database with initial data"
@@ -268,8 +269,8 @@ class Command(BaseCommand):
     
     def generate_fixtures_jobs(self):
         job_fixtures = [
-            {'name': 'Software Developer', 'department': 'Engineering', 'description': '', 'salary': 50000, 'job_type': 'FT', 'bonus': 0, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer')},
-            {'name': 'Senior Developer', 'department': 'Engineering', 'description': '', 'salary': 100000, 'job_type': 'FT', 'bonus': 10000, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer')},
+            {'name': 'Software Developer', 'department': 'Engineering', 'description': '', 'salary': 50000, 'job_type': 'FT', 'bonus': 0, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer'), 'country': 'UK'},
+            {'name': 'Senior Developer', 'department': 'Engineering', 'description': '', 'salary': 100000, 'job_type': 'FT', 'bonus': 10000, 'skills_needed': 'Python, Django', 'skills_wanted': 'AWS, Docker', 'created_at': datetime(2024, 8, 12, 10, 0, tzinfo=pytz.utc), 'created_by': Employer.objects.get(user__username='@employer'), 'country': 'US'},
         ]
         for data in job_fixtures:
             self.create_job(data)
@@ -319,6 +320,8 @@ class Command(BaseCommand):
         skills_wanted = ', '.join(preferred_skills)
         created_at = self.faker.date_time_this_year()
         created_by = choices(Employer.objects.all(), k=1)[0]
+
+        country_code = random.choice([code for code, name in COUNTRIES])
         
         self.create_job({
             'name': name, 
@@ -330,8 +333,10 @@ class Command(BaseCommand):
             'skills_needed': skills_needed, 
             'skills_wanted': skills_wanted, 
             'created_at': created_at, 
-            'created_by': created_by
+            'created_by': created_by,
+            'country' : country_code
         })
+
     def create_job(self, data):
         try:
             job = Job.objects.create(
@@ -344,7 +349,8 @@ class Command(BaseCommand):
                 skills_needed=data['skills_needed'],
                 skills_wanted=data['skills_wanted'],
                 created_at=data['created_at'],
-                created_by=data['created_by']
+                created_by=data['created_by'],
+                country=data['country']
             )
         except Exception as e:
             print(f"Error creating job: {data} - {e}")

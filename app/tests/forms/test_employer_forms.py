@@ -1,5 +1,5 @@
 from django.test import TestCase
-from app.forms.forms import EmployerSignUpForm, JobForm
+from app.forms import EmployerSignUpForm, JobForm
 from app.models import User, Employer, Job
 from decimal import Decimal
 from unittest.mock import patch

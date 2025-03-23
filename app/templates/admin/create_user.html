@@ -1,0 +1,12 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{% if form.instance.pk %}Update{% else %}Create{% endif %} User</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% include 'partials/bootstrap_form.html' with form=form %}
+        <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Update{% else %}Create{% endif %} User</button>
+    </form>
+</div>
+{% endblock %}

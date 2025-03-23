@@ -1,18 +1,20 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from app.models import Admin, Employee, Employer, Job, User
 from django.core.paginator import Paginator
 from django.db.models import Q
-from itertools import chain
-from django.apps import apps
 from app.decorators import user_type_required
+from django.contrib import messages
+from app.forms import UserForm, JobForm
 
 @user_type_required('admin')
-def dashboard(request):
+def admin_dashboard(request):
     """Display the admin dashboard"""
-    total_users = Admin.objects.count() + Employee.objects.count() + Employer.objects.count()
     employee_users = Employee.objects.count()
     employer_users = Employer.objects.count()
     admin_users = Admin.objects.count()
+    total_users = employee_users + employer_users + admin_users
+    ft_jobs = Job.objects.filter(job_type='FT').count()
+    pt_jobs = Job.objects.filter(job_type='PT').count()
     total_jobs = Job.objects.count()
 
     context = {
@@ -20,6 +22,8 @@ def dashboard(request):
         'employee_users': employee_users,
         'employer_users': employer_users,
         'admin_users': admin_users,
+        'ft_jobs': ft_jobs,
+        'pt_jobs': pt_jobs,
         'total_jobs': total_jobs,
     }
     return render(request, 'admin/admin_dashboard.html', context)
@@ -42,7 +46,7 @@ def list_users(request):
         )
     
     order_by = request.GET.get('order_by', 'username')
-    users = User.objects.all().order_by(order_by)
+    users = users.order_by(order_by)
     paginator = Paginator(users, 25)
     page_number = request.GET.get('page')
     users_page = paginator.get_page(page_number)
@@ -60,11 +64,9 @@ def list_users(request):
 def list_jobs(request):
     jobs = Job.objects.all()
 
-    department_filter = request.GET.get('department')
     job_type_filter = request.GET.get('job_type')
     created_by_filter = request.GET.get('created_by')
 
-    if department_filter: jobs = jobs.filter(department=department_filter)
     if job_type_filter: jobs = jobs.filter(job_type=job_type_filter)
     if created_by_filter: jobs = jobs.filter(created_by__id=created_by_filter)
 
@@ -83,8 +85,102 @@ def list_jobs(request):
 
     employers_with_jobs = Employer.objects.filter(user_id__in=Job.objects.all().values_list('created_by', flat=True).distinct()).order_by('company_name')
     job_types = Job.objects.all().values_list('job_type', flat=True).distinct()
-    departments = Job.objects.all().values_list('department', flat=True).distinct()
     
-    context = {'jobs': jobs, 'order_by': order_by, 'employers_with_jobs': employers_with_jobs, 'job_types': job_types, 'departments': departments}
+    context = {'jobs': jobs, 'order_by': order_by, 'employers_with_jobs': employers_with_jobs, 'job_types': job_types}
 
     return render(request, 'admin/list_jobs.html', context)
+
+
+@user_type_required('admin')
+def create_user(request):
+    """
+    View for administrators to create new users of any type
+    (Admin, Employee, or Employer).
+    """
+    if request.method == 'POST':
+        form = UserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user_type = form.cleaned_data.get('user_type')
+            user_type_display = dict(form.fields['user_type'].choices)[user_type]
+            
+            messages.success(
+                request, 
+                f'Successfully created {user_type_display} account for {user.get_full_name()} ({user.username})'
+            )
+            return redirect('list_users')
+    else:
+        form = UserForm()
+    
+    return render(request, 'admin/create_user.html', {'form': form,})
+
+@user_type_required('admin')
+def delete_user(request, user_id):
+    """
+    View for administrators to delete users.
+    """
+    user = get_object_or_404(User, id=user_id)
+    
+    # Prevent self-deletion
+    if request.user.id == user_id:
+        messages.error(
+            request,
+            'You cannot delete your own account.'
+        )
+        return redirect('list_users')
+    
+    if request.method == 'POST':
+        username = user.username
+        full_name = user.get_full_name()
+        user_type_display = dict(User.USER_TYPES)[user.user_type]
+
+        user.delete()
+        
+        messages.success(
+            request, 
+            f'Successfully deleted {user_type_display} account for {full_name} ({username})'
+        )
+        return redirect('list_users')
+    
+    return render(request, 'admin/delete_user.html', {'user': user_id})
+
+@user_type_required('admin')
+def create_job(request):
+    """
+    View for administrators to create new jobs
+    """
+    if request.method == 'POST':
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save()
+            
+            messages.success(
+                request, 
+                f'Successfully created {job} job by {job.created_by}'
+            )
+            return redirect('list_jobs')
+    else:
+        form = JobForm()
+    
+    return render(request, 'admin/create_job.html', {'form': form,})
+
+@user_type_required('admin')
+def delete_job(request, job_id):
+    """
+    View for administrators to delete jobs.
+    """
+    job = get_object_or_404(Job, id=job_id)
+    
+    if request.method == 'POST':
+        name = job.name
+        employer = job.created_by
+
+        job.delete()
+        
+        messages.success(
+            request, 
+            f'Successfully deleted {name} job by {employer}'
+        )
+        return redirect('list_jobs')
+    
+    return render(request, 'admin/delete_job.html', {'job': job_id})

@@ -1,28 +1,98 @@
 {% extends 'base_content.html' %}
-
 {% block content %}
-<div class="container mt-5">
-    <div class="row mt-3">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100" onclick="location.href='{% url 'list_users' %}'" style="cursor: pointer;">
-                <div class="card-body text-center">
-                    <h3 class="card-title"><i class="fas fa-users"></i> Users</h3>
-                    <p class="card-text">Total Users: {{ total_users }}</p>
-                    <p class="card-text">Employees: {{ employee_users }}</p>
-                    <p class="card-text">Employers: {{ employer_users }}</p>
-                    <p class="card-text">Admins: {{ admin_users }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100" onclick="location.href='{% url 'list_jobs' %}'" style="cursor: pointer;">
-                <div class="card-body text-center">
-                    <h3 class="card-title"><i class="fas fa-book"></i> Jobs</h3>
-                    <p class="card-text">Total Jobs: {{ total_jobs }}</p>
-                </div>
-            </div>
-        </div>
+<div class="container my-5">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="display-5 fw-bold text-primary">Administration <small class="text-muted fs-5">Overview</small></h1>
+      <hr class="my-3">
     </div>
+  </div>
+
+  <!-- Stats Cards Row -->
+  <div class="row mb-4">
+    <!-- Users Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100 border-0 hover-elevation" onclick="location.href='{% url 'list_users' %}'" style="cursor: pointer; transition: all 0.3s ease;">
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-3">
+            <h3 class="card-title fw-bold text-primary"><i class="fas fa-users me-2"></i> Users</h3>
+            <span class="badge bg-primary rounded-pill fs-6">{{ total_users }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-user-tie me-1"></i> Employees</span>
+            <span class="fw-bold">{{ employee_users }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-building me-1"></i> Employers</span>
+            <span class="fw-bold">{{ employer_users }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-user-shield me-1"></i> Admins</span>
+            <span class="fw-bold">{{ admin_users }}</span>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0 text-end">
+          <small class="text-primary">Click to view details <i class="fas fa-arrow-right ms-1"></i></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jobs Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100 border-0 hover-elevation" onclick="location.href='{% url 'list_jobs' %}'" style="cursor: pointer; transition: all 0.3s ease;">
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-3">
+            <h3 class="card-title fw-bold text-primary"><i class="fas fa-briefcase me-2"></i> Jobs</h3>
+            <span class="badge bg-primary rounded-pill fs-6">{{ total_jobs }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-user-tie me-1"></i> Full Time Jobs</span>
+            <span class="fw-bold">{{ ft_jobs }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"><i class="fas fa-building me-1"></i> Part Time Jobs</span>
+            <span class="fw-bold">{{ pt_jobs }}</span>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0 text-end">
+          <small class="text-primary">Click to view details <i class="fas fa-arrow-right ms-1"></i></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-header bg-transparent border-0">
+          <h3 class="card-title fw-bold text-primary"><i class="fas fa-bolt me-2"></i> Quick Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary text-start" onclick="location.href='{% url 'create_user' %}'"><i class="fas fa-user-plus me-2"></i> Add New User</button>
+            <button class="btn btn-outline-primary text-start" onclick="location.href='{% url 'create_job' %}'"><i class="fas fa-plus-circle me-2"></i> Create New Job</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<style>
+  .hover-elevation:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+  .card {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .badge {
+    padding: 0.5em 0.8em;
+  }
+</style>
 {% endblock %}

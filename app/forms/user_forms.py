@@ -1,23 +1,123 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from app.models import JobApplication, User, Admin, Employee, Employer, Job
+from django.contrib.auth import password_validation
+from app.models import User, Employer, Employee, Admin
 from project.constants import COUNTRIES
-from django.contrib.auth import authenticate, password_validation
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
+from django.core.validators import RegexValidator
 
-class LogInForm(forms.Form):
-    """Form enabling registered users to log in."""
-    username = forms.CharField(label="Username")
-    password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
-    def get_user(self):
-        """Returns authenticated user if possible."""
-        user = None
-        if self.is_valid():
-            username = self.cleaned_data.get('username')
-            password = self.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+class UserForm(UserCreationForm):
+    user_type = forms.ChoiceField(
+        choices=[('admin', 'Admin'), ('employee', 'Employee'), ('employer', 'Employer')],
+        initial='employee'
+    )
+    
+    # Common fields for all user types
+    username = forms.CharField(
+        max_length=50,
+        validators=[
+            RegexValidator(
+                regex=r'^@\w{3,}$',
+                message='Username must consist of @ followed by at least three alphanumericals'
+            )
+        ],
+        help_text='Required. Format: @username'
+    )
+    email = forms.EmailField(max_length=255)
+    first_name = forms.CharField(max_length=50)
+    last_name = forms.CharField(max_length=50)
+    
+    # Fields specific to Employee
+    country = forms.ChoiceField(choices=COUNTRIES, required=False)
+    skills = forms.CharField(widget=forms.Textarea, required=False)
+    experience = forms.CharField(widget=forms.Textarea, required=False)
+    education = forms.CharField(widget=forms.Textarea, required=False)
+    languages = forms.CharField(widget=forms.Textarea, required=False)
+    phone = forms.CharField(max_length=20, required=False)
+    interests = forms.CharField(widget=forms.Textarea, required=False)
+    preferred_contract = forms.ChoiceField(
+        choices=[('FT', 'Full Time'), ('PT', 'Part Time')],
+        required=False
+    )
+    
+    # Fields specific to Employer
+    company_name = forms.CharField(max_length=255, required=False)
+    
+    # Fields specific to Admin
+    is_staff = forms.ChoiceField(
+        choices=[(True, 'True'), (False, 'False')],
+        initial=False
+    )
+    is_superuser = forms.ChoiceField(
+        choices=[(True, 'True'), (False, 'False')],
+        initial=False
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'user_type', 'username', 'email', 'first_name', 'last_name', 
+            'password1', 'password2', 'is_staff', 'is_superuser', 'country',
+            'skills', 'experience', 'education', 'languages', 'phone',
+            'interests', 'preferred_contract', 'company_name'
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].help_text = 'Your password must contain at least 8 characters.'
+        self.fields['password2'].help_text = 'Enter the same password as before, for verification.'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        user_type = cleaned_data.get('user_type')
+        
+        # Handle required fields based on user_type
+        if user_type == 'employer' and not cleaned_data.get('company_name'):
+            self.add_error('company_name', 'Company name is required for Employer accounts')
+        
+        if user_type == 'admin':
+            cleaned_data['is_staff'] = True
+            cleaned_data['is_superuser'] = True
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        # Don't save the user yet
+        user = super().save(commit=False)
+        user_type = self.cleaned_data.get('user_type')
+        user.user_type = user_type
+        
+        if user_type == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        
+        if commit:
+            user.save()
+            
+            # Create the appropriate profile based on user_type
+            if user_type == 'admin':
+                Admin.objects.create(user=user)
+            elif user_type == 'employee':
+                Employee.objects.create(
+                    user=user,
+                    country=self.cleaned_data.get('country', ''),
+                    skills=self.cleaned_data.get('skills', ''),
+                    experience=self.cleaned_data.get('experience', ''),
+                    education=self.cleaned_data.get('education', ''),
+                    languages=self.cleaned_data.get('languages', ''),
+                    phone=self.cleaned_data.get('phone', ''),
+                    interests=self.cleaned_data.get('interests', ''),
+                    preferred_contract=self.cleaned_data.get('preferred_contract', '')
+                )
+            elif user_type == 'employer':
+                Employer.objects.create(
+                    user=user,
+                    company_name=self.cleaned_data.get('company_name', ''),
+                    country=self.cleaned_data.get('country', '')
+                )
+        
         return user
 
 class EmployeeSignUpForm(UserCreationForm):
@@ -200,74 +300,4 @@ class EmployerSignUpForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
         return cleaned_data
-
-class JobForm(forms.ModelForm):
-    class Meta:
-        model = Job
-        fields = ['name', 'department', 'description', 'salary', 'job_type', 'bonus', 'skills_needed', 'skills_wanted']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'skills_needed': forms.Textarea(attrs={'rows': 3}),
-            'skills_wanted': forms.Textarea(attrs={'rows': 3}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control',
-                'placeholder': f'Enter {field.replace("_", " ").title()}'
-            })
-
-class PasswordResetRequestForm(forms.Form):
-    email = forms.EmailField(
-        label="Email",
-        max_length=255,
-        widget=forms.EmailInput(attrs={'class': 'form-control'})
-    )
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
-
-class SetNewPasswordForm(forms.Form):
-    password1 = forms.CharField(
-        label="New Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-        help_text="Password must be at least 8 characters long."
-    )
-    password2 = forms.CharField(
-        label="Confirm Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
-    )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        password1 = cleaned_data.get('password1')
-        password2 = cleaned_data.get('password2')
-        
-        if password1 and password2:
-            if password1 != password2:
-                raise forms.ValidationError("The two passwords must match.")
-        return cleaned_data
     
-
-class JobApplicationForm(forms.ModelForm):
-    class Meta:
-        model = JobApplication
-        fields = [
-            'cover_letter', 'full_name', 'email', 'phone', 'country',
-            'current_position', 'skills', 'experience', 'education',
-            'portfolio_url', 'linkedin_url', 'custom_cv'
-        ]
-        widgets = {
-            'cover_letter': forms.Textarea(attrs={'rows': 6}),
-            'skills': forms.Textarea(attrs={'rows': 4}),
-            'experience': forms.Textarea(attrs={'rows': 4}),
-            'education': forms.Textarea(attrs={'rows': 4}),
-        }
-
-    def __init__(self, employee=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if employee:
-            self.fields['full_name'].initial = f"{employee.user.first_name} {employee.user.last_name}"
-            self.fields['email'].initial = employee.user.email
-            self.fields['country'].initial = employee.country
-            self.fields['skills'].initial = employee.skills

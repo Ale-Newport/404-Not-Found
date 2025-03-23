@@ -1,36 +1,13 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Employer Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'custom.css' %}">
-</head>
-<body>
-
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'employer_dashboard' %}">Job Hiring App</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'account_page' %}">Account</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'add_job' %}">Add Job</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container my-5">
 
     {% if messages %}
     <div class="container mt-3">
         {% for message in messages %}
             <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
                 {{ message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -53,7 +30,7 @@
                             <h6 class="card-subtitle mb-2 text-muted">{{ job.department }}</h6>
                             <p class="card-text">{{ job.description|truncatechars:150 }}</p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge badge-primary">{{ job.get_job_type_display }}</span>
+                                <span class="badge bg-primary">{{ job.get_job_type_display }}</span>
                                 <span class="text-muted">${{ job.salary }}</span>
                             </div>
                         </div>
@@ -80,5 +57,5 @@
             {% endfor %}
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

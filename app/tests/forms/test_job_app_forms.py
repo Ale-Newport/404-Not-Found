@@ -1,6 +1,6 @@
 # app/tests/forms/test_job_application_form.py
 from django.test import TestCase
-from app.forms.forms import JobApplicationForm
+from app.forms import JobApplicationForm
 from app.models import User, Employee, Employer, Job, JobApplication
 from django.core.files.uploadedfile import SimpleUploadedFile
 

@@ -489,3 +489,68 @@ def parse_cv(pdf_path):
         "Interests": extract_interests(text)
     }
     return extracted_data
+
+### EMAIL ###
+from django.template.loader import render_to_string
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from django.conf import settings
+from app.models import VerificationCode, User
+
+def create_and_send_code_email(user, request, code_type, template, subject):
+    try:
+        code = VerificationCode.generate_code()
+        VerificationCode.objects.create(
+            user=user,
+            code=code,
+            code_type=code_type
+        )
+
+        current_site = "TappedIn"
+        context = {
+            'user': user,
+            'code': code,
+            'site_name': current_site,
+        }
+        email_content = render_to_string(template, context)
+        
+        message = Mail(
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to_emails=user.email,
+            subject=subject,
+            html_content=email_content
+        )
+        message.reply_to = settings.DEFAULT_FROM_EMAIL
+        
+        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+        response = sg.send(message)
+        
+        if code_type == 'email_verification':
+            request.session['verification_email'] = user.email
+        elif code_type == 'password_reset':
+            request.session['reset_email'] = user.email
+        
+        return True
+    except Exception as e:
+        return False
+    
+def validate_verification_code(code, email, code_type):
+    user_filter = {'email': email}
+    if code_type == 'email_verification':
+        user_filter['is_active'] = False
+        
+    user = User.objects.filter(**user_filter).first()
+    if not user:
+        return False, None, None
+        
+    verification = VerificationCode.objects.filter(
+        user=user,
+        code=code,
+        code_type=code_type,
+        is_used=False
+    ).order_by('-created_at').first()
+
+    if verification and verification.is_valid():
+        return True, user, verification
+    else:
+        return False, user, None

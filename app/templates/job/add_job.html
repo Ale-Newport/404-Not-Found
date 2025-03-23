@@ -1,0 +1,67 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header">
+            <h2>Post a New Job</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Job Title</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Department</label>
+                        {{ form.department }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Job Type</label>
+                        {{ form.job_type }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Salary</label>
+                        {{ form.salary }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Bonus (Optional)</label>
+                        {{ form.bonus }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Job Description</label>
+                    {{ form.description }}
+                </div>
+
+                <div class="mb-3">
+                    <label>Required Skills</label>
+                    {{ form.skills_needed }}
+                    <small class="form-text text-muted">Enter skills separated by commas</small>
+                </div>
+
+                <div class="mb-3">
+                    <label>Preferred Skills (Optional)</label>
+                    {{ form.skills_wanted }}
+                    <small class="form-text text-muted">Enter skills separated by commas</small>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Please correct the errors below.
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary">Publish Job</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

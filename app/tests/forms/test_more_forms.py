@@ -1,6 +1,6 @@
 # app/tests/forms/test_more_forms.py
 from django.test import TestCase
-from app.forms.forms import EmployeeAccountUpdateForm
+from app.forms import EmployeeAccountUpdateForm
 from app.models import User, Employee
 
 class MoreFormsTest(TestCase):
