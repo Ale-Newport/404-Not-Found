@@ -65,31 +65,6 @@ def verify_email(request):
     
     return render(request, 'account/verify_email.html')
 
-def password_reset_request(request):
-    if request.method == 'POST':
-        form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            user = User.objects.filter(email=email).first()
-            
-            if user:
-                if create_and_send_code_email(
-                    user, 
-                    request, 
-                    'password_reset', 
-                    'account/password_reset_email.html', 
-                    'Password Reset Verification Code'
-                ):
-                    return redirect('verify_reset_code')
-                else:
-                    messages.error(request, "Error sending email. Please try again.")
-                    return render(request, 'account/password_reset.html', {'form': form})
-
-            return redirect('verify_reset_code')
-    else:
-        form = PasswordResetRequestForm()
-    
-    return render(request, 'account/password_reset.html', {'form': form})
 
 def verify_reset_code(request):
     if 'reset_email' not in request.session:
