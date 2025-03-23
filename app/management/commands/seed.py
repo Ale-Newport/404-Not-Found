@@ -319,11 +319,6 @@ class Command(BaseCommand):
         skills_wanted = ', '.join(preferred_skills)
         created_at = self.faker.date_time_this_year()
         created_by = choices(Employer.objects.all(), k=1)[0]
-<<<<<<< HEAD
-        country = self.faker.random_element([c[0] for c in COUNTRIES])
-        self.create_job({'name': name, 'department': department, 'description': description, 'salary': salary, 'job_type': job_type, 'bonus': bonus, 'skills_needed': skills_needed, 'skills_wanted': skills_wanted, 'created_at': created_at, 'created_by': created_by, 'country': country})
-
-=======
         
         self.create_job({
             'name': name, 
@@ -337,7 +332,6 @@ class Command(BaseCommand):
             'created_at': created_at, 
             'created_by': created_by
         })
->>>>>>> ebc1767df1c8ef91e3c3894958128a3d1c08fd43
     def create_job(self, data):
         try:
             job = Job.objects.create(
