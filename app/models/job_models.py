@@ -1,5 +1,6 @@
 from django.db import models
 from project.constants import COUNTRIES
+from app.models import Employee, Employer
 
 class Job(models.Model):
     def __str__(self):

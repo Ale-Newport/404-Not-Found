@@ -2,6 +2,7 @@ from django.db import models
 from datetime import timedelta
 from django.utils import timezone
 import random
+from app.models import User
 
 class VerificationCode(models.Model):
     CODE_TYPES = [
