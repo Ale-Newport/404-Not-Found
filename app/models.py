@@ -65,6 +65,30 @@ class UserDelegationMixin:
         self.user.is_active = value
         self.user.save()
 
+class UserProfileMixin:
+    @classmethod
+    def create_base_user(cls, username, email, password, first_name, last_name, user_type, **extra_fields):
+        extra_fields.setdefault('user_type', user_type)
+        
+        user = User.objects.create_user(
+            username=username, 
+            email=email, 
+            password=password,
+            first_name=first_name, 
+            last_name=last_name, 
+            **extra_fields
+        )
+        
+        profile_fields = {}
+        for field in cls._meta.fields:
+            field_name = field.name
+            if field_name != 'user' and field_name in extra_fields:
+                profile_fields[field_name] = extra_fields.pop(field_name)
+        
+        profile = cls.objects.create(user=user, **profile_fields)
+        return profile
+
+
 # ------------------------------------------------------------------------------
 # CUSTOM MANAGERS
 # ------------------------------------------------------------------------------
@@ -179,7 +203,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'username'
 
-class Admin(UserDelegationMixin, models.Model):
+class Admin(UserDelegationMixin, UserProfileMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     
     objects = AdminManager()
@@ -195,22 +219,22 @@ class Admin(UserDelegationMixin, models.Model):
     
     @classmethod
     def create_user(cls, username, email, password, first_name, last_name, **extra_fields):
-        extra_fields.setdefault('user_type', 'admin')
-        
-        user = User.objects.create_user(
-            username=username, 
-            email=email, 
-            password=password,
-            first_name=first_name, 
-            last_name=last_name, 
-            **extra_fields
+        profile = cls.create_base_user(
+        username=username,
+        email=email,
+        password=password,
+        first_name=first_name,
+        last_name=last_name,
+        user_type='admin',
+        **extra_fields
         )
+    
+        if hasattr(profile, 'clean'):
+            profile.clean()
         
-        admin = cls.objects.create(user=user)
-        admin.clean()
-        return admin
+        return profile
 
-class Employee(UserDelegationMixin, models.Model):
+class Employee(UserDelegationMixin, UserProfileMixin, models.Model):
     """Job seeker user type."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
@@ -236,21 +260,20 @@ class Employee(UserDelegationMixin, models.Model):
     
     @classmethod
     def create_user(cls, username, email, password, first_name, last_name, country="", **extra_fields):
-        extra_fields.setdefault('user_type', 'employee')
-        
-        user = User.objects.create_user(
-            username=username, 
-            email=email, 
+        extra_fields['country'] = country
+
+        return cls.create_base_user(
+            username=username,
+            email=email,
             password=password,
-            first_name=first_name, 
-            last_name=last_name, 
+            first_name=first_name,
+            last_name=last_name,
+            user_type='employee',
             **extra_fields
         )
-        
-        employee = cls.objects.create(user=user, country=country)
-        return employee
 
-class Employer(UserDelegationMixin, models.Model):
+
+class Employer(UserDelegationMixin, UserProfileMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     objects = EmployerManager()
@@ -263,19 +286,19 @@ class Employer(UserDelegationMixin, models.Model):
     
     @classmethod
     def create_user(cls, username, email, password, first_name, last_name, company_name="", country="", **extra_fields):
-        extra_fields.setdefault('user_type', 'employer')
-        
-        user = User.objects.create_user(
-            username=username, 
-            email=email, 
+        extra_fields['company_name'] = company_name
+        extra_fields['country'] = country
+
+        return cls.create_base_user(
+            username=username,
+            email=email,
             password=password,
-            first_name=first_name, 
-            last_name=last_name, 
+            first_name=first_name,
+            last_name=last_name,
+            user_type='employer',
             **extra_fields
         )
-        
-        employer = cls.objects.create(user=user, company_name=company_name, country=country)
-        return employer
+
 
 class Job(models.Model):
     def __str__(self):
