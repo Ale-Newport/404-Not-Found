@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from app.decorators import user_type_required
 from collections import defaultdict
 from django.core.files.storage import default_storage
-from app.helper import parse_cv, create_and_send_verification_email
+from app.helper import parse_cv, create_and_send_code_email
 import os
 from django.conf import settings
 from sendgrid import SendGridAPIClient
@@ -47,7 +47,13 @@ def employee_signup(request):
                 user_type='employee',
                 is_active=False
             )
-            if create_and_send_verification_email(user, request):
+            if create_and_send_code_email(
+                user, 
+                request, 
+                'email_verification', 
+                'account/email_verification.html', 
+                'Verify your email address'
+            ):
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
             else:
@@ -233,8 +239,14 @@ def employer_signup(request):
                 user_type='employer',
                 is_active=False  
             )
-            
-            if create_and_send_verification_email(user, request):
+
+            if create_and_send_code_email(
+                user, 
+                request, 
+                'email_verification', 
+                'account/email_verification.html', 
+                'Verify your email address'
+            ):
                 request.session["signup_data"] = session_data
                 return redirect('verify_email')
             else:
@@ -359,39 +371,18 @@ def password_reset_request(request):
             user = User.objects.filter(email=email).first()
             
             if user:
-                code = VerificationCode.generate_code()
-
-                VerificationCode.objects.create(
-                    user=user,
-                    code=code,
-                    code_type='password_reset'
-                )
-                
-                current_site = get_current_site(request)
-                context = {
-                    'user': user,
-                    'code': code,
-                    'site_name': current_site.name,
-                }
-                
-                email_content = render_to_string('account/password_reset_email.html', context)
-                
-                try:
-                    message = Mail(
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to_emails=user.email,
-                        subject='Password Reset Verification Code',
-                        html_content=email_content
-                    )
-                    message.reply_to = settings.DEFAULT_FROM_EMAIL
-                    
-                    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-                    response = sg.send(message)
-                except Exception as e:
+                if create_and_send_code_email(
+                    user, 
+                    request, 
+                    'password_reset', 
+                    'account/password_reset_email.html', 
+                    'Password Reset Verification Code'
+                ):
+                    return redirect('verify_reset_code')
+                else:
                     messages.error(request, "Error sending email. Please try again.")
                     return render(request, 'account/password_reset.html', {'form': form})
-            
-            request.session['reset_email'] = email
+
             return redirect('verify_reset_code')
     else:
         form = PasswordResetRequestForm()

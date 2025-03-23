@@ -496,25 +496,28 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from django.conf import settings
 from app.models import VerificationCode
-def create_and_send_verification_email(user, request):
+
+def create_and_send_code_email(user, request, code_type, template, subject):
     try:
         code = VerificationCode.generate_code()
         VerificationCode.objects.create(
             user=user,
             code=code,
-            code_type='email_verification'
+            code_type=code_type
         )
+
+        current_site = "TappedIn"
         context = {
             'user': user,
             'code': code,
-            'site_name': "TappedIn",
+            'site_name': current_site.name,
         }
-        email_content = render_to_string('account/email_verification.html', context)
-
+        email_content = render_to_string(template, context)
+        
         message = Mail(
             from_email=settings.DEFAULT_FROM_EMAIL,
             to_emails=user.email,
-            subject='Verify your email address',
+            subject=subject,
             html_content=email_content
         )
         message.reply_to = settings.DEFAULT_FROM_EMAIL
@@ -522,7 +525,10 @@ def create_and_send_verification_email(user, request):
         sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
         response = sg.send(message)
         
-        request.session['verification_email'] = user.email
+        if code_type == 'email_verification':
+            request.session['verification_email'] = user.email
+        elif code_type == 'password_reset':
+            request.session['reset_email'] = user.email
         
         return True
     except Exception as e:
