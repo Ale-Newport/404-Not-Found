@@ -28,18 +28,18 @@ class JobForm(forms.ModelForm):
     """Form for administrators to create a new job listing."""
     
     skills_needed = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4}),
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         help_text='Enter required skills, separated by commas.'
     )
     
     skills_wanted = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4}),
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         required=False,
         help_text='Enter preferred skills, separated by commas.'
     )
     
     description = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 6}),
+        widget=forms.Textarea(attrs={'rows': 6, 'class': 'form-control'}),
         help_text='Enter a detailed job description.'
     )
     
@@ -57,10 +57,11 @@ class JobForm(forms.ModelForm):
             'job_type', 'bonus', 'skills_needed', 'skills_wanted', 'created_by'
         ]
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'Job title'}),
-            'department': forms.TextInput(attrs={'placeholder': 'Department name'}),
-            'salary': forms.NumberInput(attrs={'min': 0, 'step': '0.01'}),
-            'bonus': forms.NumberInput(attrs={'min': 0, 'step': '0.01', 'placeholder': 'Optional'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Job title', 'class': 'form-control'}),
+            'department': forms.TextInput(attrs={'placeholder': 'Department name', 'class': 'form-control'}),
+            'salary': forms.NumberInput(attrs={'min': 0, 'step': '0.01', 'class': 'form-control'}),
+            'job_type': forms.Select(attrs={'class': 'form-control'}),
+            'bonus': forms.NumberInput(attrs={'min': 0, 'step': '0.01', 'placeholder': 'Optional', 'class': 'form-control'}),
         }
         help_texts = {
             'job_type': 'Select the type of employment.',
