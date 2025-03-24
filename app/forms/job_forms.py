@@ -28,12 +28,12 @@ class JobForm(forms.ModelForm):
     """Form for administrators to create a new job listing."""
     
     skills_needed = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         help_text='Enter required skills, separated by commas.'
     )
     
     skills_wanted = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         required=False,
         help_text='Enter preferred skills, separated by commas.'
     )
@@ -47,7 +47,8 @@ class JobForm(forms.ModelForm):
     created_by = forms.ModelChoiceField(
         queryset=Employer.objects.all(),
         label="Employer",
-        help_text="Select the employer who is posting this job."
+        help_text="Select the employer who is posting this job.",
+        required=False
     )
     
     class Meta:
