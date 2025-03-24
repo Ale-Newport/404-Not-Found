@@ -130,10 +130,12 @@ class Command(BaseCommand):
                 skills = self.generate_employee_skills()
                 experience = self.generate_employee_experience()
                 education = self.generate_employee_education()
-                Employee.objects.create(user=user, skills=skills, education=education, experience=experience)
+                country = random.choice([code for code, name in COUNTRIES])
+                Employee.objects.create(user=user, skills=skills, education=education, experience=experience, country=country)
             elif data['user_type'] == 'employer':
                 company_name = data.get('company_name', self.generate_company_name())
-                Employer.objects.create(user=user, company_name = company_name,)
+                country = random.choice([code for code, name in COUNTRIES])
+                Employer.objects.create(user=user, company_name = company_name, country=country)
             user.save()
         except Exception as e: 
             print(f"Error creating user: {data} - {e}")
