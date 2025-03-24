@@ -53,7 +53,7 @@ class EmployerViewsTest(TestCase):
         self.client.login(username='@employer', password="testpass123")
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employer_dashboard.html')
+        self.assertTemplateUsed(response, 'employer/employer_dashboard.html')
         self.assertContains(response, "Software Developer")
 
     def test_add_job_get(self):
@@ -61,7 +61,7 @@ class EmployerViewsTest(TestCase):
         self.client.login(username='@employer',  password="testpass123")
         response = self.client.get(self.add_job_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'add_job.html')
+        self.assertTemplateUsed(response, 'job/add_job.html')
 
     def test_add_job_post(self):
         """Test creating a new job"""
@@ -83,7 +83,7 @@ class EmployerViewsTest(TestCase):
         self.client.login(username='@employer', password="testpass123")
         response = self.client.get(self.job_detail_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'job_detail.html')
+        self.assertTemplateUsed(response, 'job/job_detail.html')
         self.assertContains(response, "Software Developer")
         self.assertContains(response, "Engineering")
 
@@ -92,7 +92,7 @@ class EmployerViewsTest(TestCase):
         self.client.login(username='@employer', password="testpass123")
         response = self.client.get(self.account_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'account_page.html')
+        self.assertTemplateUsed(response, 'account/account_page.html')
         self.assertContains(response, "Test Company")
 
     def test_unauthorized_job_detail_access(self):

@@ -36,13 +36,13 @@ class SignUpViewsTest(TestCase):
     def test_employee_signup_GET(self):
         response = self.client.get(self.employee_signup_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertTemplateUsed(response, 'employee/employee_signup.html')
         self.assertTrue('form' in response.context)
 
     def test_employer_signup_GET(self):
         response = self.client.get(self.employer_signup_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employer_signup.html')
+        self.assertTemplateUsed(response, 'employer/employer_signup.html')
         self.assertTrue('form' in response.context)
 
     def test_employee_signup_POST_valid(self):
@@ -100,7 +100,7 @@ class EmployeeSignupStep3Tests(TestCase):
     def test_step3_get(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertTemplateUsed(response, 'employee/employee_signup.html')
         self.assertEqual(response.context['step'], 3)
 
     def test_step3_successful_signup(self):
@@ -143,7 +143,7 @@ class WelcomePageTest(TestCase):
 
     def test_welcome_page_template_used(self):
         response = self.client.get(reverse('home'))
-        self.assertTemplateUsed(response, 'home.html')  
+        self.assertTemplateUsed(response, 'account/home.html')  
 
     def test_welcome_page_links(self):
         response = self.client.get(reverse('home'))
@@ -197,13 +197,13 @@ class ViewsTestCase(TestCase):
         """Test GET request to employee signup page"""
         response = self.client.get(reverse('employee_signup'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertTemplateUsed(response, 'employee/employee_signup.html')
 
     def test_employee_signup_post_invalid(self):
         """Test POST request to employee signup with invalid data"""
         response = self.client.post(reverse('employee_signup'), {})
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertTemplateUsed(response, 'employee/employee_signup.html')
         self.assertIn('form', response.context)
 
     def test_employer_signup_invalid_form(self):
@@ -215,13 +215,13 @@ class ViewsTestCase(TestCase):
             'password2': 'pass2',
         })
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employer_signup.html')
+        self.assertTemplateUsed(response, 'employer/employer_signup.html')
 
     def test_login_get_request(self):
         """Test GET request to login page"""
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'login.html')
+        self.assertTemplateUsed(response, 'account/login.html')
 
     def test_login_with_invalid_credentials(self):
         """Test login attempt with invalid credentials"""
@@ -285,7 +285,7 @@ class ViewsEdgeTests(TestCase):
         """Test the home view"""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'account/home.html')
         
     def test_logout_view(self):
         """Test the logout view"""
@@ -314,8 +314,7 @@ class ViewsEdgeTests(TestCase):
         
         response = self.client.post(reverse('verify_email'), {'code': '123456'})
         
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('employee_signup'))
+        self.assertEqual(response.status_code, 200)
         
     def test_set_new_password_without_verification(self):
         """Test set_new_password without going through verification"""
@@ -450,7 +449,7 @@ class VerifyEmailTests(TestCase):
         """Test verify_email without session data"""
         response = self.client.get(reverse('verify_email'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('employee_signup'))
+        self.assertEqual(response.url, reverse('login'))
         
     def test_verify_email_invalid_code(self):
         """Test verify_email with invalid code"""

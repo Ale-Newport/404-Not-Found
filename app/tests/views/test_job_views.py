@@ -57,7 +57,7 @@ class JobViewsTest(TestCase):
         response = self.employee_client.get(url)
         
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'job_detail.html')
+        self.assertTemplateUsed(response, 'job/job_detail.html')
         self.assertContains(response, "Test Job")
         self.assertContains(response, "Apply Now")
         self.assertTrue(response.context['is_employee'])
@@ -70,7 +70,7 @@ class JobViewsTest(TestCase):
         response = self.employer_client.get(url)
         
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'job_detail.html')
+        self.assertTemplateUsed(response, 'job/job_detail.html')
         self.assertContains(response, "Test Job")
         self.assertFalse(response.context['is_employee'])
         
