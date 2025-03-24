@@ -1,4 +1,3 @@
-# app/tests/test_more_helpers.py
 from django.test import TestCase
 from app.helper import extract_text_from_pdf, extract_name, extract_education, extract_experience, extract_skills, extract_interests, parse_cv
 from unittest.mock import patch, MagicMock
