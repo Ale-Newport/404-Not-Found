@@ -1,0 +1,124 @@
+/* static/css/custom.css */
+
+/* General Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Card styling */
+  .card {
+    border: none;
+    border-radius: 15px;
+  }
+  
+  .card-body {
+    padding: 2rem;
+  }
+  
+  /* Form elements */
+  .form-control {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+  
+  .form-control:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+  }
+  
+  /* Button styling */
+  .btn-primary {
+    background-color: #4a90e2;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .btn-primary:hover {
+    background-color: #357abd;
+  }
+  
+  .btn-outline-primary {
+    border-color: #4a90e2;
+    color: #4a90e2;
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: #4a90e2;
+    color: white;
+  }
+  
+  /* Signup and login form styling */
+  .signup-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  .submit-button {
+    width: 100%;
+    padding: 0.75rem;
+  }
+  
+  /* Landing page specific styles */
+  .landing-page .hero-section {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(to right, #ffffff, #f8f9fa);
+  }
+  
+  .feature-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background-color: #4a90e2;
+  }
+  
+  .testimonial-avatar {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  .cta-section {
+    background-color: #4a90e2;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .hero-section {
+      min-height: auto;
+      padding: 80px 0;
+    }
+    
+    .btn {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+  }
