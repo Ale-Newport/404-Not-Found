@@ -69,7 +69,7 @@ class EmployerFormsTest(TestCase):
     def test_employer_signup_form_email_unique(self, mock_recaptcha):
         """Test that email must be unique"""
         data = self.valid_employer_data.copy()
-        data['email'] = 'employer@test.com' # Already exists
+        data['email'] = 'employer@test.com' # already exists
         form = EmployerSignUpForm(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn('email', form.errors)
@@ -78,7 +78,7 @@ class EmployerFormsTest(TestCase):
     def test_employer_signup_form_username_unique(self, mock_recaptcha):
         """Test that username must be unique"""
         data = self.valid_employer_data.copy()
-        data['username'] = '@employer' # Already exists
+        data['username'] = '@employer' # already exists
         form = EmployerSignUpForm(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn('username', form.errors)

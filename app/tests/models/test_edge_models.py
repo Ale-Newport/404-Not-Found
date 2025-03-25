@@ -1,5 +1,5 @@
 from django.test import TestCase
-from app.models import User, Admin, Employee, Employer, Job, JobApplication
+from app.models import User, Employee, Employer, Job, JobApplication
 from django.db import IntegrityError
 from decimal import Decimal
 
@@ -163,7 +163,7 @@ class MoreModelTests(TestCase):
             applicant=self.employee,
             status="pending",
             cover_letter="Test application",
-            # No full_name
+            # no full_name
         )
         
         expected_str = f"{self.employee.user.get_full_name()} - {self.job.name}"

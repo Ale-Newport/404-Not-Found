@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse, resolve
 from app.views import base_views, auth_views, employee_views, employer_views, admin_views
-from django.test import override_settings
 from unittest.mock import patch
 
 class UrlsTest(TestCase):

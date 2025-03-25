@@ -78,4 +78,4 @@ class AuthFormsTest(TestCase):
         }
         form = SetNewPasswordForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn('__all__', form.errors) # Form-wide error
+        self.assertIn('__all__', form.errors)

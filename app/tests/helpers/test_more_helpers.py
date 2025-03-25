@@ -115,10 +115,8 @@ class MoreHelperTests(TestCase):
     @patch('app.helper.extract_experience')
     @patch('app.helper.extract_skills')
     @patch('app.helper.extract_interests')
-    def test_parse_cv_full(self, mock_interests, mock_skills, mock_experience, 
-                         mock_education, mock_phone, mock_email, mock_name, mock_extract):
+    def test_parse_cv_full(self, mock_interests, mock_skills, mock_experience, mock_education, mock_phone, mock_email, mock_name, mock_extract):
         """Test full CV parsing with all extractors"""
-        # Configure mocks
         mock_extract.return_value = "Sample CV text"
         mock_name.return_value = "John Smith"
         mock_email.return_value = "john@example.com"
@@ -128,10 +126,7 @@ class MoreHelperTests(TestCase):
         mock_skills.return_value = ["Python", "JavaScript"]
         mock_interests.return_value = ["Reading", "Hiking"]
         
-        # Parse CV
         result = parse_cv("dummy.pdf")
-        
-        # Check results
         self.assertEqual(result["Name"], "John Smith")
         self.assertEqual(result["E-mail"], "john@example.com")
         self.assertEqual(result["Phone"], "555-1234")

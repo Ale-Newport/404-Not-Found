@@ -110,7 +110,6 @@ class AdminManager(Manager):
         user_fields['user_type'] = 'admin'
         user_fields.setdefault('is_staff', True)
         user_fields.setdefault('is_superuser', True)
-        # Use Django's built-in create_user for proper password handling.
         user = User.objects.create_user(**user_fields)
         return super().create(user=user, **kwargs)
     

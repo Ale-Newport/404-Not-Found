@@ -64,7 +64,6 @@ class UserForm(UserCreationForm):
         cleaned_data = super().clean()
         user_type = cleaned_data.get('user_type')
         
-        # Handle required fields based on user_type
         if user_type == 'employer' and not cleaned_data.get('company_name'):
             self.add_error('company_name', 'Company name is required for Employer accounts')
         
@@ -87,7 +86,6 @@ class UserForm(UserCreationForm):
         if commit:
             user.save()
             
-            # Create the appropriate profile based on user_type
             if user_type == 'admin':
                 Admin.objects.create(user=user)
             elif user_type == 'employee':
@@ -138,7 +136,6 @@ class EmployeeSignUpForm(UserCreationForm):
             existing_user = User.objects.filter(email=email).first()
             if existing_user:
                 if not existing_user.is_active:
-                    #delete the inactive user
                     existing_user.delete()
                 else:
                     raise forms.ValidationError("A user with this email already exists.")
@@ -150,7 +147,6 @@ class EmployeeSignUpForm(UserCreationForm):
             existing_user = User.objects.filter(username=username).first()
             if existing_user:
                 if not existing_user.is_active:
-                    #delete the inactive user
                     existing_user.delete()
                 else:
                     raise forms.ValidationError("A user with this username already exists.")
@@ -270,7 +266,6 @@ class EmployerSignUpForm(UserCreationForm):
             existing_user = User.objects.filter(email=email).first()
             if existing_user:
                 if not existing_user.is_active:
-                    #delete the inactive user
                     existing_user.delete()
                 else:
                     raise forms.ValidationError("A user with this email already exists.")
@@ -282,7 +277,6 @@ class EmployerSignUpForm(UserCreationForm):
             existing_user = User.objects.filter(username=username).first()
             if existing_user:
                 if not existing_user.is_active:
-                    #delete the inactive user
                     existing_user.delete()
                 else:
                     raise forms.ValidationError("A user with this username already exists.")

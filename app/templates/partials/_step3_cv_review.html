@@ -87,7 +87,6 @@ function initTagInput(fieldName) {
     const input = document.getElementById(`${fieldName}-input`);
     const hiddenInput = document.getElementById(`${fieldName}-hidden-input`);
     
-    // Initial tags from hidden input value
     if (hiddenInput.value) {
         const initialTags = hiddenInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
         initialTags.forEach(tag => addTag(fieldName, tag));

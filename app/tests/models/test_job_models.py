@@ -4,7 +4,6 @@ from decimal import Decimal
 
 class JobModelTest(TestCase):
     def setUp(self):
-        # Create an employer for testing
         employer_user = User.objects.create_user(
             username='@testemployer',
             email='employer@test.com',
@@ -19,7 +18,6 @@ class JobModelTest(TestCase):
             country='US'
         )
         
-        # Create a job for testing
         self.job = Job.objects.create(
             name="Software Developer",
             department="Engineering",

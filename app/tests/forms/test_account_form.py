@@ -1,4 +1,3 @@
-# app/tests/forms/test_account_form.py
 from django.test import TestCase
 from app.forms import EmployeeAccountUpdateForm
 from app.models import User, Employee
@@ -31,7 +30,6 @@ class EmployeeAccountUpdateFormTest(TestCase):
         
     def test_form_duplicate_email(self):
         """Test form with duplicate email"""
-        # Create another user with different email
         other_user = User.objects.create_user(
             username="@otheruser",
             email="other@example.com",
@@ -42,7 +40,7 @@ class EmployeeAccountUpdateFormTest(TestCase):
         form_data = {
             'first_name': 'Test',
             'last_name': 'User',
-            'email': 'other@example.com',  # Already used by other user
+            'email': 'other@example.com', # already used by other user
             'country': 'US'
         }
         form = EmployeeAccountUpdateForm(instance=self.user, data=form_data)
@@ -89,13 +87,8 @@ class EmployeeAccountUpdateFormTest(TestCase):
         form = EmployeeAccountUpdateForm(instance=self.user, data=form_data)
         self.assertTrue(form.is_valid())
         
-        # Save form
         user = form.save()
-        
-        # Check that user was updated
         self.assertEqual(user.first_name, 'Updated')
         self.assertEqual(user.last_name, 'Name')
         self.assertEqual(user.email, 'updated@example.com')
-        
-        # Check that password was changed
         self.assertTrue(user.check_password('NewPass123!'))

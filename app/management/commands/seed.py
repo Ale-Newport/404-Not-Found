@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from app.models import Admin, Employee, Employer, User, Job, JobApplication
 from random import choices, randint, sample
 from faker import Faker
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 from project.constants import COUNTRIES
 from app.services.job_matcher import JobMatcher
@@ -140,7 +140,7 @@ class Command(BaseCommand):
         except Exception as e: 
             print(f"Error creating user: {data} - {e}")
     
-    #Employees
+    # Employees
     def generate_employee_skills(self):
         primary_category = self.faker.random_element(list(self.SKILL_CATEGORIES.keys()))
         primary_skills = self.SKILL_CATEGORIES[primary_category]
@@ -244,7 +244,7 @@ class Command(BaseCommand):
         
         return "\n\n".join(educations)
     
-    #Employers
+    # Employers
     def generate_company_name(self):
         """Generate a realistic company name using various patterns"""
         patterns = [
@@ -357,8 +357,7 @@ class Command(BaseCommand):
         except Exception as e:
             print(f"Error creating job: {data} - {e}")
 
-    #Application seeding
-
+    # Application seeding
     def create_applications(self):
         self.generate_fixture_application()
         self.generate_random_applications()
@@ -434,7 +433,6 @@ class Command(BaseCommand):
         available_jobs = Job.objects.all()
         available_employees = Employee.objects.all()
 
-        #try a few times to find a unique job-applicant pair
         for _ in range(10):
             job = self.faker.random_element(available_jobs)
             employee = self.faker.random_element(available_employees)
@@ -442,7 +440,6 @@ class Command(BaseCommand):
             if (job.id, employee.user_id) not in existing_applications:
                 break
         else:
-            #if we couldn't find a unique pair after 10 tries, just return
             return
 
         status = choices(['pending', 'reviewing', 'rejected'], 

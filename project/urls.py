@@ -49,8 +49,6 @@ urlpatterns = [
     path('administrator/delete-user/<int:user_id>/', admin_views.delete_user, name='delete_user'),
     path('administrator/create-job/', admin_views.create_job, name='create_job'),
     path('administrator/delete-job/<int:job_id>/', admin_views.delete_job, name='delete_job'),
-
-
 ]
 
 if settings.DEBUG:

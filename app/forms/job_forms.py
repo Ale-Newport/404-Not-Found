@@ -43,7 +43,6 @@ class JobForm(forms.ModelForm):
         help_text='Enter a detailed job description.'
     )
     
-    # Add field to select the employer who posted the job
     created_by = forms.ModelChoiceField(
         queryset=Employer.objects.all(),
         label="Employer",
@@ -72,7 +71,6 @@ class JobForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Format employer choices to show more information
         self.fields['created_by'].label_from_instance = lambda obj: f"{obj.company_name} ({obj.user.get_full_name()} - {obj.user.email})"
     
     def clean_salary(self):

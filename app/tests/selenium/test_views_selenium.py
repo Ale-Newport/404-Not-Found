@@ -1,23 +1,21 @@
 import time
-import unittest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
+from selenium.common.exceptions import TimeoutException
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
-from app.models import User, Employee, Employer, Job, JobApplication, VerificationCode
+from app.models import User, Employee, Employer, Job, JobApplication
 
 
 class BaseSeleniumTestCase(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Setup Chrome options
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')  # Run headless for CI environments
+        options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-gpu')
         options.add_argument('--window-size=1920,1080')
@@ -53,28 +51,21 @@ class BaseSeleniumTestCase(StaticLiveServerTestCase):
 
 class HomePageTests(BaseSeleniumTestCase):
     def test_home_page_loads(self):
-        # Navigate to the homepage
         self.browser.get(self.live_server_url)
-        
-        # Verify title is present - updated to match actual title
         self.assertIn('TappedIn', self.browser.title)
         
-        # Check if navigation links are present - use more general selectors
         nav = self.wait_for('nav')
         self.assertIsNotNone(nav)
-        
-        # Look for login link with a more general approach
+
         login_links = self.browser.find_elements(By.CSS_SELECTOR, 'a[href*="login"]')
         self.assertTrue(len(login_links) > 0, "No login link found")
         
-        # Look for signup links
         signup_links = self.browser.find_elements(By.CSS_SELECTOR, 'a[href*="signup"]')
         self.assertTrue(len(signup_links) > 0, "No signup links found")
 
 
 class LoginTests(BaseSeleniumTestCase):
     def setUp(self):
-        # Create a test user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -86,55 +77,43 @@ class LoginTests(BaseSeleniumTestCase):
         Employee.objects.create(user=self.user, country='Test Country')
         
     def test_successful_login(self):
-        # Navigate to the login page
         self.browser.get(f"{self.live_server_url}{reverse('login')}")
         
-        # Fill in the login form
         username_input = self.wait_for('input[name="username"]')
         password_input = self.wait_for('input[name="password"]')
         
         username_input.send_keys('testuser')
         password_input.send_keys('testpassword')
         
-        # Submit the form - use a more general selector
         submit_button = self.wait_for_clickable('button[type="submit"]')
         submit_button.click()
         
-        # Wait for redirect to dashboard - use more general indicators
-        time.sleep(2)  # Allow time for redirect
+        time.sleep(2)
         
-        # Verify we're on a dashboard page by URL
         self.assertIn('dashboard', self.browser.current_url)
         
     def test_failed_login(self):
-        # Navigate to the login page
         self.browser.get(f"{self.live_server_url}{reverse('login')}")
         
-        # Fill in the login form with wrong password
         username_input = self.wait_for('input[name="username"]')
         password_input = self.wait_for('input[name="password"]')
         
         username_input.send_keys('testuser')
         password_input.send_keys('wrongpassword')
         
-        # Submit the form
         submit_button = self.wait_for_clickable('button[type="submit"]')
         submit_button.click()
         
-        # Check for error message - use a more general selector for messages
-        time.sleep(1)  # Allow time for error to appear
+        time.sleep(1)
         
-        # Either find an alert message or stay on login page
         error_indicators = self.browser.find_elements(By.CSS_SELECTOR, '.alert, .error, .message')
         is_still_login = 'login' in self.browser.current_url.lower()
         
-        self.assertTrue(len(error_indicators) > 0 or is_still_login, 
-                       "No error message shown and not on login page")
+        self.assertTrue(len(error_indicators) > 0 or is_still_login, "No error message shown and not on login page")
 
 
 class EmployeeDashboardTests(BaseSeleniumTestCase):
     def setUp(self):
-        # Create test users
         self.employee = User.objects.create_user(
             username='dashemployee',
             email='dash.employee@example.com',
@@ -163,7 +142,6 @@ class EmployeeDashboardTests(BaseSeleniumTestCase):
             company_name='Test Company'
         )
         
-        # Create some test jobs
         Job.objects.create(
             name='Test Job 1',
             description='This is a test job description',
@@ -186,25 +164,20 @@ class EmployeeDashboardTests(BaseSeleniumTestCase):
         
     def test_employee_dashboard_job_listing(self):
         try:
-            # Login as employee
             self.browser.get(f"{self.live_server_url}{reverse('login')}")
             self.wait_for('input[name="username"]').send_keys('dashemployee')
             self.wait_for('input[name="password"]').send_keys('password')
             self.wait_for_clickable('button[type="submit"]').click()
             
-            # Wait for dashboard to load
             time.sleep(2)
             
-            # We should be on a dashboard page
             self.assertIn('dashboard', self.browser.current_url.lower())
             
-            # Check if any job containers are present - using more general selectors
             job_listings = self.browser.find_elements(By.CSS_SELECTOR, '.job-card, .job-listing, .job, .card')
             
             if len(job_listings) < 2:
                 self.skipTest("Not enough job listings found on the dashboard")
             
-            # Try search functionality if a search input exists
             search_inputs = self.browser.find_elements(By.CSS_SELECTOR, 'input[name="search"], input[type="search"], .search-input')
             
             if len(search_inputs) > 0:
@@ -213,7 +186,6 @@ class EmployeeDashboardTests(BaseSeleniumTestCase):
                 search_input.send_keys('Engineering')
                 search_input.send_keys(Keys.RETURN)
                 
-                # Wait for results to update
                 time.sleep(2)
             else:
                 self.skipTest("No search input found")
@@ -222,17 +194,14 @@ class EmployeeDashboardTests(BaseSeleniumTestCase):
         
     def test_suitable_jobs_tab(self):
         try:
-            # Login as employee
             self.browser.get(f"{self.live_server_url}{reverse('login')}")
             self.wait_for('input[name="username"]').send_keys('dashemployee')
             self.wait_for('input[name="password"]').send_keys('password')
             self.wait_for_clickable('button[type="submit"]').click()
             
-            # Wait for dashboard to load
             time.sleep(2)
             self.assertIn('dashboard', self.browser.current_url.lower())
             
-            # Look for tab links 
             tab_links = self.browser.find_elements(By.CSS_SELECTOR, 'a[href*="tab="], .nav-link, .tab')
             suitable_tab = None
             
@@ -242,13 +211,10 @@ class EmployeeDashboardTests(BaseSeleniumTestCase):
                     break
             
             if suitable_tab:
-                # Click on suitable jobs tab
                 suitable_tab.click()
                 
-                # Wait for suitable jobs to load
                 time.sleep(2)
                 
-                # Look for any job matches with generic selectors
                 job_matches = self.browser.find_elements(By.CSS_SELECTOR, '.job-match, .match-card, .job-card, .card')
                 if len(job_matches) < 1:
                     self.skipTest("No job matches found on suitable jobs tab")
@@ -260,7 +226,6 @@ class EmployeeDashboardTests(BaseSeleniumTestCase):
 
 class JobApplicationTests(BaseSeleniumTestCase):
     def setUp(self):
-        # Create test users
         self.employee = User.objects.create_user(
             username='applicant',
             email='applicant@example.com',
@@ -289,7 +254,6 @@ class JobApplicationTests(BaseSeleniumTestCase):
             company_name='Test Company'
         )
         
-        # Create a test job
         self.job = Job.objects.create(
             name='Developer Position',
             description='Looking for a skilled developer',
@@ -302,35 +266,26 @@ class JobApplicationTests(BaseSeleniumTestCase):
         
     def test_job_application_submission(self):
         try:
-            # Login as employee
             self.browser.get(f"{self.live_server_url}{reverse('login')}")
             self.wait_for('input[name="username"]').send_keys('applicant')
             self.wait_for('input[name="password"]').send_keys('password')
             self.wait_for_clickable('button[type="submit"]').click()
             
-            # Wait for login to complete
             time.sleep(2)
             
-            # Navigate to job detail page
             self.browser.get(f"{self.live_server_url}{reverse('job_detail', args=[self.job.id])}")
             
-            # Wait for page to load
             time.sleep(2)
             
-            # Save screenshot for debugging
             self.browser.save_screenshot('job_detail_page.png')
             
-            # Find apply button with a valid selector
-            apply_buttons = self.browser.find_elements(By.XPATH, 
-                '//button[contains(text(), "Apply")] | //a[contains(text(), "Apply")]')
+            apply_buttons = self.browser.find_elements(By.XPATH, '//button[contains(text(), "Apply")] | //a[contains(text(), "Apply")]')
             
             if not apply_buttons:
-                # Try more generic selectors
                 apply_buttons = self.browser.find_elements(By.CSS_SELECTOR, 
                     '.btn, .button, [type="button"], a.btn')
                 
                 if apply_buttons:
-                    # Look for an apply button by text
                     for button in apply_buttons:
                         if 'apply' in button.text.lower():
                             apply_buttons = [button]
@@ -339,17 +294,13 @@ class JobApplicationTests(BaseSeleniumTestCase):
             if len(apply_buttons) == 0:
                 self.skipTest("No apply button found on job detail page")
             
-            # Click the first apply button
             self.browser.execute_script("arguments[0].click();", apply_buttons[0])
             
-            # Rest of the test...
-            # ...
         except Exception as e:
             self.skipTest(f"Error during job application submission test: {e}")
         
     def test_view_my_applications(self):
         try:
-            # Create an application
             application = JobApplication.objects.create(
                 job=self.job,
                 applicant=self.employee.employee,
@@ -359,30 +310,22 @@ class JobApplicationTests(BaseSeleniumTestCase):
                 status='pending'
             )
             
-            # Login as employee
             self.browser.get(f"{self.live_server_url}{reverse('login')}")
             self.wait_for('input[name="username"]').send_keys('applicant')
             self.wait_for('input[name="password"]').send_keys('password')
             self.wait_for_clickable('button[type="submit"]').click()
             
-            # Wait for login to complete
             time.sleep(2)
             
-            # Navigate to my applications page
             self.browser.get(f"{self.live_server_url}{reverse('my_applications')}")
             
-            # Wait for page to load
             time.sleep(2)
             
-            # Look for application containers with various possible selectors
-            application_items = self.browser.find_elements(By.CSS_SELECTOR, 
-                '.application-item, .application, .application-card, .card, tr')
+            application_items = self.browser.find_elements(By.CSS_SELECTOR, '.application-item, .application, .application-card, .card, tr')
             
             if len(application_items) > 0:
-                # Check if job name appears in any of the elements
                 page_text = self.browser.find_element(By.TAG_NAME, 'body').text
-                self.assertIn('Developer Position', page_text, 
-                              "Job name not found on my applications page")
+                self.assertIn('Developer Position', page_text, "Job name not found on my applications page")
             else:
                 self.skipTest("No application items found on my applications page")
         except Exception as e:

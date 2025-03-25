@@ -1,4 +1,3 @@
-# app/tests/forms/test_more_forms.py
 from django.test import TestCase
 from app.forms import EmployeeAccountUpdateForm
 from app.models import User, Employee
@@ -15,23 +14,20 @@ class MoreFormsTest(TestCase):
         )
         Employee.objects.create(user=self.user, country="US")
     
-    # app/tests/forms/test_more_forms.py
     def test_employee_account_update_form_password_validation(self):
         """Test password validation in EmployeeAccountUpdateForm"""
-        # Test when password2 exists but not password1
         form_data = {
             'first_name': 'Test',
             'last_name': 'User',
             'email': 'test@example.com',
             'country': 'US',
-            # No password1
+            # no password1
             'password2': 'NewPass123'
         }
         form = EmployeeAccountUpdateForm(instance=self.user, data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn('password2', form.errors)  # Changed from password1 to password2
+        self.assertIn('password2', form.errors)
         
-        # Test when passwords don't match
         form_data = {
             'first_name': 'Test',
             'last_name': 'User',
@@ -44,13 +40,12 @@ class MoreFormsTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('password2', form.errors)
         
-        # Test password validation failure
         form_data = {
             'first_name': 'Test',
             'last_name': 'User',
             'email': 'test@example.com',
             'country': 'US',
-            'password1': '123',  # Too short
+            'password1': '123', # too short
             'password2': '123'
         }
         form = EmployeeAccountUpdateForm(instance=self.user, data=form_data)

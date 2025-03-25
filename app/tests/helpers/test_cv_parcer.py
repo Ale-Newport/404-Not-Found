@@ -3,7 +3,6 @@ from unittest.mock import patch, Mock, MagicMock
 from app.helper import is_valid_pdf, extract_text_from_pdf, extract_email, extract_phone_number, extract_name, extract_education, extract_experience, extract_skills, extract_interests, extract_languages, parse_cv
 
 class TestHelperMethods(unittest.TestCase):
-    
     def setUp(self):
         self.sample_text = """
         John Smith

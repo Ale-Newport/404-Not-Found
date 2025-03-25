@@ -1,10 +1,7 @@
-from django.db.models import Q
 from app.models import Job, Employee
 
 class JobMatcher:
-    """
-    Service for matching employees to jobs based on skills and interests
-    """
+    """Service for matching employees to jobs based on skills and interests"""
 
     @staticmethod
     def _parse_skills(skills_text):
@@ -17,7 +14,6 @@ class JobMatcher:
         elif '\n' in skills_text and skills_text.count('\n') > max(skills_text.count(','), skills_text.count(';')):
             separator = '\n'
     
-        # Split, clean, and filter skills
         skills = [skill.strip().lower() for skill in skills_text.split(separator)]
         return [skill for skill in skills if skill]
     
@@ -69,21 +65,18 @@ class JobMatcher:
         return False
 
     @staticmethod
-    def calculate_match_score(employee_skills, job_required_skills, 
-            job_preferred_skills = None, employee_preferred_contract = None, job_type = None):
-        """
-        Returns a match score from 0-100, list of skills that matched, list of required skills candidate is missing
-        """
+    def calculate_match_score(employee_skills, job_required_skills, job_preferred_skills = None, employee_preferred_contract = None, job_type = None):
+        """Returns a match score from 0-100, list of skills that matched, list of required skills candidate is missing"""
         
         employee_skills_list = JobMatcher._parse_skills(employee_skills)
         job_required_list = JobMatcher._parse_skills(job_required_skills)
         job_preferred_list = JobMatcher._parse_skills(job_preferred_skills)
 
         if not employee_skills_list:
-            return 15.0, [], job_required_list #base score of 15 for employees with no skills
+            return 15.0, [], job_required_list
         
         if not job_required_list and not job_preferred_skills:
-            return 50.0, employee_skills_list, [] #if job has no skills, average score of 50
+            return 50.0, employee_skills_list, []
         
         required_matches = [skill for skill in job_required_list if JobMatcher._skill_matches(skill, employee_skills_list)]
         preferred_matches = [skill for skill in job_preferred_list if JobMatcher._skill_matches(skill, employee_skills_list)]
@@ -94,9 +87,8 @@ class JobMatcher:
 
                
         if job_required_list and job_preferred_list:
-            required_weight = 0.7  #70% of score from required skills
-            preferred_weight = 0.3  #30% of score from preferred skills
-        #if either missing, 100% score from present skills
+            required_weight = 0.7
+            preferred_weight = 0.3
         elif job_required_list:
             required_weight = 1.0
             preferred_weight = 0.0
@@ -106,22 +98,17 @@ class JobMatcher:
         
         skill_score = (required_match_pct * required_weight + preferred_match_pct * preferred_weight) * 90
         
-        #add contract type bonus if matching 
         contract_bonus = 0
         if employee_preferred_contract and job_type and employee_preferred_contract == job_type:
             contract_bonus = 10
         
-        #calculate final score (cap at 100)
         final_score = min(100, skill_score + contract_bonus)
-        
-        #combine matching skills lists
         all_matches = required_matches + [s for s in preferred_matches if s not in required_matches]
         
         return round(final_score, 1), all_matches, missing_required
     
     @staticmethod
     def match_employee_to_jobs(employee, jobs = None):
-        #if no specific jobs provided, use all
         if jobs is None:
             jobs = Job.objects.all()
 
@@ -148,7 +135,6 @@ class JobMatcher:
 
     @staticmethod
     def match_job_to_employees(job, employees=None):
-        #if no specific employees provided, use all
         if employees is None:
             employees = Employee.objects.all()
         

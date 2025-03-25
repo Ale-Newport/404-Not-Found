@@ -112,7 +112,7 @@ class ApplicationReviewTest(TestCase):
             reverse('update_application_status', args=[self.application.id]),
             {'status': 'reviewing'}
         )
-        self.assertEqual(response.status_code, 302)  # Redirect expected
+        self.assertEqual(response.status_code, 302)
         
         self.application.refresh_from_db()
         self.assertEqual(self.application.status, 'pending')

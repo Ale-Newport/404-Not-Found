@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.messages import get_messages
 from app.models import User, Employee, Employer, Job, JobApplication
 from decimal import Decimal
@@ -9,7 +8,6 @@ import os
 
 class EdgeCaseJobApplicationTest(TestCase):
     def setUp(self):
-        # Create users
         self.employee_user = User.objects.create_user(
             username="@jobseeker",
             email="jobseeker@test.com",
@@ -38,7 +36,6 @@ class EdgeCaseJobApplicationTest(TestCase):
             company_name="Test Corp"
         )
         
-        # Create a job
         self.job = Job.objects.create(
             name="Test Job",
             department="Engineering",
@@ -49,7 +46,6 @@ class EdgeCaseJobApplicationTest(TestCase):
             created_by=self.employer
         )
         
-        # Create clients
         self.employee_client = Client()
         self.employer_client = Client()
         self.anonymous_client = Client()
@@ -57,7 +53,7 @@ class EdgeCaseJobApplicationTest(TestCase):
     def test_invalid_job_id(self):
         """Test accessing job detail page with invalid job ID"""
         self.employee_client.login(username="@jobseeker", password="testpass123")
-        url = reverse('job_detail', args=[99999])  # Non-existent job ID
+        url = reverse('job_detail', args=[99999])  # non-existent job ID
         response = self.employee_client.get(url)
         
         self.assertEqual(response.status_code, 404)
@@ -65,7 +61,7 @@ class EdgeCaseJobApplicationTest(TestCase):
     def test_invalid_application_id(self):
         """Test updating status for invalid application ID"""
         self.employer_client.login(username="@employer", password="testpass123")
-        url = reverse('update_application_status', args=[99999])  # Non-existent application ID
+        url = reverse('update_application_status', args=[99999])  # non-existent application ID
         response = self.employer_client.post(url, {'status': 'accepted'})
         
         self.assertEqual(response.status_code, 404)
@@ -75,7 +71,6 @@ class EdgeCaseJobApplicationTest(TestCase):
         self.employee_client.login(username="@jobseeker", password="testpass123")
         url = reverse('apply_job', args=[self.job.id])
         
-        # Create large test file (5MB)
         large_file_content = b'x' * (5 * 1024 * 1024)
         large_file = SimpleUploadedFile("large_cv.pdf", large_file_content, content_type="application/pdf")
         
@@ -87,8 +82,6 @@ class EdgeCaseJobApplicationTest(TestCase):
         }
         
         response = self.employee_client.post(url, data)
-        
-        # Application should still be created
         self.assertEqual(response.status_code, 302)
         self.assertEqual(JobApplication.objects.count(), 1)
         
@@ -97,7 +90,6 @@ class EdgeCaseJobApplicationTest(TestCase):
         self.employee_client.login(username="@jobseeker", password="testpass123")
         url = reverse('apply_job', args=[self.job.id])
         
-        # Create file with invalid extension
         invalid_file = SimpleUploadedFile("script.js", b"alert('test')", content_type="application/javascript")
         
         data = {
@@ -107,7 +99,6 @@ class EdgeCaseJobApplicationTest(TestCase):
             'custom_cv': invalid_file
         }
         
-        # Application should still be created - Django doesn't check file extensions by default
         response = self.employee_client.post(url, data)
         self.assertEqual(response.status_code, 302)
         
@@ -116,7 +107,6 @@ class EdgeCaseJobApplicationTest(TestCase):
         self.employee_client.login(username="@jobseeker", password="testpass123")
         url = reverse('apply_job', args=[self.job.id])
         
-        # Missing cover letter
         data = {
             'full_name': 'Job Seeker',
             'email': 'jobseeker@test.com'
@@ -124,18 +114,15 @@ class EdgeCaseJobApplicationTest(TestCase):
         
         response = self.employee_client.post(url, data)
         
-        # Application should still be created since form validation happens at the model level
         self.assertEqual(response.status_code, 302)
         
     def tearDown(self):
-        # Clean up any uploaded files
         for application in JobApplication.objects.all():
             if application.custom_cv and os.path.isfile(application.custom_cv.path):
                 os.remove(application.custom_cv.path)
 
 class ApplicationWorkflowTest(TestCase):
     def setUp(self):
-        # Create users
         self.employee_user = User.objects.create_user(
             username="@jobseeker",
             email="jobseeker@test.com",
@@ -164,11 +151,10 @@ class ApplicationWorkflowTest(TestCase):
             company_name="Test Corp"
         )
         
-        # Create jobs and applications for testing pagination and filters
         self.jobs = []
         self.applications = []
         
-        for i in range(15):  # Create 15 jobs for pagination testing
+        for i in range(15):
             job = Job.objects.create(
                 name=f"Job {i}",
                 department="Engineering",
@@ -180,7 +166,6 @@ class ApplicationWorkflowTest(TestCase):
             )
             self.jobs.append(job)
             
-            # Create application for some jobs
             if i % 3 == 0:
                 application = JobApplication.objects.create(
                     job=job,
@@ -192,7 +177,6 @@ class ApplicationWorkflowTest(TestCase):
                 )
                 self.applications.append(application)
         
-        # Create clients
         self.employee_client = Client()
         self.employer_client = Client()
         
@@ -201,15 +185,12 @@ class ApplicationWorkflowTest(TestCase):
         self.employee_client.login(username="@jobseeker", password="testpass123")
         url = reverse('employee_dashboard')
         
-        # Default page should have 10 jobs (if paginated by 10)
         response = self.employee_client.get(url)
         self.assertEqual(response.status_code, 200)
         
-        # Check if pagination is working
         if hasattr(response.context['jobs'], 'paginator'):
             self.assertLessEqual(len(response.context['jobs']), 10)
             
-            # Check second page
             response = self.employee_client.get(f"{url}?page=2")
             self.assertEqual(response.status_code, 200)
             self.assertGreater(len(response.context['jobs']), 0)
@@ -219,11 +200,9 @@ class ApplicationWorkflowTest(TestCase):
         self.employee_client.login(username="@jobseeker", password="testpass123")
         url = reverse('employee_dashboard')
         
-        # Test combining filters
         response = self.employee_client.get(f"{url}?job_type=PT&min_salary=55000")
         self.assertEqual(response.status_code, 200)
         
-        # Should only get part-time jobs with salary >= 55000
         for job in response.context['jobs']:
             self.assertEqual(job.job_type, "PT")
             self.assertGreaterEqual(job.salary, Decimal("55000.00"))
@@ -237,19 +216,16 @@ class ApplicationWorkflowTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['applications']), len(self.applications))
         
-        # Check that applications are for the logged in employee
         for application in response.context['applications']:
             self.assertEqual(application.applicant, self.employee)
     
     def test_status_transition_messages(self):
         """Test that appropriate messages appear when status changes"""
-        # Get the first application
         application = self.applications[0]
         
         self.employer_client.login(username="@employer", password="testpass123")
         url = reverse('update_application_status', args=[application.id])
         
-        # Update status and check for message
         response = self.employer_client.post(url, {'status': 'reviewing'}, follow=True)
         messages = list(get_messages(response.wsgi_request))
         
@@ -257,7 +233,6 @@ class ApplicationWorkflowTest(TestCase):
         status_message_found = any('updated to reviewing' in msg for msg in message_texts)
         self.assertTrue(status_message_found)
         
-        # Update to accepted
         response = self.employer_client.post(url, {'status': 'accepted'}, follow=True)
         messages = list(get_messages(response.wsgi_request))
         
@@ -267,28 +242,23 @@ class ApplicationWorkflowTest(TestCase):
     
     def test_filter_by_status_my_applications(self):
         """Test filtering applications by status in my_applications view"""
-        # Skip if there are no applications
         if not self.applications:
             self.skipTest("No applications available to test")
             return
         
-        # Update application status
         application = self.applications[0]
         application.status = 'accepted'
         application.save()
         
-        # Refresh from database
         application.refresh_from_db()
         self.assertEqual(application.status, 'accepted')
         
         self.employee_client.login(username="@jobseeker", password="testpass123")
         url = reverse('my_applications')
         
-        # Filter by accepted
         response = self.employee_client.get(f"{url}?status=accepted")
         self.assertEqual(response.status_code, 200)
         
-        # Check that applications are filtered correctly
         has_accepted = False
         for app in response.context['applications']:
             if app.status == 'accepted':
@@ -303,11 +273,9 @@ class ApplicationWorkflowTest(TestCase):
         
         response = self.employer_client.get(url)
         
-        # Should redirect with access denied message
         self.assertEqual(response.status_code, 302)
     
     def tearDown(self):
-        # Clean up any uploaded files
         for application in JobApplication.objects.all():
             if application.custom_cv and os.path.isfile(application.custom_cv.path):
                 os.remove(application.custom_cv.path)

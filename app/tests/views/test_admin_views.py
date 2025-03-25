@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from app.models import User, Admin, Employee, Employer, Job
-from django.core.paginator import Paginator
 from app.forms import UserForm, JobForm
 
 class AdminViewsTest(TestCase):
