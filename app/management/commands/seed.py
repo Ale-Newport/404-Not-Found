@@ -12,8 +12,8 @@ class Command(BaseCommand):
     help = "Seed the database with initial data"
 
     USER_COUNT = 100
-    JOB_COUNT = 100
-    APPLICATION_COUNT = 200
+    JOB_COUNT = 200
+    APPLICATION_COUNT = 500
     DEFAULT_PASSWORD = 'Password123'
 
     SKILL_CATEGORIES = {
