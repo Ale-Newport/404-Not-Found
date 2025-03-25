@@ -1,6 +1,5 @@
 from django.test import TestCase
 from app.forms import EmployeeSignUpForm, EmployerSignUpForm
-from app.models import User, Employee, Employer, Admin, Job
 from unittest.mock import patch
 
 class SignUpFormsTest(TestCase):
@@ -27,23 +26,23 @@ class SignUpFormsTest(TestCase):
             'company_name': 'Smith & Co'
         }
 
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employee_form_valid_data(self, mock_captcha):
         form = EmployeeSignUpForm(data=self.employee_data)
         self.assertTrue(form.is_valid())
 
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_form_valid_data(self, mock_captcha):
         form = EmployerSignUpForm(data=self.employer_data)
         self.assertTrue(form.is_valid())
 
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employee_form_no_data(self, mock_captcha):
         form = EmployeeSignUpForm(data={})
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.errors), 7)
 
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_form_no_data(self, mock_captcha):
         form = EmployerSignUpForm(data={})
         self.assertFalse(form.is_valid())

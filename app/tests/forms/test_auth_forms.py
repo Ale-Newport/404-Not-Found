@@ -1,12 +1,10 @@
-# app/tests/forms/test_auth_forms.py
 from django.test import TestCase
 from app.forms import LogInForm, PasswordResetRequestForm, SetNewPasswordForm
 from app.models import User, Employee
-from django.contrib.auth import authenticate
+from unittest.mock import patch
 
 class AuthFormsTest(TestCase):
     def setUp(self):
-        # Create a test user
         self.user = User.objects.create_user(
             username="@testuser",
             email="test@example.com",
@@ -29,7 +27,6 @@ class AuthFormsTest(TestCase):
         form = LogInForm(data=form_data)
         self.assertTrue(form.is_valid())
         
-        # Test get_user method
         user = form.get_user()
         self.assertEqual(user, self.user)
         
@@ -40,9 +37,8 @@ class AuthFormsTest(TestCase):
             'password': 'WrongPassword'
         }
         form = LogInForm(data=form_data)
-        self.assertTrue(form.is_valid())  # Form validation doesn't check auth
+        self.assertTrue(form.is_valid())
         
-        # But get_user should return None
         user = form.get_user()
         self.assertIsNone(user)
         
@@ -55,21 +51,15 @@ class AuthFormsTest(TestCase):
         form = LogInForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn('password', form.errors)
-        
-        # app/tests/forms/test_auth_forms.py
-    def test_password_reset_request_form_valid(self):
+    
+    @patch('app.forms.auth_forms.ReCaptchaField.clean', return_value=True)
+    def test_password_reset_request_form_valid(self, mock_recaptcha):
         """Test password reset request form with valid email"""
-        from unittest.mock import patch
-        from app.forms import PasswordResetRequestForm
-        
-        # Completely skip the ReCaptcha validation
-        with patch('app.forms.forms.ReCaptchaField.clean', return_value=True):
-            form_data = {
-                'email': 'test@example.com',
-                'captcha': 'PASSED'
-            }
-            form = PasswordResetRequestForm(data=form_data)
-            self.assertTrue(form.is_valid())
+        form_data = {
+            'email': 'test@example.com'
+        }
+        form = PasswordResetRequestForm(data=form_data)
+        self.assertTrue(form.is_valid())
         
     def test_set_new_password_form_valid(self):
         """Test set new password form with valid passwords"""
@@ -88,4 +78,4 @@ class AuthFormsTest(TestCase):
         }
         form = SetNewPasswordForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn('__all__', form.errors)  # Form-wide error
+        self.assertIn('__all__', form.errors) # Form-wide error

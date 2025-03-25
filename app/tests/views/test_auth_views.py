@@ -1,8 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from app.models import User, Employee, Employer, Admin, VerificationCode
-from django.contrib.auth import get_user_model
-from django.core import mail
+from app.models import User, VerificationCode
 from unittest.mock import patch
 
 class PasswordResetTests(TestCase):
@@ -25,9 +23,10 @@ class PasswordResetTests(TestCase):
         """Test that the password reset request page loads"""
         response = self.client.get(self.password_reset_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'password_reset.html')
+        self.assertTemplateUsed(response, 'account/password_reset.html')
     
-    def test_password_reset_request_submission(self):
+    @patch('app.forms.auth_forms.ReCaptchaField.clean', return_value=True)
+    def test_password_reset_request_submission(self, mock_recaptcha):
         """Test submitting a password reset request"""
         from unittest.mock import patch, Mock
         from app.forms import PasswordResetRequestForm
@@ -36,14 +35,12 @@ class PasswordResetTests(TestCase):
         mock_form.is_valid.return_value = True
         mock_form.cleaned_data = {'email': 'test@example.com'}
         
-        with patch('app.views.views.PasswordResetRequestForm', return_value=mock_form):
-            response = self.client.post(self.password_reset_url, {
-                'email': 'test@example.com',
-                'captcha': 'PASSED'
-            })
-            
-            self.assertEqual(response.status_code, 200)
-            self.assertTemplateUsed(response, 'password_reset.html')
+        response = self.client.post(self.password_reset_url, {
+            'email': 'test@example.com',
+        })
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertTemplateUsed(response, 'account/password_reset_email.html')
         
     def test_verify_reset_code_page(self):
         """Test that verify reset code page loads when session data exists"""
@@ -53,7 +50,7 @@ class PasswordResetTests(TestCase):
         
         response = self.client.get(self.verify_code_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'verify_reset_code.html')
+        self.assertTemplateUsed(response, 'account/verify_reset_code.html')
         
     def test_verify_reset_code_without_session(self):
         """Test that verify reset code redirects when no session data"""
@@ -90,7 +87,7 @@ class PasswordResetTests(TestCase):
         
         response = self.client.get(self.set_password_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'set_new_password.html')
+        self.assertTemplateUsed(response, 'account/set_new_password.html')
         
     def test_set_new_password_submission(self):
         """Test setting a new password"""
@@ -122,7 +119,7 @@ class EmployeeSignupTests(TestCase):
         """Test that the signup page loads correctly"""
         response = self.client.get(self.signup_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertTemplateUsed(response, 'employee/employee_signup.html')
         self.assertEqual(response.context['step'], 1)
     
     def test_valid_signup_submission(self):
@@ -139,7 +136,7 @@ class EmployeeSignupTests(TestCase):
         
         response = self.client.post(self.signup_url, data)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'employee_signup.html')
+        self.assertTemplateUsed(response, 'employee/employee_signup.html')
         
     def test_verify_email_page(self):
         """Test that verify email page loads when session data exists"""
@@ -157,10 +154,10 @@ class EmployeeSignupTests(TestCase):
         
         response = self.client.get(self.verify_email_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'verify_email.html')
+        self.assertTemplateUsed(response, 'account/verify_email.html')
         
     def test_verify_email_without_session(self):
         """Test that verify email redirects when no session data"""
         response = self.client.get(self.verify_email_url)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('employee_signup'))
+        self.assertEqual(response.url, reverse('login'))

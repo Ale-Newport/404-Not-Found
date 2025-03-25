@@ -1,5 +1,3 @@
-import os
-import tempfile
 from django.test import TestCase
 from app.helper import (
     extract_text_from_pdf, extract_email, extract_phone_number,

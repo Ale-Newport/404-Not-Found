@@ -64,22 +64,26 @@ class UserDelegationMixin:
 class UserProfileMixin:
     @classmethod
     def create_base_user(cls, username, email, password, first_name, last_name, user_type, **extra_fields):
-        extra_fields.setdefault('user_type', user_type)
-        
-        user = User.objects.create_user(
-            username=username, 
-            email=email, 
-            password=password,
-            first_name=first_name, 
-            last_name=last_name, 
-            **extra_fields
-        )
-        
         profile_fields = {}
         for field in cls._meta.fields:
             field_name = field.name
             if field_name != 'user' and field_name in extra_fields:
                 profile_fields[field_name] = extra_fields.pop(field_name)
+        
+        user_fields = {
+            'username': username, 
+            'email': email, 
+            'password': password,
+            'first_name': first_name, 
+            'last_name': last_name, 
+            'user_type': user_type
+        }
+        
+        for key, value in extra_fields.items():
+            if hasattr(User, key):
+                user_fields[key] = value
+        
+        user = User.objects.create_user(**user_fields)
         
         profile = cls.objects.create(user=user, **profile_fields)
         return profile

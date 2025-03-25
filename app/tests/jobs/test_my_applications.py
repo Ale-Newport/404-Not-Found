@@ -1,4 +1,3 @@
-# tests/test_my_applications.py
 from django.test import TestCase, Client
 from django.urls import reverse
 from app.models import User, Employee, Employer, Job, JobApplication
@@ -6,7 +5,6 @@ from decimal import Decimal
 
 class MyApplicationsTest(TestCase):
     def setUp(self):
-        # Create employer
         self.employer = User.objects.create_user(
             username="@employer",
             email="employer@test.com",
@@ -21,7 +19,6 @@ class MyApplicationsTest(TestCase):
             country="US"
         )
         
-        # Create employee
         self.employee = User.objects.create_user(
             username="@employee",
             email="employee@test.com",
@@ -36,7 +33,6 @@ class MyApplicationsTest(TestCase):
             skills="Python, Django"
         )
         
-        # Create jobs
         self.job1 = Job.objects.create(
             name="Backend Developer",
             department="Engineering",
@@ -57,7 +53,6 @@ class MyApplicationsTest(TestCase):
             created_by=self.employer.employer
         )
         
-        # Create applications
         self.application1 = JobApplication.objects.create(
             job=self.job1,
             applicant=self.employee.employee,
@@ -83,7 +78,7 @@ class MyApplicationsTest(TestCase):
         self.client.login(username="@employee", password="testpass123")
         response = self.client.get(reverse('my_applications'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'my_applications.html')
+        self.assertTemplateUsed(response, 'job/my_applications.html')
         self.assertContains(response, "Backend Developer")
         self.assertContains(response, "Frontend Developer")
         
@@ -96,21 +91,18 @@ class MyApplicationsTest(TestCase):
         
     def test_status_updates_reflected(self):
         """Test that status updates are reflected in my applications view"""
-        # Update application status
         self.client.login(username="@employer", password="testpass123")
         self.client.post(
             reverse('update_application_status', args=[self.application1.id]),
             {'status': 'accepted'}
         )
         
-        # Check if status update is reflected
         self.client.login(username="@employee", password="testpass123")
         response = self.client.get(reverse('my_applications'))
         self.assertContains(response, "Accepted")
         
     def test_empty_applications(self):
         """Test view when no applications exist"""
-        # Create new employee with no applications
         new_employee = User.objects.create_user(
             username="@newemployee",
             email="newemployee@test.com",
@@ -124,11 +116,8 @@ class MyApplicationsTest(TestCase):
             country="US"
         )
         
-        # Log in as new employee
         self.client.login(username="@newemployee", password="testpass123")
         response = self.client.get(reverse('my_applications'))
-        
-        # Should show "No applications yet" message
         self.assertContains(response, "No applications yet")
         self.assertContains(response, "Browse Jobs")
         
@@ -136,6 +125,4 @@ class MyApplicationsTest(TestCase):
         """Test that employers cannot access my applications"""
         self.client.login(username="@employer", password="testpass123")
         response = self.client.get(reverse('my_applications'))
-        
-        # Should redirect with access denied message
         self.assertEqual(response.status_code, 302)

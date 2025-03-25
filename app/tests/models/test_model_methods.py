@@ -1,7 +1,5 @@
 from django.test import TestCase
-from app.models import User, Admin, Employee, Employer, VerificationCode, Job, JobApplication
-from datetime import timedelta
-from django.utils import timezone
+from app.models import User, Admin, Employee, Employer, VerificationCode
 
 class VerificationCodeModelTests(TestCase):
     def setUp(self):

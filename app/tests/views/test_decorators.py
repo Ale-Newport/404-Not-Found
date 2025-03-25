@@ -5,7 +5,6 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.http import HttpResponse
 from app.decorators import user_type_required
 from app.models import User, Admin, Employee, Employer
-from django.urls import reverse
 
 class UserTypeRequiredDecoratorTests(TestCase):
     def setUp(self):
@@ -44,6 +43,14 @@ class UserTypeRequiredDecoratorTests(TestCase):
         @user_type_required('admin')
         def admin_view(request):
             return HttpResponse("Admin view")
+        
+        @user_type_required('employee')
+        def employee_view(request):
+            return HttpResponse("Employee view")
+        
+        @user_type_required('employer')
+        def employer_view(request):
+            return HttpResponse("Employer view")
             
         @user_type_required(['employer', 'admin'])
         def multi_view(request):
@@ -52,9 +59,11 @@ class UserTypeRequiredDecoratorTests(TestCase):
         @user_type_required(['admin', 'employee'])
         def multi_type_view(request):
             return HttpResponse("Multi-type view")
-            
-        self.multi_type_view = multi_type_view
+        
         self.admin_view = admin_view
+        self.employee_view = employee_view
+        self.employer_view = employer_view
+        self.multi_type_view = multi_type_view
         self.multi_view = multi_view
         
     def add_middleware(self, request):
@@ -87,6 +96,27 @@ class UserTypeRequiredDecoratorTests(TestCase):
         
         response = self.admin_view(request)
         self.assertEqual(response.status_code, 302)
+        self.assertTrue('/employee/' in response.url)
+
+    def test_admin_only_view_with_employer(self):
+        """Test admin-only view with employer user (should redirect)"""
+        request = self.factory.get('/admin-view/')
+        request.user = self.employer_user
+        request = self.add_middleware(request)
+        
+        response = self.admin_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue('/employer/' in response.url)
+
+    def test_employee_only_view_with_admin(self):
+        """Test employee-only view with admin user (should redirect)"""
+        request = self.factory.get('/employee-view/')
+        request.user = self.admin_user
+        request = self.add_middleware(request)
+        
+        response = self.employee_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue('/administrator/' in response.url)
         
     def test_multi_type_view_with_admin(self):
         """Test multi-type view with admin user"""

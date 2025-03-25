@@ -1,4 +1,3 @@
-# tests/test_job_application.py
 from django.test import TestCase, Client
 from django.urls import reverse
 from app.models import User, Employee, Employer, Job, JobApplication
@@ -7,7 +6,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 class JobApplicationTest(TestCase):
     def setUp(self):
-        # Create employer
         self.employer = User.objects.create_user(
             username="@employer",
             email="employer@test.com",
@@ -22,7 +20,6 @@ class JobApplicationTest(TestCase):
             country="US"
         )
         
-        # Create employee
         self.employee = User.objects.create_user(
             username="@employee",
             email="employee@test.com",
@@ -37,7 +34,6 @@ class JobApplicationTest(TestCase):
             skills="Python, Django"
         )
         
-        # Create job
         self.job = Job.objects.create(
             name="Test Job",
             department="Engineering",
@@ -55,7 +51,7 @@ class JobApplicationTest(TestCase):
         self.client.login(username="@employee", password="testpass123")
         response = self.client.get(reverse('job_detail', args=[self.job.id]))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'job_detail.html')
+        self.assertTemplateUsed(response, 'job/job_detail.html')
         self.assertContains(response, "Apply Now")
         
     def test_apply_to_job(self):
@@ -77,10 +73,7 @@ class JobApplicationTest(TestCase):
             application_data
         )
         
-        # Should redirect to employee dashboard
         self.assertEqual(response.status_code, 302)
-        
-        # Check if application was created
         self.assertTrue(JobApplication.objects.filter(
             job=self.job,
             applicant=self.employee.employee
@@ -90,7 +83,6 @@ class JobApplicationTest(TestCase):
         """Test submitting a job application with CV upload"""
         self.client.login(username="@employee", password="testpass123")
         
-        # Create a simple uploaded file
         cv_file = SimpleUploadedFile(
             "test_cv.pdf",
             b"file_content",
@@ -112,11 +104,8 @@ class JobApplicationTest(TestCase):
             reverse('apply_job', args=[self.job.id]),
             application_data
         )
-        
-        # Should redirect to employee dashboard
         self.assertEqual(response.status_code, 302)
         
-        # Check if application was created with CV
         application = JobApplication.objects.get(
             job=self.job,
             applicant=self.employee.employee
@@ -127,14 +116,12 @@ class JobApplicationTest(TestCase):
         """Test that employee cannot apply to the same job twice"""
         self.client.login(username="@employee", password="testpass123")
         
-        # Create initial application
         JobApplication.objects.create(
             job=self.job,
             applicant=self.employee.employee,
             cover_letter="Initial application"
         )
         
-        # Try to apply again
         application_data = {
             'cover_letter': 'Second application attempt',
             'full_name': 'Test Employee',
@@ -147,11 +134,8 @@ class JobApplicationTest(TestCase):
             reverse('apply_job', args=[self.job.id]),
             application_data
         )
-        
-        # Should redirect but with warning message
         self.assertEqual(response.status_code, 302)
         
-        # Check that only one application exists
         self.assertEqual(
             JobApplication.objects.filter(
                 job=self.job,

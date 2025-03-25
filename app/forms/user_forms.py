@@ -37,23 +37,14 @@ class UserForm(UserCreationForm):
     languages = forms.CharField(widget=forms.Textarea, required=False)
     phone = forms.CharField(max_length=20, required=False)
     interests = forms.CharField(widget=forms.Textarea, required=False)
-    preferred_contract = forms.ChoiceField(
-        choices=[('FT', 'Full Time'), ('PT', 'Part Time')],
-        required=False
-    )
+    preferred_contract = forms.ChoiceField(choices=[('FT', 'Full Time'), ('PT', 'Part Time')], required=False)
     
     # Fields specific to Employer
     company_name = forms.CharField(max_length=255, required=False)
     
     # Fields specific to Admin
-    is_staff = forms.ChoiceField(
-        choices=[(True, 'True'), (False, 'False')],
-        initial=False
-    )
-    is_superuser = forms.ChoiceField(
-        choices=[(True, 'True'), (False, 'False')],
-        initial=False
-    )
+    is_staff = forms.ChoiceField(choices=[(True, 'True'), (False, 'False')], initial=False, required=False)
+    is_superuser = forms.ChoiceField(choices=[(True, 'True'), (False, 'False')], initial=False, required=False)
 
     class Meta:
         model = User

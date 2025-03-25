@@ -1,8 +1,8 @@
-import os
-from unittest.mock import patch
 from django.test import TestCase
 from django.urls import reverse, resolve
-from app.views import views, employer_views, admin_views
+from app.views import base_views, auth_views, employee_views, employer_views, admin_views
+from django.test import override_settings
+from unittest.mock import patch
 
 class UrlsTest(TestCase):
     def test_home_url(self):
@@ -10,42 +10,42 @@ class UrlsTest(TestCase):
         url = reverse('home')
         self.assertEqual(url, '/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.home)
+        self.assertEqual(resolver.func, base_views.home)
         
     def test_login_url(self):
         """Test login URL pattern"""
         url = reverse('login')
         self.assertEqual(url, '/login/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.user_login)
+        self.assertEqual(resolver.func, auth_views.user_login)
         
     def test_logout_url(self):
         """Test logout URL pattern"""
         url = reverse('logout')
         self.assertEqual(url, '/logout/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.log_out)
+        self.assertEqual(resolver.func, auth_views.log_out)
         
     def test_employee_signup_url(self):
         """Test employee signup URL pattern"""
         url = reverse('employee_signup')
         self.assertEqual(url, '/employee/signup/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.employee_signup)
+        self.assertEqual(resolver.func, employee_views.employee_signup)
         
     def test_employer_signup_url(self):
         """Test employer signup URL pattern"""
         url = reverse('employer_signup')
         self.assertEqual(url, '/employer/signup/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.employer_signup)
+        self.assertEqual(resolver.func, employer_views.employer_signup)
         
     def test_employee_dashboard_url(self):
         """Test employee dashboard URL pattern"""
         url = reverse('employee_dashboard')
         self.assertEqual(url, '/employee/dashboard/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.employee_dashboard)
+        self.assertEqual(resolver.func, employee_views.employee_dashboard)
         
     def test_employer_dashboard_url(self):
         """Test employer dashboard URL pattern"""
@@ -59,35 +59,35 @@ class UrlsTest(TestCase):
         url = reverse('admin_dashboard')
         self.assertEqual(url, '/administrator/dashboard/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, admin_views.dashboard)
+        self.assertEqual(resolver.func, admin_views.admin_dashboard)
         
     def test_job_detail_url(self):
         """Test job detail URL pattern"""
         url = reverse('job_detail', args=[1])
-        self.assertEqual(url, '/job/1/')
+        self.assertEqual(url, '/employer/job/1/')
         resolver = resolve(url)
         self.assertEqual(resolver.func, employer_views.job_detail)
         
     def test_apply_job_url(self):
         """Test apply job URL pattern"""
         url = reverse('apply_job', args=[1])
-        self.assertEqual(url, '/job/1/apply/')
+        self.assertEqual(url, '/employee/job/1/apply/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.apply_to_job)
+        self.assertEqual(resolver.func, employee_views.apply_to_job)
         
     def test_my_applications_url(self):
         """Test my applications URL pattern"""
         url = reverse('my_applications')
         self.assertEqual(url, '/employee/applications/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.my_applications)
+        self.assertEqual(resolver.func, employee_views.my_applications)
 
     def test_update_application_status_url(self):
         """Test update application status URL pattern"""
         url = reverse('update_application_status', args=[1])
-        self.assertEqual(url, '/application/1/update/')
+        self.assertEqual(url, '/employer/update-application/1/')
         resolver = resolve(url)
-        self.assertEqual(resolver.func, views.update_application_status)
+        self.assertEqual(resolver.func, employer_views.update_application_status)
     
     def test_static_urls_in_debug_mode(self):
         """Test static URLs when DEBUG is True"""
@@ -103,10 +103,6 @@ class UrlsTest(TestCase):
             self.assertTrue(len(static_urls) > 0)
         finally:
             settings.DEBUG = original_debug
-
-    from django.test import override_settings
-    import os
-    from unittest.mock import patch
 
     def test_debug_static_urls(self):
         """Test static URLs configuration with DEBUG=True"""

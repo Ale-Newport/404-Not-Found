@@ -1,6 +1,5 @@
 from django.test import TestCase
 from app.models import User, Admin, Employee, Employer
-from django.core.exceptions import ValidationError
 
 class UserCreationTest(TestCase):
     def setUp(self):
@@ -120,3 +119,209 @@ class UserCreationTest(TestCase):
     def test_admin_user_str(self):
         """Test the string representation of admin user"""
         self.assertEqual(str(self.admin), f"{self.admin.user.username} (Admin)")
+
+
+class UserDelegationMixinTest(TestCase):
+    """Test the UserDelegationMixin functionality for all user profile types."""
+    
+    def setUp(self):
+        """Set up test data with one instance of each user type."""
+        # Create an admin user for testing
+        self.admin = Admin.objects.create_user(
+            username="@admintest",
+            email="admintest@example.com",
+            password="password123",
+            first_name="Admin",
+            last_name="Tester"
+        )
+        
+        # Create an employee user for testing
+        self.employee = Employee.objects.create_user(
+            username="@employeetest",
+            email="employeetest@example.com",
+            password="password123",
+            first_name="Employee",
+            last_name="Tester",
+            country="US"
+        )
+        
+        # Create an employer user for testing
+        self.employer = Employer.objects.create_user(
+            username="@employertest",
+            email="employertest@example.com",
+            password="password123",
+            first_name="Employer",
+            last_name="Tester",
+            company_name="Test Company",
+            country="UK"
+        )
+    
+    def test_email_property(self):
+        """Test that the email property correctly gets and sets the user's email."""
+        # Test initial property access
+        self.assertEqual(self.admin.email, "admintest@example.com")
+        self.assertEqual(self.employee.email, "employeetest@example.com")
+        self.assertEqual(self.employer.email, "employertest@example.com")
+        
+        # Test setting the property
+        self.admin.email = "newadmin@example.com"
+        self.employee.email = "newemployee@example.com"
+        self.employer.email = "newemployer@example.com"
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertEqual(self.admin.user.email, "newadmin@example.com")
+        self.assertEqual(self.employee.user.email, "newemployee@example.com")
+        self.assertEqual(self.employer.user.email, "newemployer@example.com")
+        
+        # Verify the property getter also returns the updated value
+        self.assertEqual(self.admin.email, "newadmin@example.com")
+        self.assertEqual(self.employee.email, "newemployee@example.com")
+        self.assertEqual(self.employer.email, "newemployer@example.com")
+    
+    def test_first_name_property(self):
+        """Test that the first_name property correctly gets and sets the user's first name."""
+        # Test initial property access
+        self.assertEqual(self.admin.first_name, "Admin")
+        self.assertEqual(self.employee.first_name, "Employee")
+        self.assertEqual(self.employer.first_name, "Employer")
+        
+        # Test setting the property
+        self.admin.first_name = "NewAdmin"
+        self.employee.first_name = "NewEmployee"
+        self.employer.first_name = "NewEmployer"
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertEqual(self.admin.user.first_name, "NewAdmin")
+        self.assertEqual(self.employee.user.first_name, "NewEmployee")
+        self.assertEqual(self.employer.user.first_name, "NewEmployer")
+        
+        # Verify the property getter also returns the updated value
+        self.assertEqual(self.admin.first_name, "NewAdmin")
+        self.assertEqual(self.employee.first_name, "NewEmployee")
+        self.assertEqual(self.employer.first_name, "NewEmployer")
+    
+    def test_last_name_property(self):
+        """Test that the last_name property correctly gets and sets the user's last name."""
+        # Test initial property access
+        self.assertEqual(self.admin.last_name, "Tester")
+        self.assertEqual(self.employee.last_name, "Tester")
+        self.assertEqual(self.employer.last_name, "Tester")
+        
+        # Test setting the property
+        self.admin.last_name = "AdminLast"
+        self.employee.last_name = "EmployeeLast"
+        self.employer.last_name = "EmployerLast"
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertEqual(self.admin.user.last_name, "AdminLast")
+        self.assertEqual(self.employee.user.last_name, "EmployeeLast")
+        self.assertEqual(self.employer.user.last_name, "EmployerLast")
+        
+        # Verify the property getter also returns the updated value
+        self.assertEqual(self.admin.last_name, "AdminLast")
+        self.assertEqual(self.employee.last_name, "EmployeeLast")
+        self.assertEqual(self.employer.last_name, "EmployerLast")
+    
+    def test_is_staff_property(self):
+        """Test that the is_staff property correctly gets and sets the user's staff status."""
+        # Test initial property access
+        self.assertTrue(self.admin.is_staff)  # Admin should be staff by default
+        self.assertFalse(self.employee.is_staff)  # Employee should not be staff by default
+        self.assertFalse(self.employer.is_staff)  # Employer should not be staff by default
+        
+        # Test setting the property
+        self.employee.is_staff = True
+        self.employer.is_staff = True
+        self.admin.is_staff = False  # Setting admin's is_staff to False
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertFalse(self.admin.user.is_staff)
+        self.assertTrue(self.employee.user.is_staff)
+        self.assertTrue(self.employer.user.is_staff)
+        
+        # Verify the property getter also returns the updated value
+        self.assertFalse(self.admin.is_staff)
+        self.assertTrue(self.employee.is_staff)
+        self.assertTrue(self.employer.is_staff)
+    
+    def test_is_superuser_property(self):
+        """Test that the is_superuser property correctly gets and sets the user's superuser status."""
+        # Test initial property access
+        self.assertTrue(self.admin.is_superuser)  # Admin should be superuser by default
+        self.assertFalse(self.employee.is_superuser)  # Employee should not be superuser by default
+        self.assertFalse(self.employer.is_superuser)  # Employer should not be superuser by default
+        
+        # Test setting the property
+        self.employee.is_superuser = True
+        self.employer.is_superuser = True
+        self.admin.is_superuser = False  # Setting admin's is_superuser to False
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertFalse(self.admin.user.is_superuser)
+        self.assertTrue(self.employee.user.is_superuser)
+        self.assertTrue(self.employer.user.is_superuser)
+        
+        # Verify the property getter also returns the updated value
+        self.assertFalse(self.admin.is_superuser)
+        self.assertTrue(self.employee.is_superuser)
+        self.assertTrue(self.employer.is_superuser)
+    
+    def test_is_active_property(self):
+        """Test that the is_active property correctly gets and sets the user's active status."""
+        # Test initial property access (all users should be active by default)
+        self.assertTrue(self.admin.is_active)
+        self.assertTrue(self.employee.is_active)
+        self.assertTrue(self.employer.is_active)
+        
+        # Test setting the property
+        self.admin.is_active = False
+        self.employee.is_active = False
+        self.employer.is_active = False
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertFalse(self.admin.user.is_active)
+        self.assertFalse(self.employee.user.is_active)
+        self.assertFalse(self.employer.user.is_active)
+        
+        # Verify the property getter also returns the updated value
+        self.assertFalse(self.admin.is_active)
+        self.assertFalse(self.employee.is_active)
+        self.assertFalse(self.employer.is_active)
+        
+        # Test setting back to active
+        self.admin.is_active = True
+        self.employee.is_active = True
+        self.employer.is_active = True
+        
+        # Refresh from DB and verify the changes
+        self.admin.user.refresh_from_db()
+        self.employee.user.refresh_from_db()
+        self.employer.user.refresh_from_db()
+        
+        self.assertTrue(self.admin.user.is_active)
+        self.assertTrue(self.employee.user.is_active)
+        self.assertTrue(self.employer.user.is_active)

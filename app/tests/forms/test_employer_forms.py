@@ -41,13 +41,13 @@ class EmployerFormsTest(TestCase):
             'skills_wanted': 'JavaScript, React'
         }
     
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_signup_form_valid(self, mock_recaptcha):
         """Test that the employer signup form is valid with correct data"""
         form = EmployerSignUpForm(data=self.valid_employer_data)
         self.assertTrue(form.is_valid())
     
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_signup_form_password_mismatch(self, mock_recaptcha):
         """Test that passwords must match"""
         data = self.valid_employer_data.copy()
@@ -56,7 +56,7 @@ class EmployerFormsTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('password2', form.errors)
     
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_signup_form_username_validation(self, mock_recaptcha):
         """Test that username must start with @"""
         data = self.valid_employer_data.copy()
@@ -65,7 +65,7 @@ class EmployerFormsTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('username', form.errors)
     
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_signup_form_email_unique(self, mock_recaptcha):
         """Test that email must be unique"""
         data = self.valid_employer_data.copy()
@@ -74,7 +74,7 @@ class EmployerFormsTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('email', form.errors)
     
-    @patch('app.forms.forms.ReCaptchaField.clean', return_value=True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_employer_signup_form_username_unique(self, mock_recaptcha):
         """Test that username must be unique"""
         data = self.valid_employer_data.copy()
