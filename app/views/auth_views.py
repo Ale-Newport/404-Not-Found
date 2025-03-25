@@ -21,13 +21,12 @@ def user_login(request):
     return render(request, 'account/login.html', {'form': form})
 
 def get_redirect(user):
-    if user.user_type == 'employer':
-        return reverse('employer_dashboard')
-    elif user.user_type == 'employee':
-        return reverse('employee_dashboard')
-    elif user.user_type == 'admin':
+    if user.user_type == 'admin':
         return reverse('admin_dashboard')
-    return reverse('login')
+    elif user.user_type == 'employer':
+        return reverse('employer_dashboard')
+    else:
+        return reverse('employee_dashboard')
 
 def log_out(request):
     """Log out the current user"""

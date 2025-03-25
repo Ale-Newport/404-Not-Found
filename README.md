@@ -10,7 +10,7 @@ The members of the team are:
 - *Alejandro Newport Diaz*
 
 ## Project structure
-The project is called ` `.  It currently consists of a single app ` `.
+The project is called `project`.  It currently consists of a single app `app`.
 
 ## Deployed version of the application
 The deployed version of the application can be found at [].

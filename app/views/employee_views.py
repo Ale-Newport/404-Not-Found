@@ -67,7 +67,6 @@ def upload_cv(request):
             
             return redirect("employee_signup_3")
         except Exception as e:
-            print(e)
             return render(request, "employee/employee_signup.html", {"step": 2,})
     return render(request, "employee/employee_signup.html", {"step": 2})
 
