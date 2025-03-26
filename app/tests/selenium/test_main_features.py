@@ -2,14 +2,15 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from app.models import User, Admin, Employee, Employer, VerificationCode
+from app.models import User, Admin, Employee, Employer, VerificationCode, Job
 from unittest.mock import patch
 import os
 from django.conf import settings
 import time
+import re
 
 class SeleniumTests(StaticLiveServerTestCase):
     def setUp(self):
@@ -39,7 +40,14 @@ class SeleniumTests(StaticLiveServerTestCase):
         )
         self.employee = Employee.objects.create(
             user=employee_user,
-            country="US"
+            country="US",
+            phone="+1234567890",
+            skills="Python, Django, Testing",
+            experience="5 years of software development",
+            education="Bachelors in Computer Science",
+            languages="English, Spanish",
+            interests="Web development",
+            preferred_contract="FT"
         )
         
         employer_user = User.objects.create_user(
@@ -293,3 +301,61 @@ class LoginFunctionalTest(SeleniumTests):
         self.browser.get(f'{self.live_server_url}{reverse("logout")}')
 
 
+class JobMatchingWorkflowTest(SeleniumTests):
+    def test_job_matching_workflow(self):
+        # Login as employer
+        self.login(self.employer)
+        self.wait_for_url(reverse("employer_dashboard"))
+        self.browser.get(f'{self.live_server_url}{reverse("add_job")}')
+        
+        # Fill job form
+        self.browser.find_element(By.NAME, 'name').send_keys("Python Developer")
+        self.browser.find_element(By.NAME, 'department').send_keys("Engineering")
+        job_type_select = Select(self.browser.find_element(By.NAME, 'job_type'))
+        job_type_select.select_by_value("FT")
+        self.browser.find_element(By.NAME, 'salary').send_keys("75000")
+        description = self.browser.find_element(By.NAME, 'description')
+        description.send_keys("We're looking for a Python developer with Django experience.")
+        skills_needed = self.browser.find_element(By.NAME, 'skills_needed')
+        skills_needed.send_keys("Python, Django")
+        skills_wanted = self.browser.find_element(By.NAME, 'skills_wanted')
+        skills_wanted.send_keys("Testing")
+        
+        # Submit job form
+        submit_button = self.browser.find_element(By.XPATH, '//button[@type="submit"]')
+        self.browser.execute_script("arguments[0].scrollIntoView(true);", submit_button)
+        self.browser.execute_script("arguments[0].click();", submit_button)
+        
+        # Verify job was created
+        self.wait_for_url(reverse("employer_dashboard"))
+        self.assertEqual(Job.objects.count(), 1)
+        job = Job.objects.first()
+        self.assertEqual(job.name, "Python Developer")
+        
+        # Logout employer
+        self.browser.get(f'{self.live_server_url}{reverse("logout")}')
+        
+        # Login as employee
+        self.login(self.employee)
+        self.wait_for_url(reverse("employee_dashboard"))
+        self.browser.get(f'{self.live_server_url}{reverse("employee_dashboard")}?tab=suitable')
+        
+        # Loop through cards to find our job
+        job_cards = self.browser.find_elements(By.CSS_SELECTOR, ".card-body")
+        job_found = False
+        percentage_value = 0
+        for card in job_cards:
+            if "Python Developer" in card.text:
+                job_found = True
+                try:
+                    match_text = card.find_element(By.CSS_SELECTOR, ".match-score").text
+                    percentage_match = re.search(r'([\d.]+)%\s*match', match_text)
+                    if percentage_match:
+                        percentage_value = float(percentage_match.group(1))
+                    break
+                except Exception as e:
+                    self.fail(f"Match percentage not found in job card: {str(e)}")
+        
+        # Assert job was found
+        self.assertTrue(job_found, "Python Developer job not found in the suitable jobs list")
+        self.assertTrue(percentage_value >= 75, f"Match percentage {percentage_value}% is lower than expected")
