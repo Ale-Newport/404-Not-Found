@@ -173,12 +173,10 @@ class EmployeeViewsTests(TestCase):
         self.assertIsInstance(response.context['form'], EmployeeSignUpForm)
         self.assertEqual(response.context['step'], 1)
     
-    @patch('app.views.employee_views.create_and_send_code_email')
+    @patch('app.views.employee_views.create_and_send_code_email', return_value = True)
     @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
     def test_signup_post_success(self, mock_send_email, mock_recaptcha):
         """Test successful employee signup submission"""
-        mock_send_email.return_value = True
-        
         initial_user_count = User.objects.count()
         form_data = {
             'username': '@newemployee',
@@ -211,8 +209,9 @@ class EmployeeViewsTests(TestCase):
         self.assertTrue('signup_data' in self.client.session)
         self.assertEqual(self.client.session['signup_data']['username'], '@newemployee')
     
-    @patch('app.helper.create_and_send_code_email', return_value=False)
-    def test_signup_post_email_failure(self, mock_send_email):
+    @patch('app.views.employee_views.create_and_send_code_email', return_value = True)
+    @patch('app.forms.user_forms.ReCaptchaField.clean', return_value=True)
+    def test_signup_post_email_failure(self, mock_send_email, mock_recaptcha):
         """Test employee signup when email sending fails"""
         
         initial_user_count = User.objects.count()

@@ -28,8 +28,8 @@ urlpatterns = [
     path('employer/signup/', employer_views.employer_signup, name='employer_signup'),
     path('employee/signup/', employee_views.employee_signup, name='employee_signup'),
     path('verify-email/', verification_views.verify_email, name='verify_email'),
-    path("employee-signup/CV/", employee_views.upload_cv, name="employee_signup_2"),
-    path("employee-signup/CV/parse/", employee_views.review_cv_data, name="employee_signup_3"),
+    path('employee-signup/CV/', employee_views.upload_cv, name='employee_signup_2'),
+    path('employee-signup/CV/parse/', employee_views.review_cv_data, name='employee_signup_3'),
     # Employee routes
     path('employee/dashboard/', employee_views.employee_dashboard, name='employee_dashboard'),
     path('employee/update/', employee_views.employee_update, name='employee_update'),

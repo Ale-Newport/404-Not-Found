@@ -277,8 +277,6 @@ class JobApplicationTests(BaseSeleniumTestCase):
             
             time.sleep(2)
             
-            self.browser.save_screenshot('job_detail_page.png')
-            
             apply_buttons = self.browser.find_elements(By.XPATH, '//button[contains(text(), "Apply")] | //a[contains(text(), "Apply")]')
             
             if not apply_buttons:
