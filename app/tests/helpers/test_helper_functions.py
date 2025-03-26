@@ -52,7 +52,6 @@ class PDFHelperTests(TestCase):
     
     @patch('app.helper.fitz.open')
     def test_is_valid_pdf_success(self, mock_fitz_open):
-        # Test the success case for is_valid_pdf (line 42->41)
         mock_doc = MagicMock()
         mock_doc.__len__.return_value = 1
         mock_fitz_open.return_value = mock_doc
@@ -70,7 +69,6 @@ class PDFHelperTests(TestCase):
     
     @patch('app.helper.pdfplumber.open')
     def test_extract_text_from_pdf_success(self, mock_pdf_open):
-        # Test the success path of extract_text_from_pdf (line 53)
         mock_page = MagicMock()
         mock_page.extract_text.return_value = "Sample text"
         mock_pdf = MagicMock()
@@ -84,7 +82,6 @@ class PDFHelperTests(TestCase):
     
     @patch('app.helper.pdfplumber.open')
     def test_extract_text_from_pdf_failure(self, mock_pdf_open):
-        # Test the failure path of extract_text_from_pdf when an exception occurs (line 53)
         mock_pdf_open.side_effect = Exception("PDF error")
         
         result = extract_text_from_pdf(self.temp_pdf.name)
@@ -103,7 +100,6 @@ class PDFHelperTests(TestCase):
     def test_parse_cv(self, mock_interests, mock_languages, mock_skills, 
                     mock_experience, mock_education, mock_phone, mock_email, 
                     mock_name, mock_extract_text):
-        # Test parse_cv functionality (line 530->533, 534-535)
         mock_extract_text.return_value = self.sample_cv_text
         mock_name.return_value = "John Smith"
         mock_email.return_value = "john.smith@example.com"
@@ -128,18 +124,15 @@ class PDFHelperTests(TestCase):
         mock_extract_text.assert_called_once_with(self.temp_pdf.name)
     
     def test_extract_email(self):
-        # Test extract_email function (line 55)
         self.assertEqual(extract_email("Contact me at john.smith@example.com"), "john.smith@example.com")
         self.assertIsNone(extract_email("No email here"))
     
     def test_extract_phone_number(self):
-        # Test extract_phone_number function (line 58)
         self.assertEqual(extract_phone_number("Call me at +44 123 456 7890"), "+44 123 456")
         self.assertIsNone(extract_phone_number("No phone number here"))
     
     @patch('app.helper.nlp')
     def test_extract_name(self, mock_nlp):
-        # Test extract_name function (line 61->64)
         mock_ent = MagicMock()
         mock_ent.label_ = "PERSON"
         mock_ent.text = "John Smith"
@@ -153,7 +146,6 @@ class PDFHelperTests(TestCase):
     
     @patch('app.helper.nlp')
     def test_extract_name_not_found(self, mock_nlp):
-        # Test extract_name when no name is found (line 63)
         mock_doc = MagicMock()
         mock_doc.ents = []
         mock_nlp.return_value = mock_doc
@@ -162,7 +154,6 @@ class PDFHelperTests(TestCase):
         mock_nlp.assert_called_once_with("No name here")
     
     def test_extract_education(self):
-        # Test extract_education function (line 65->70)
         text = """
         EDUCATION
         Bachelor of Science in Computer Science
@@ -175,7 +166,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("University of Example, 2015-2019", result)
     
     def test_extract_experience(self):
-        # Test extract_experience function (line 71->77)
         text = """
         EXPERIENCE
         Software Developer at Tech Company
@@ -187,7 +177,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("Software Developer at Tech Company", result)
     
     def test_extract_skills_finds_common_skills(self):
-        # Test extract_skills function (line 144, 153, 174)
         text = """
         SKILLS
         • Python
@@ -202,7 +191,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("JavaScript", result)
     
     def test_extract_interests_finds_common_interests(self):
-        # Test extract_interests function (line 258, 261, 264)
         text = """
         INTERESTS
         • Reading
@@ -217,7 +205,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("Photography", result)
     
     def test_extract_languages_finds_common_languages(self):
-        # Test extract_languages function (line 411, 414, 417->438)
         text = """
         LANGUAGES
         • English (Native)
@@ -230,7 +217,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("Spanish (Intermediate)", result)
     
     def test_extract_skills_with_fragment_indicators(self):
-        # Test extract_skills function with fragment indicators (line 276->274)
         text = """
         SKILLS
         • Python including frameworks like Django
@@ -243,7 +229,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("JavaScript", result)
     
     def test_extract_skills_with_context_skills(self):
-        # Test extract_skills with context skills (line 290->286)
         text = """
         SKILLS
         • Vehicle Maintenance
@@ -256,7 +241,6 @@ class PDFHelperTests(TestCase):
         self.assertIn("Customer Service", result)
     
     def test_extract_interests_with_genuine_interests(self):
-        # Test extract_interests with genuine interests (line 312, 330, 332, 334)
         text = """
         ABOUT ME
         I'm interested in photography and travel.
@@ -268,7 +252,6 @@ class PDFHelperTests(TestCase):
                         any("photography" in interest.lower() for interest in result))
     
     def test_extract_languages_with_fluency_patterns(self):
-        # Test extract_languages with fluency patterns (line 423->417, 428->417)
         text = """
         LANGUAGES
         I am fluent in English and have basic knowledge of Spanish.
@@ -280,7 +263,6 @@ class PDFHelperTests(TestCase):
         self.assertTrue(any("Spanish" in lang for lang in result))
     
     def test_extract_languages_without_section(self):
-        # Test extract_languages fallback to English (line 447->444)
         text = """
         This CV is written in English but doesn't have a languages section.
         """
@@ -303,7 +285,6 @@ class EmailHelperTests(TestCase):
     @patch('app.helper.render_to_string')
     @patch('app.helper.Mail')
     def test_create_and_send_code_email_success(self, mock_mail, mock_render, mock_sendgrid):
-        # Test create_and_send_code_email success path (line 462, 467, 469, 471)
         mock_render.return_value = '<html>Email content</html>'
         mock_mail_instance = MagicMock()
         mock_mail.return_value = mock_mail_instance
@@ -333,7 +314,6 @@ class EmailHelperTests(TestCase):
     @patch('app.helper.SendGridAPIClient')
     @patch('app.helper.render_to_string')
     def test_create_and_send_code_email_password_reset(self, mock_render, mock_sendgrid):
-        # Test create_and_send_code_email for password reset (line 469)
         mock_render.return_value = '<html>Email content</html>'
         mock_sg = MagicMock()
         mock_sendgrid.return_value = mock_sg
@@ -353,7 +333,6 @@ class EmailHelperTests(TestCase):
     @patch('app.helper.SendGridAPIClient')
     @patch('app.helper.render_to_string')
     def test_create_and_send_code_email_failure(self, mock_render, mock_sendgrid):
-        # Test create_and_send_code_email failure path (line 471)
         mock_render.side_effect = Exception("Email error")
         
         result = create_and_send_code_email(
@@ -367,7 +346,6 @@ class EmailHelperTests(TestCase):
         self.assertFalse(result)
     
     def test_validate_verification_code_valid(self):
-        # Test validate_verification_code with valid code (line 486)
         # Create a verification code
         code = "123456"
         VerificationCode.objects.create(
@@ -389,7 +367,6 @@ class EmailHelperTests(TestCase):
         self.assertIsNotNone(verification)
     
     def test_validate_verification_code_inactive_user(self):
-        # Test validation with inactive user (line 476)
         code = "123456"
         VerificationCode.objects.create(
             user=self.user,
@@ -409,7 +386,6 @@ class EmailHelperTests(TestCase):
         self.assertEqual(user, self.user)
     
     def test_validate_verification_code_no_user(self):
-        # Test validation when user not found (line 479)
         is_valid, user, verification = validate_verification_code(
             "123456", 
             "nonexistent@example.com", 
@@ -421,7 +397,6 @@ class EmailHelperTests(TestCase):
         self.assertIsNone(verification)
     
     def test_validate_verification_code_used_code(self):
-        # Test validation with used code (line 488)
         code = "123456"
         VerificationCode.objects.create(
             user=self.user,
@@ -441,7 +416,6 @@ class EmailHelperTests(TestCase):
         self.assertIsNone(verification)
     
     def test_validate_verification_code_invalid_code(self):
-        # Test validation with incorrect code (line 488)
         VerificationCode.objects.create(
             user=self.user,
             code="123456",
@@ -461,7 +435,6 @@ class EmailHelperTests(TestCase):
     
     @patch('app.models.VerificationCode.is_valid')
     def test_validate_verification_code_expired(self, mock_is_valid):
-        # Test validation with expired code (line 488)
         mock_is_valid.return_value = False
         
         code = "123456"
@@ -488,7 +461,6 @@ class EmailHelperTests(TestCase):
 
 class ExtractSkillsEdgeCasesTests(TestCase):
     def test_extract_skills_filters_out_non_skills(self):
-        # Test filtering out non-skills (line 293)
         text = """
         SKILLS
         • The way I approach problems
@@ -501,7 +473,6 @@ class ExtractSkillsEdgeCasesTests(TestCase):
         self.assertNotIn("And how I solve them", result)
     
     def test_extract_skills_handles_section_identifiers(self):
-        # Test handling section identifiers (line 310-312)
         text = """
         SKILLS SECTION:
         • Python
@@ -518,7 +489,6 @@ class ExtractSkillsEdgeCasesTests(TestCase):
 
 class ExtractInterestsEdgeCasesTests(TestCase):
     def test_extract_interests_excludes_non_interests(self):
-        # Test excluding non-interests (line 439)
         text = """
         INTERESTS
         • Reading
@@ -531,7 +501,6 @@ class ExtractInterestsEdgeCasesTests(TestCase):
 
 class ExtractLanguagesEdgeCasesTests(TestCase):
     def test_extract_languages_with_direct_mentions(self):
-        # Test extracting languages directly mentioned (line 462)
         text = """
         I am fluent in English and Spanish.
         """
